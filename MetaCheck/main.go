@@ -4,7 +4,11 @@ import (
 	"log"
 	"os"
 	"text/template"
+
 )
+type customers struct{
+	Customers []customer
+}
 
 type customer struct {
 	Id      int
@@ -39,6 +43,15 @@ type page struct {
 	Archive     string
 }
 
+func(s site) SiteName(n string) string{
+	if n == ""{
+		return "Site Name"
+	}
+		return n
+
+
+}
+
 var tpl *template.Template
 
 func init() {
@@ -47,47 +60,51 @@ func init() {
 
 func main() {
 
-
-
 	//Test Data ----------------------------------------------
-	c := customer{
-		Id:      1,
-		Name:    "Abbvie",
-		Archive: false,
-		Sites: []site{
-			site{
-				Id:         1,
-				CustomerId: 1,
-				Name:       "https://m.humira.com/",
-				Url:        "https://m.humira.com/",
-				Archive:    false,
-				Pages: []page{
-					page{
-						Id:     1,
-						SiteId: 1,
-						Name:   "Psoriatic Arthritis",
-						Title:  "HUMIRA® for Psoriatic Arthritis (PsA)",
-						Description: "HUMIRA® (adalimumab) is a biologic medication for adults with 								Psoriatic Arthritis (PsA). Learn more, including BOXED WARNING 								information.",
-					},
-					page{
-						Id:     2,
-						SiteId: 1,
-						Name:   "Crohns",
-						Title:  "About Crohn’s Disease | HUMIRA® (adalimumab)",
-						Description: "HUMIRA® (adalimumab) is for adults with moderate to severe Crohn’s 								disease. Learn more",
+		c := customers{
+			Customers: []customer{
+				customer{
+					Id:      1,
+					Name:    "Abbvie",
+					Archive: false,
+					Sites: []site{
+						site{
+							Id:         1,
+							CustomerId: 1,
+							Name:       "https://m.humira.com/",
+							Url:        "https://m.humira.com/",
+							Archive:    false,
+							Pages: []page{
+								page{
+									Id:          1,
+									SiteId:      1,
+									Name:        "Psoriatic Arthritis",
+									Title:       "HUMIRA® for Psoriatic Arthritis (PsA)",
+									Description: "HUMIRA® (adalimumab) is a biologic medication for adults with 								Psoriatic Arthritis (PsA). Learn more, including BOXED WARNING 								information.",
+								},
+								page{
+									Id:          2,
+									SiteId:      1,
+									Name:        "Crohns",
+									Title:       "About Crohn’s Disease | HUMIRA® (adalimumab)",
+									Description: "HUMIRA® (adalimumab) is for adults with moderate to severe 									Crohn’s disease. Learn more",
+								},
+							},
+						},
 					},
 				},
 			},
-		},
-	}
-
-
-
-
-
+		}
 
 	err := tpl.ExecuteTemplate(os.Stdout, "test.gohtml", c)
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+
+
+
+
+
+
 }

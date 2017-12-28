@@ -5,8 +5,23 @@
     <title>Hello World!</title>
 </head>
 <body>
-{{.Fall.Term}}<br>
-{{$age := .}}
-<h1>I am this many years old: {{$age}}</h1>
+
+{{range .Customers}}
+Customer Name:  {{.Name}}
+{{range .Sites}}
+Site Name:      {{.Name | .SiteName}}<br>
+Url:            {{.Url}}<br>
+
+{{range .Pages}}
+Name:           {{.Name}}<br>
+Title:          {{.Title}}<br>
+Description:    {{.Description}}<br>
+
+{{end}}
+{{end}}
+{{end}}
+
+
+
 </body>
 </html>
