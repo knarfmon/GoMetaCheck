@@ -7,15 +7,17 @@
 <body>
 
 {{range .Customers}}
-Customer Name:  {{.Name}}
+Customer Name:  {{.Name}}<br><br>
 {{range .Sites}}
 Site Name:      {{.Name | .SiteName}}<br>
-Url:            {{.Url}}<br>
+Url:            {{.Url}}<br><br>
 
+{{if .Pages}}
 {{range .Pages}}
 Name:           {{.Name}}<br>
 Title:          {{.Title}}<br>
-Description:    {{.Description}}<br>
+Description:    {{.Description}}<br><br><br>
+{{end}}
 
 {{end}}
 {{end}}
