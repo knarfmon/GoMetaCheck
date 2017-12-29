@@ -59,9 +59,10 @@ func init() {
 
 func main() {
 
-	//http.HandleFunc("/", index)
-	http.HandleFunc("/pages", pages)
-	http.ListenAndServe(":8082", nil)
+	http.HandleFunc("/", index)
+	http.HandleFunc("/index", index)
+	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
+	http.ListenAndServe(":8081", nil)
 
 }
 
@@ -106,8 +107,8 @@ func data() customers {
 	return mydata
 }
 
-func pages(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "pages.gohtml", data())
+func index(w http.ResponseWriter, _ *http.Request) {
+	err := tpl.ExecuteTemplate(w, "index.gohtml", data())
 	HandleError(w, err)
 
 }
