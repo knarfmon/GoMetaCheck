@@ -61,8 +61,11 @@ func main() {
 
 	http.HandleFunc("/", index)
 	http.HandleFunc("/index", index)
+	http.HandleFunc("/about", about)
+	http.HandleFunc("/contact", contact)
+	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8081", nil)
+	http.ListenAndServe(":8083", nil)
 
 }
 
@@ -118,4 +121,14 @@ func HandleError(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Fatalln(err)
 	}
+}
+
+func about(w http.ResponseWriter, _ *http.Request) {
+	err := tpl.ExecuteTemplate(w, "about.gohtml", nil)
+	HandleError(w, err)
+}
+
+func contact(w http.ResponseWriter, _ *http.Request) {
+	err := tpl.ExecuteTemplate(w, "contact.gohtml", nil)
+	HandleError(w, err)
 }
