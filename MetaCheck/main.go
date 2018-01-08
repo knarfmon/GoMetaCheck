@@ -65,7 +65,7 @@ func main() {
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8097", nil)
+	http.ListenAndServe(":8104", nil)
 
 }
 
@@ -111,7 +111,7 @@ func data() customers {
 }
 
 func index(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "index.gohtml", data())
+	err := tpl.ExecuteTemplate(w, "index.gohtml", nil)
 	HandleError(w, err)
 
 }
@@ -124,7 +124,7 @@ func HandleError(w http.ResponseWriter, err error) {
 }
 
 func menuCustomers(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "customers.gohtml", nil)
+	err := tpl.ExecuteTemplate(w, "customers.gohtml", data())
 	HandleError(w, err)
 }
 

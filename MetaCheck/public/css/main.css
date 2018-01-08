@@ -6,7 +6,7 @@ html, body, header, nav, button, main, h1 {
 }
 
 html {
-    color: white;
+    color: black;
     font-size: 1vw;
 }
 
@@ -37,6 +37,7 @@ header {
     justify-content: space-between;
     align-items: center;
     /* format */
+    color: white;
     background-color: gray;
     border-bottom: 1px solid darkgray;
 }
