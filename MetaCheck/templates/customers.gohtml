@@ -5,14 +5,20 @@
     <title>MetaCheck</title>
     <link rel="stylesheet" href="public/css/reset.css">
     <link rel="stylesheet" href="public/css/main.css">
+    {{/*<link rel="stylesheet" href="public/css/customers.css">*/}}
 </head>
 <body>
+
 {{template "header"}}
-<strong>ABOUT</strong><br>
+
+{{/*<strong>ABOUT</strong><br>
 <a href="/">index</a><br>
 <a href="/about">about</a><br>
-<a href="/contact">contact</a><br>
+<a href="/contact">contact</a><br>*/}}
 
+<h3>Customers</h3>
+
+<p><a href="/createCustomer">Create New</a></p>
 
 {{range .Customers}}
 Customer Name:  {{.Name}}<br><br>

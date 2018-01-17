@@ -1,4 +1,4 @@
-package mytest
+package Seagull
 
 import (
 	"net/http"

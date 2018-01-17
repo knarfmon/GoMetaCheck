@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            height: 100vh;
+        }
+        p {
+            margin-left: 4rem;
+            font-size: 1rem;
+            color: black;
+        }
+
+        /*.link {
+            font-size: 1rem;
+        }*/
+    </style>
+</head>
+<body>
+
+
+{{template "header"}}<br><br><br><br>
+
+
+<h2>Customers</h2>
+<p class="link"><a href="/customers/create">Create New</a></p>
+
+<br><br>
+
+ Name
+{{range .}}
+    <p>{{.Name}}</p>
+{{ end }}
+
+
+
+
+</body>
+</html>
+
+
+
+{{/*
+{{range .customers}}
+Customer Name:  {{.name}}<br><br>
+{{range .sites}}
+Site Name:      {{.name | .SiteName}}<br>
+Url:            {{.url}}<br><br>
+
+{{if .pages}}
+{{range .pages}}
+Name:           {{.name}}<br>
+Title:          {{.title}}<br>
+Description:    {{.description}}<br><br><br>
+{{end}}
+
+{{end}}
+{{end}}
+{{end}}
+
+
+</body>
+</html>*/}}

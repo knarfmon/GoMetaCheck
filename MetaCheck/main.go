@@ -65,7 +65,7 @@ func main() {
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8104", nil)
+	http.ListenAndServe(":8080", nil)
 
 }
 
