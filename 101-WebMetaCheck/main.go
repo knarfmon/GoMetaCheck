@@ -1,14 +1,12 @@
 package main  //====web======  metacheck
 
 import (
-	"database/sql"
 
-	_ "github.com/go-sql-driver/mysql"
-	"html/template"
+
 	"log"
 	"net/http"
 
-	"os"
+
 	//"fmt"
 
 
@@ -18,12 +16,7 @@ import (
 	customers []customer
 }*/
 
-type customer struct {
-	Id      int
-	Name    string
-	Archive bool
 
-}
 
 /*type customer struct {
 	Id      int
@@ -65,30 +58,19 @@ type page struct {
 	return n
 
 }*/
-var db *sql.DB
-var tpl *template.Template
-
-func init()  {
 
 
-tpl = template.Must(template.ParseGlob("templates/*"))
-}
+
+
+
+
+
+
 
 func main() {    //====web====== init()
 
 
-	/*var (
-		connectionName = mustGetenv("CLOUDSQL_CONNECTION_NAME")   =====web
-		user           = mustGetenv("CLOUDSQL_USER")
-		password       = os.Getenv("CLOUDSQL_PASSWORD")
-	)*/
 
-	var err error
-	db, err = sql.Open("mysql","knarfmon:Great4me@/getmetacheck")
-	//db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@cloudsql(%s)/getmetacheck", user, password, connectionName)) ===web
-	if err != nil {
-		log.Fatalf("Could not open db: %v", err)
-	}
 
 
 
@@ -100,56 +82,16 @@ func main() {    //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8093", nil)  //===== not here for web
+	http.ListenAndServe(":8092", nil)  //===== not here for web
 
 }
 
 
 
 
-func test(w http.ResponseWriter, r *http.Request) {
-
-	rows, err := db.Query("SELECT * FROM customer")
-	if err != nil {
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
 
 
 
-	defer rows.Close()
-
-	css := make([]customer, 0)
-
-	for rows.Next() {
-
-		cs := customer{}
-		err := rows.Scan(&cs.Id,&cs.Name,&cs.Archive) // order matters, everything in select statement
-
-		if err != nil {
-			http.Error(w, http.StatusText(500), 500)
-			return
-		}
-
-		css = append(css, cs)
-
-
-	}
-	if err = rows.Err(); err != nil {
-		http.Error(w, http.StatusText(500), 500)
-
-		return
-	}
-	tpl.ExecuteTemplate(w, "customers.gohtml", css)
-}
-
-func mustGetenv(k string) string {
-	v := os.Getenv(k)
-	if v == "" {
-		log.Panicf("%s environment variable not set.", k)
-	}
-	return v
-}
 
 
 /*func data() customers {
