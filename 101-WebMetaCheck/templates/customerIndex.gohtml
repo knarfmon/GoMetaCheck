@@ -18,7 +18,7 @@
             padding-left: 40px;
         }
         p {
-            margin-left: 4rem;
+            /*margin-left: 4rem;*/
             font-size: 1rem;
             color: black;
         }
@@ -27,8 +27,8 @@
             margin-left: 4rem;
         }
         hr{
-            width: 86vw;
-            margin-left: 4rem;
+            width:100%;
+            /*margin-left: 4rem;*/
             size: 1px;
 
         }
@@ -40,7 +40,31 @@
         .link {
             font-size: 1rem;
             color: dodgerblue;
-            margin-left: 65vw;
+            /*margin-left: 65vw;*/
+            justify-items: flex-end;
+
+        }
+        section{
+            display: flex;
+            flex-flow: wrap;
+            /*justify-content: space-between;*/
+            /* formatting */
+
+            margin-left: 4rem;
+            margin-right: 4vw;
+        }
+        div {
+
+        }
+       .left{
+           justify-content: left;
+           /*float: left;*/
+           margin-right:50px;
+           width: 75%;
+           /*color: dodgerblue;*/
+       }
+        a:hover{
+            color: blue;
         }
     </style>
 </head>
@@ -55,18 +79,26 @@
 
 <br>
 
- <h3>Name</h3>
+<h3>Name</h3>
+<section>
+
+
 {{range .}}
 
-    <p>{{.Name}}<span class="link"><a href="/customer/site">Site(s)</a> |
-        <a href="/customer/edit">Edit</a> |
-        <a href="/customer/import">Import</a> |
-        <a href="/customer/archive">Archive</a></span></p>
+
+
+    <p><div class="left">
+    <a href="/customer/site?id={{.Id}}">{{.Name}}</a></div>
+
+     <div class="link">
+
+        <a href="/customer/update?id={{.Id}}">Edit</a>
+       </div></p>
 
     <hr>
 {{ end }}
 
-
+</section>
 
 
 </body>

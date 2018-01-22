@@ -1,16 +1,13 @@
 package main  //====web======  metacheck
 
+
 import (
-
-
-	"log"
 	"net/http"
-
-
-	//"fmt"
-
-
+	"github.com/knarfmon/GoMetaCheck/101-WebMetaCheck/customer"
 )
+
+
+
 
 /*type customers struct {
 	customers []customer
@@ -76,13 +73,18 @@ func main() {    //====web====== init()
 
 
 	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
-	http.HandleFunc("/", index)
-	http.HandleFunc("/index", index)
-	http.HandleFunc("/customers",test)
+	http.HandleFunc("/", customer.Index)
+	http.HandleFunc("/index", customer.Index)
+	http.HandleFunc("/customers",customer.CustomerIndex)
+	http.HandleFunc("/customer/create",customer.CustomerCreate)
+	http.HandleFunc("/customer/create/process",customer.CustomerCreateProcess)
+	http.HandleFunc("/customer/update",customer.CustomerUpdate)
+	http.HandleFunc("/customer/update/process",customer.CustomerUpdateProcess)
+
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8092", nil)  //===== not here for web
+	http.ListenAndServe(":8096", nil)  //===== not here for web
 
 }
 
@@ -132,18 +134,7 @@ func main() {    //====web====== init()
 	return mydata
 }*/
 
-func index(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "index.gohtml", nil)
-	HandleError(w, err)
 
-}
-
-func HandleError(w http.ResponseWriter, err error) {
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Fatalln(err)
-	}
-}
 
 /*func menuCustomers(w http.ResponseWriter, _ *http.Request) {
 	err := tpl.ExecuteTemplate(w, "customers.gohtml", data())

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"os"
+
 )
 var DB *sql.DB
 
@@ -23,10 +23,11 @@ func init(){
 	}
 }
 
+/*
 func mustGetenv(k string) string {
 	v := os.Getenv(k)
 	if v == "" {
 		log.Panicf("%s environment variable not set.", k)
 	}
 	return v
-}
+}*/
