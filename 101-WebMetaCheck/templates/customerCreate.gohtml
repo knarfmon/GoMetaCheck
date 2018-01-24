@@ -40,7 +40,13 @@
             color: blue;
             border: 1px solid black;
         }
-        #button{
+        .buttonarea{
+            display: flex;
+            width: 15vw;
+            justify-content: space-between;
+        }
+
+        .button{
 
             display: flex;
             justify-content: center;
@@ -50,14 +56,14 @@
             background-color: gray;
             font-size: 1.5vw;
             padding: 10px 30px;
-            margin-right: 10px;
-            width: 6vw;
+            margin-right: 15px;
+            width: 8vw;
 
 
             cursor: pointer;
             border-radius: 8px;
         }
-        #button:hover {
+        .button:hover {
             color: #000;
             background-color: lightgrey;
         }
@@ -79,7 +85,10 @@
 <form method="post" action="/customer/create/process">
     <input type="text" name="name" placeholder="Customer's Name" required autofocus>
     <br>
-    <input id="button" type="submit">
+    <div class = "buttonarea"><input class="button" type="submit">
+        <a href="/customers" class="button">Cancel</a>
+    </div>
+
 </form>
 
 </body>

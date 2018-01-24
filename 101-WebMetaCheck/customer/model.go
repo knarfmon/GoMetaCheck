@@ -12,14 +12,16 @@ type Customer struct {
 	Id      	int
 	Name    	string
 	Archive 	bool
+	Sites		[]Site
 }
 
 type Site struct {
-	Id         int
-	CustomerId int
-	Name       string
-	Url        string
-	Archive    bool
+	Id         	int
+	CustomerId 	int
+	Name       	string
+	Url        	string
+	Archive		bool
+	Customer	*Customer
 }
 
 
@@ -117,4 +119,36 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 		return cs, err
 	}
 	return cs, nil
+}
+
+func GetCustomerSite(r *http.Request) (customer Customer, err error) {
+	customer = Customer{}
+	customer.Sites = []Site{}
+
+	strId := r.FormValue("id")
+	newId, err := strconv.Atoi(strId)
+	if err != nil {
+		return customer, errors.New("406. Not Acceptable. Id not of correct type")
+	}
+	customer.Id = newId
+
+	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", customer.Id)
+
+	err = row.Scan(&customer.Id, &customer.Name, &customer.Archive)
+
+	rows, err := config.DB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
+
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		site := Site{Customer: &customer}
+		err = rows.Scan(&site.Id, &site.Name, &site.Url,&site.Archive)
+		if err != nil {
+			return
+		}
+		customer.Sites = append(customer.Sites, site)
+	}
+	rows.Close()
+	return
 }

@@ -58,19 +58,7 @@ type page struct {
 
 
 
-
-
-
-
-
-
 func main() {    //====web====== init()
-
-
-
-
-
-
 
 	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
 	http.HandleFunc("/", customer.Index)
@@ -80,65 +68,13 @@ func main() {    //====web====== init()
 	http.HandleFunc("/customer/create/process",customer.CustomerCreateProcess)
 	http.HandleFunc("/customer/update",customer.CustomerUpdate)
 	http.HandleFunc("/customer/update/process",customer.CustomerUpdateProcess)
-
+	http.HandleFunc("/customer/site",customer.CustomerSiteIndex)
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8096", nil)  //===== not here for web
+	http.ListenAndServe(":8102", nil)  //===== not here for web
 
 }
 
-
-
-
-
-
-
-
-
-/*func data() customers {
-	mydata := customers{
-		Customers: []customer{
-			customer{
-				Id:      1,
-				Name:    "Frank a doodle do",
-				Archive: false,
-				Sites: []site{
-					site{
-						Id:         1,
-						CustomerId: 1,
-						Name:       "",
-						Url:        "https://m.humira.com/",
-						Archive:    false,
-						Pages: []page{
-							page{
-								Id:     1,
-								SiteId: 1,
-								Name:   "Psoriatic Arthritis",
-								Title:  "HUMIRA® for Psoriatic Arthritis (PsA)",
-								Description: "HUMIRA® (adalimumab) is a biologic medication for adults with 								Psoriatic Arthritis (PsA). Learn more, including BOXED WARNING 								information.",
-							},
-							page{
-								Id:     2,
-								SiteId: 1,
-								Name:   "Crohns",
-								Title:  "About Crohn’s Disease | HUMIRA® (adalimumab)",
-								Description: "HUMIRA® (adalimumab) is for adults with moderate to severe 									Crohn’s disease. Learn more",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-	return mydata
-}*/
-
-
-
-/*func menuCustomers(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "customers.gohtml", data())
-	HandleError(w, err)
-}*/
 
 

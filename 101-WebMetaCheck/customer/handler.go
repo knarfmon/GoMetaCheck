@@ -90,5 +90,20 @@ func CustomerUpdateProcess(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/customers", http.StatusSeeOther)
 }
 
-
+func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	css, err := GetCustomerSite(r)
+	switch {
+	case err == sql.ErrNoRows:
+		http.NotFound(w, r)
+		return
+	case err != nil:
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
+}
 
