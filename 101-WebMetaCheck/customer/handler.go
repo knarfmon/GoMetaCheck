@@ -107,3 +107,92 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
 }
 
+func SiteCreate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	site, err := PrePutSite(r)
+	if err != nil {
+		http.Error(w, http.StatusText(406), http.StatusMethodNotAllowed)
+		return
+	}
+
+	config.TPL.ExecuteTemplate(w, "siteCreate.gohtml", site)
+}
+
+
+
+func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, err := PutSite(r)
+	if err != nil {
+		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
+		return
+	}
+
+	css, err := GetCustomerSite(r)
+	switch {
+	case err == sql.ErrNoRows:
+		http.NotFound(w, r)
+		return
+	case err != nil:
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+
+
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
+}
+
+func SiteUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	oneSite, err := OneSite(r)
+	switch {
+	case err == sql.ErrNoRows:
+		http.NotFound(w, r)
+		return
+	case err != nil:
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	config.TPL.ExecuteTemplate(w, "siteUpdate.gohtml", oneSite)
+}
+
+func SiteUpdateProcess(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, err := UpdateSite(r)
+	if err != nil {
+		http.Error(w, http.StatusText(406), http.StatusBadRequest)
+		return
+	}
+
+	css, err := GetCustomerSite(r)
+	switch {
+	case err == sql.ErrNoRows:
+		http.NotFound(w, r)
+		return
+	case err != nil:
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+
+
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
+	//http.Redirect(w, r, "/customers", http.StatusSeeOther)
+}

@@ -4,6 +4,8 @@ package main  //====web======  metacheck
 import (
 	"net/http"
 	"github.com/knarfmon/GoMetaCheck/101-WebMetaCheck/customer"
+
+
 )
 
 
@@ -69,10 +71,14 @@ func main() {    //====web====== init()
 	http.HandleFunc("/customer/update",customer.CustomerUpdate)
 	http.HandleFunc("/customer/update/process",customer.CustomerUpdateProcess)
 	http.HandleFunc("/customer/site",customer.CustomerSiteIndex)
+	http.HandleFunc("/site/create",customer.SiteCreate)
+	http.HandleFunc("/site/create/process",customer.SiteCreateProcess)
+	http.HandleFunc("/site/update",customer.SiteUpdate)
+	http.HandleFunc("/site/update/process",customer.SiteUpdateProcess)
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8102", nil)  //===== not here for web
+	http.ListenAndServe(":8085", nil)  //===== not here for web
 
 }
 

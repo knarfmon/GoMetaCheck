@@ -3,6 +3,7 @@ package customer
 import (
 	"errors"
 	"github.com/knarfmon/GoMetaCheck/101-WebMetaCheck/config"
+
 	"net/http"
 	"strconv"
 )
@@ -125,7 +126,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	customer = Customer{}
 	customer.Sites = []Site{}
 
-	strId := r.FormValue("id")
+	strId := r.FormValue("customer_id")
 	newId, err := strconv.Atoi(strId)
 	if err != nil {
 		return customer, errors.New("406. Not Acceptable. Id not of correct type")
@@ -151,4 +152,102 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	}
 	rows.Close()
 	return
+}
+func PrePutSite(r *http.Request) (Site, error) {
+	// get form values
+	site := Site{}
+	strId := r.FormValue("customer_id")
+	newId, err := strconv.Atoi(strId)
+
+	if err != nil {
+		return site, errors.New("406. Not Acceptable. Id not of correct type")
+	}
+	site.Name = strId
+	site.CustomerId = newId
+	return site, nil
+}
+
+
+
+func PutSite(r *http.Request) (Site, error) {
+	// get form values
+	site := Site{}
+	site.Name = r.FormValue("name")
+	site.Url = r.FormValue("url")
+
+	strId := r.FormValue("customer_id")
+	newId, err := strconv.Atoi(strId)
+	if err != nil {
+		return site, errors.New("406. Not Acceptable. Id not of correct type") //406
+	}
+	site.CustomerId = newId
+
+
+	// validate form values
+	if site.Name == "" || site.Url == ""  {
+		return site, errors.New("400. Bad request. All fields must be complete.")
+	}
+
+	// insert values
+	_, err = config.DB.Exec("INSERT INTO site (name,url,customer_id) VALUES (?,?,?)", site.Name,site.Url,site.CustomerId)
+	if err != nil {
+		return site, errors.New("500. Internal Server Error." + err.Error())
+	}
+	return site, nil
+}
+
+func OneSite(r *http.Request) (Site, error) {
+	site := Site{}
+	strId := r.FormValue("site_id")
+	if strId == "" {
+		return site, errors.New("400. Bad Request.")
+	}
+	intId, err := strconv.Atoi(strId)
+	if err != nil {
+		return site, errors.New("406. Not Acceptable. Id not of correct type") //406
+	}
+
+	site.Id = intId
+
+	row := config.DB.QueryRow("SELECT id,name,url,customer_id FROM site WHERE id = ?", site.Id)
+
+	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.CustomerId)
+	if err != nil {
+		return site, err
+	}
+
+	return site, nil
+}
+
+func UpdateSite(r *http.Request) (Site, error) {
+	// get form values
+	site := Site{}
+	site.Name = r.FormValue("name")
+	site.Url = r.FormValue("url")
+	strId := r.FormValue("site_id")
+	strCustomerId := r.FormValue("customer_id")
+
+	if site.Name == "" || site.Url == ""  {
+		return site, errors.New("400. Bad request. All fields must be complete.")
+	}
+
+	intId, err := strconv.Atoi(strId)
+	if err != nil {
+		return site, errors.New("406. Not Acceptable. Id not of correct type")
+	}
+	site.Id = intId
+
+	intCustomerId, err := strconv.Atoi(strCustomerId)
+	if err != nil {
+		return site, errors.New("406. Not Acceptable. Id not of correct type")
+	}
+	site.CustomerId = intCustomerId
+
+
+	// insert values
+	_, err = config.DB.Exec("UPDATE site SET name=?,url=? WHERE id=?;", site.Name, site.Url, site.Id)
+	if err != nil {
+		return site, err
+	}
+	return site, nil
 }

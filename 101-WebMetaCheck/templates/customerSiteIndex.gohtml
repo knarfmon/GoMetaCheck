@@ -82,8 +82,9 @@
 
 <h2>Sites For Customer: {{.Name}}</h2>
 
-<p class="createlink"><a href="/customer/create">Create New</a></p>
-
+<p class="createlink"><a href="/site/create?customer_id={{.Id}}">Create New Manually</a></p>
+<br>
+<p class="createlink"><a href="/site/create">Create New From CSV File</a></p>
 <br>
 
 
@@ -103,7 +104,7 @@
 
     <div class="link">
 
-        <a href="/customer/update?id={{.Id}}">Edit</a>
+        <a href="/site/update?site_id={{.Id}}">Edit</a>
     </div></p>
 
     <hr>
