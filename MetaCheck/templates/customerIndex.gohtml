@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            height: 100vh;
+            padding-left: 40px;
+        }
+        p {
+            /*margin-left: 4rem;*/
+            font-size: 1rem;
+            color: black;
+        }
+
+        h2,h3 {
+            margin-left: 4rem;
+        }
+        hr{
+            width:100%;
+            /*margin-left: 4rem;*/
+            size: 1px;
+
+        }
+        .createlink {
+            font-size: 1rem;
+            color: dodgerblue;
+            margin-left: 4rem;
+        }
+        .link {
+            font-size: 1rem;
+            color: dodgerblue;
+            /*margin-left: 65vw;*/
+            justify-items: flex-end;
+
+        }
+        section{
+            display: flex;
+            flex-flow: wrap;
+            /*justify-content: space-between;*/
+            /* formatting */
+
+            margin-left: 4rem;
+            margin-right: 4vw;
+        }
+        div {
+
+        }
+       .left{
+           justify-content: left;
+           /*float: left;*/
+           margin-right:50px;
+           width: 75%;
+           /*color: dodgerblue;*/
+       }
+        a:hover{
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+
+
+{{template "header"}}<br><br><br><br>
+
+
+<h2>Customers</h2>
+<p class="createlink"><a href="/customer/create">Create New</a></p>
+
+<br>
+
+<h3>Name</h3>
+<section>
+
+
+{{range .}}
+
+
+
+    <p><div class="left">
+    <a href="/customer/site?customer_id={{.Id}}">{{.Name}}</a></div>
+
+     <div class="link">
+
+        <a href="/customer/update?id={{.Id}}">Edit</a>
+       </div></p>
+
+    <hr>
+{{ end }}
+
+</section>
+
+
+</body>
+</html>
+
+
+
+{{/*
+{{range .customers}}
+Customer Name:  {{.name}}<br><br>
+{{range .sites}}
+Site Name:      {{.name | .SiteName}}<br>
+Url:            {{.url}}<br><br>
+
+{{if .pages}}
+{{range .pages}}
+Name:           {{.name}}<br>
+Title:          {{.title}}<br>
+Description:    {{.description}}<br><br><br>
+{{end}}
+
+{{end}}
+{{end}}
+{{end}}
+
+
+</body>
+</html>*/}}

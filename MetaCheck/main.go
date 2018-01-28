@@ -1,131 +1,61 @@
-package main
+package main  //====web======  metacheck
+
 
 import (
-	"html/template"
-	"log"
 	"net/http"
+	"github.com/knarfmon/GoMetaCheck/MetaCheck/customer"
+
+
 )
 
-type customers struct {
-	Customers []customer
-}
 
-type customer struct {
-	Id      int
-	Name    string
-	Archive bool
-	Sites   []site
-}
 
-type site struct {
-	Id         int
-	CustomerId int
-	Name       string
-	Url        string
-	Archive    bool
-	Pages      []page
-}
 
-type page struct {
-	Id          int
-	SiteId      int
-	Name        string
-	UxNumber    int
-	Url         string
-	Status      int
-	Title       string
-	Description string
-	Canonical   string
-	MetaRobot   string
-	OgTitle     string
-	OgDesc      string
-	OgImage     string
-	Archive     string
-}
+/*type customers struct {
+	customers []customer
+}*/
 
-func (s site) SiteName(n string) string {
+
+
+
+
+
+
+
+
+/*func (s site) SiteName(n string) string {
 	if n == "" {
 		return "Site Name"
 	}
 	return n
 
-}
+}*/
 
-var tpl *template.Template
 
-func init() {
-	tpl = template.Must(template.ParseGlob("templates/*"))
-}
 
-func main() {
+func main() {    //====web====== init()
 
-	http.HandleFunc("/", index)
-	http.HandleFunc("/index", index)
-	http.HandleFunc("/customers",menuCustomers)
+	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
+	http.HandleFunc("/", customer.Index)
+	http.HandleFunc("/index", customer.Index)
+	http.HandleFunc("/customers",customer.CustomerIndex)
+	http.HandleFunc("/customer/create",customer.CustomerCreate)
+	http.HandleFunc("/customer/create/process",customer.CustomerCreateProcess)
+	http.HandleFunc("/customer/update",customer.CustomerUpdate)
+	http.HandleFunc("/customer/update/process",customer.CustomerUpdateProcess)
+	http.HandleFunc("/customer/site",customer.CustomerSiteIndex)
+	http.HandleFunc("/site/create",customer.SiteCreate)
+	http.HandleFunc("/site/create/process",customer.SiteCreateProcess)
+	http.HandleFunc("/site/update",customer.SiteUpdate)
+	http.HandleFunc("/site/update/process",customer.SiteUpdateProcess)
+	http.HandleFunc("/site/upload",customer.SiteUpload)
+	http.HandleFunc("/site/upload/process",customer.SiteUploadProcess)
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8104", nil)  //===== not here for web
 
 }
 
-//Test Data ----------------------------------------------
-//var m customers = data()
-
-func data() customers {
-	mydata := customers{
-		Customers: []customer{
-			customer{
-				Id:      1,
-				Name:    "Abbvie",
-				Archive: false,
-				Sites: []site{
-					site{
-						Id:         1,
-						CustomerId: 1,
-						Name:       "",
-						Url:        "https://m.humira.com/",
-						Archive:    false,
-						Pages: []page{
-							page{
-								Id:     1,
-								SiteId: 1,
-								Name:   "Psoriatic Arthritis",
-								Title:  "HUMIRA® for Psoriatic Arthritis (PsA)",
-								Description: "HUMIRA® (adalimumab) is a biologic medication for adults with 								Psoriatic Arthritis (PsA). Learn more, including BOXED WARNING 								information.",
-							},
-							page{
-								Id:     2,
-								SiteId: 1,
-								Name:   "Crohns",
-								Title:  "About Crohn’s Disease | HUMIRA® (adalimumab)",
-								Description: "HUMIRA® (adalimumab) is for adults with moderate to severe 									Crohn’s disease. Learn more",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-	return mydata
-}
-
-func index(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "index.gohtml", nil)
-	HandleError(w, err)
-
-}
-
-func HandleError(w http.ResponseWriter, err error) {
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Fatalln(err)
-	}
-}
-
-func menuCustomers(w http.ResponseWriter, _ *http.Request) {
-	err := tpl.ExecuteTemplate(w, "customers.gohtml", data())
-	HandleError(w, err)
-}
 
 

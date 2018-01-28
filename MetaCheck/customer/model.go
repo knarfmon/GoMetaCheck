@@ -2,7 +2,7 @@ package customer
 
 import (
 	"errors"
-	"github.com/knarfmon/GoMetaCheck/101-WebMetaCheck/config"
+	"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
 
 	"net/http"
 	"strconv"
@@ -23,7 +23,6 @@ type Site struct {
 	Url        	string
 	Archive		bool
 	Customer	*Customer
-	Pages		[]Page
 }
 
 type Page struct {
@@ -266,5 +265,34 @@ func UpdateSite(r *http.Request) (Site, error) {
 	if err != nil {
 		return site, err
 	}
+	return site, nil
+}
+
+func PreUploadSite (r *http.Request) (Site, error) {
+	site := Site{}
+	site.Name = r.FormValue("name")
+	strId := r.FormValue("site_id")
+	intId, err := strconv.Atoi(strId)
+	if err != nil {
+		return site, errors.New("406. Not Acceptable. Id not of correct type")
+	}
+	site.Id = intId
+	return site, nil
+}
+
+func UploadSite (r *http.Request) (Site, error) {
+	site := Site{}
+	site.Name = r.FormValue("name")
+	strId := r.FormValue("site_id")
+	intId, err := strconv.Atoi(strId)
+	if err != nil {
+		return site, errors.New("406. Not Acceptable. Id not of correct type")
+	}
+	site.Id = intId
+
+
+
+
+
 	return site, nil
 }
