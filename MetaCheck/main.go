@@ -11,17 +11,6 @@ import (
 
 
 
-/*type customers struct {
-	customers []customer
-}*/
-
-
-
-
-
-
-
-
 
 /*func (s site) SiteName(n string) string {
 	if n == "" {
@@ -53,7 +42,7 @@ func main() {    //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8104", nil)  //===== not here for web
+	http.ListenAndServe(":8085", nil)  //===== not here for web
 
 }
 

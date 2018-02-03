@@ -3,9 +3,17 @@ package customer
 import (
 	"errors"
 	"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
-
+	"log"
 	"net/http"
 	"strconv"
+	"os"
+	"encoding/csv"
+
+
+	//"io/ioutil"
+	//"fmt"
+	//"fmt"
+	//"io/ioutil"
 )
 
 
@@ -23,6 +31,7 @@ type Site struct {
 	Url        	string
 	Archive		bool
 	Customer	*Customer
+	Pages		[]Page
 }
 
 type Page struct {
@@ -32,7 +41,7 @@ type Page struct {
 	UxNumber    int
 	Url         string
 	Status      int
-	Title       string
+	Title       string //4
 	Description string
 	Canonical   string
 	MetaRobot   string
@@ -42,6 +51,7 @@ type Page struct {
 	OgUrl		string
 	Archive     bool
 }
+
 
 
 
@@ -280,19 +290,102 @@ func PreUploadSite (r *http.Request) (Site, error) {
 	return site, nil
 }
 
-func UploadSite (r *http.Request) (Site, error) {
+//func UploadSite (r *http.Request) ([]Page, error) {
+func UploadSite (r *http.Request) ([]Page, error) {
+
 	site := Site{}
+	//pages := []Page{}
+
 	site.Name = r.FormValue("name")
 	strId := r.FormValue("site_id")
 	intId, err := strconv.Atoi(strId)
+	//if err != nil {
+	//	return pages, errors.New("406. Not Acceptable. Id not of correct type")
+	//}
+
+	//site.Id = intId
+
+
+	file, _, err := r.FormFile("html")
 	if err != nil {
-		return site, errors.New("406. Not Acceptable. Id not of correct type")
+		panic(err)
 	}
-	site.Id = intId
+	defer file.Close()
+
+	//
+	//fmt.Println("\nfile:", file,  "\nerr", err)     //seperate
+	//bs, err := ioutil.ReadAll(file)  //seperate
+	//s := string(bs)    //seperate
+	//return s, nil     //seperate
 
 
+	rdr := csv.NewReader(file)
+	rdr.FieldsPerRecord = -1
+
+	rows, err := rdr.ReadAll()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pages := make([]Page, 0, len(rows))
+
+	for i, row := range rows {
+		if i < 2 {
+			continue
+		}
+
+		//0 based
+		//title := row[4]
+		title := row[4]
+		//open, _ := strconv.ParseFloat(row[1], 64)
+
+		pages = append(pages, Page{
+			Site_id: intId,
+			Title: title,
+			//Status: status,
+		})
+	}
+
+	//return pages, nil
+	return pages, nil
+}
 
 
+	//pages = prs(header.Filename,site.Id)
 
-	return site, nil
+		//return pages, nil
+
+
+	func prs(filePath string , site_id int) []Page {
+	src, err := os.Open(filePath)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer src.Close()
+
+	rdr := csv.NewReader(src)
+	rows, err := rdr.ReadAll()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	pages := make([]Page, 0, len(rows))
+
+	for i, row := range rows {
+		if i == 0 {
+			continue
+		}
+		title := (row[4])
+
+		//open, _ := strconv.ParseFloat(row[1], 64)
+
+		pages = append(pages, Page{
+			Site_id: site_id,
+			Title: title,
+
+		})
+	}
+
+	return pages
+
 }
