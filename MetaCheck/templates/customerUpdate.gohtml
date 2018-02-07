@@ -80,9 +80,10 @@
 
 <br>
 
-<h3>Name</h3>
+{{/*<h3>Name</h3>*/}}
 
 <form method="post" action="/customer/update/process">
+    <label for="name">Customer Name</label>
     <input type="text" name="name" placeholder="Customer's Name" required autofocus value="{{.Name}}">
     <input type="hidden" name="id" value="{{.Id}}">
     <br>

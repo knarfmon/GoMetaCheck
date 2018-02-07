@@ -1,1 +1,16 @@
-{{.}}
+{{range .}}
+Site:       {{.Site_id}}
+Name:       {{.Name}}
+UxNumber    {{.UxNumber}}
+Url         {{.Url}}
+Status      {{.Status}}
+Title       {{.Title}}
+Description {{.Description}}
+Canonical   {{.Canonical}}
+MetaRobot   {{.MetaRobot}}
+OgTitle     {{.OgTitle}}
+OgDesc      {{.OgDesc}}
+OgImage     {{.OgImage}}
+OgUrl       {{.OgUrl}}
+Archive     {{.Archive}}
+{{end}}

@@ -214,12 +214,12 @@ func SiteUploadProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//pages, err := UploadSite(r)
 	pages, err := UploadSite(r)
+
+	_, err = PutPage(pages)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-	//config.TPL.ExecuteTemplate(w, "sitePagesIndex.gohtml", pages)
 	config.TPL.ExecuteTemplate(w, "sitePagesIndex.gohtml", pages)
 }

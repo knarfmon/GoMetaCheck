@@ -6,14 +6,9 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"os"
 	"encoding/csv"
-
-
-	//"io/ioutil"
-	//"fmt"
-	//"fmt"
-	//"io/ioutil"
+	"strings"
+	"io"
 )
 
 
@@ -51,7 +46,6 @@ type Page struct {
 	OgUrl		string
 	Archive     bool
 }
-
 
 
 
@@ -290,11 +284,11 @@ func PreUploadSite (r *http.Request) (Site, error) {
 	return site, nil
 }
 
-//func UploadSite (r *http.Request) ([]Page, error) {
-func UploadSite (r *http.Request) ([]Page, error) {
+
+func UploadSite4 (r *http.Request) ([]Page, error) {
 
 	site := Site{}
-	//pages := []Page{}
+
 
 	site.Name = r.FormValue("name")
 	strId := r.FormValue("site_id")
@@ -303,7 +297,6 @@ func UploadSite (r *http.Request) ([]Page, error) {
 	//	return pages, errors.New("406. Not Acceptable. Id not of correct type")
 	//}
 
-	//site.Id = intId
 
 
 	file, _, err := r.FormFile("html")
@@ -326,7 +319,7 @@ func UploadSite (r *http.Request) ([]Page, error) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-
+	//pages := []Page{}
 	pages := make([]Page, 0, len(rows))
 
 	for i, row := range rows {
@@ -335,57 +328,152 @@ func UploadSite (r *http.Request) ([]Page, error) {
 		}
 
 		//0 based
-		//title := row[4]
+
+
+		name := fixPageName(row[0])  //add strip function to get name
+		uxNumber := 0
+		url := row[0]
+		status, _ := strconv.Atoi(row[2])
 		title := row[4]
-		//open, _ := strconv.ParseFloat(row[1], 64)
+		description := row[10]
+		canonical := row[25]
+		metaRobot := row[23]
+		ogTitle  := row[42]
+		ogDesc  := row[43]
+		ogImage  := row[44]
+		ogUrl  := row[45]
+		//archive := false
+
 
 		pages = append(pages, Page{
-			Site_id: intId,
-			Title: title,
-			//Status: status,
+			Site_id:	intId,
+			Name: 		name,
+			UxNumber: 	uxNumber,
+			Url:		url,
+			Status:		status,
+			Title: 		title,
+			Description:description,
+			Canonical:	canonical,
+			MetaRobot:	metaRobot,
+			OgTitle:	ogTitle,
+			OgDesc:		ogDesc,
+			OgImage:	ogImage,
+			OgUrl:		ogUrl,
+			Archive:	false,
 		})
 	}
 
-	//return pages, nil
+
 	return pages, nil
 }
 
+	func fixPageName(str string) (string){
 
-	//pages = prs(header.Filename,site.Id)
+		startIndex := strings.LastIndex(str, "/") + 1
+		stopIndex := (len(str))
 
-		//return pages, nil
+		if startIndex == stopIndex{
+			newstr := str[:(len(str))-1]
+			newstartIndex := strings.LastIndex(newstr, "/") + 1
+			newstopIndex := (len(newstr))
+			newstr = newstr[newstartIndex:newstopIndex]
+			newstr = strings.Replace(newstr, "-", " ", -1)
+			newstr = strings.Title(newstr)
 
+			return newstr
 
-	func prs(filePath string , site_id int) []Page {
-	src, err := os.Open(filePath)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer src.Close()
-
-	rdr := csv.NewReader(src)
-	rows, err := rdr.ReadAll()
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	pages := make([]Page, 0, len(rows))
-
-	for i, row := range rows {
-		if i == 0 {
-			continue
 		}
-		title := (row[4])
 
-		//open, _ := strconv.ParseFloat(row[1], 64)
+		str = str[startIndex:stopIndex]
+		str = strings.Replace(str, "-", " ", -1)
+		str = strings.Title(str)
 
-		pages = append(pages, Page{
-			Site_id: site_id,
-			Title: title,
-
-		})
+		return str
 	}
 
-	return pages
+func PutPage(pages []Page) ([]Page, error) {
 
+	for _, p := range pages {
+
+		_, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		p.Site_id,p.Name,p.UxNumber,p.Url,p.Status,p.Title,p.Description,p.Canonical,p.MetaRobot,p.OgTitle,	p.OgDesc,		p.OgImage,p.OgUrl,p.Archive)
+
+		if err != nil {
+			//return pages, errors.New("500. Internal Server Error." + err.Error())
+			log.Fatalf("Could not open db: %v", err)
+		}
+	}
+
+	return pages, nil
 }
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+func UploadSite (r *http.Request) ([]Page, error) {
+
+
+	//site.Name = r.FormValue("name")
+	strId := r.FormValue("site_id")
+	intId, err := strconv.Atoi(strId)
+	//if err != nil {
+	//	return pages, errors.New("406. Not Acceptable. Id not of correct type")
+	//}
+
+	file, _, err := r.FormFile("html")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	rdr := csv.NewReader(file)
+	rdr.FieldsPerRecord = -1
+	columns := make(map[string]int)
+	pages := []Page{}
+	for row := 0; ; row++ {
+		record, err := rdr.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatalln(err)
+		} else if row == 0 {
+			continue
+		} else if row == 1 {
+
+			for idx, column := range record {
+				columns[column] = idx
+			}
+		} else {
+			name := fixPageName(record[columns["Address"]])
+			url := record[columns["Address"]]
+			status,_ := strconv.Atoi(record[columns["Status Code"]])
+			title := record[columns["Title 1"]]
+			description := record[columns["Meta Description 1"]]
+			canonical := record[columns["Canonical Link Element 1"]]
+			metaRobot := record[columns["Meta Robots 1"]]
+			ogTitle := record[columns["og:title 1"]]
+			ogDesc := record[columns["og:description 1"]]
+			ogImage := record[columns["og:image 1"]]
+			ogUrl := record[columns["og:url 1"]]
+
+			pages = append(pages, Page{
+				Site_id:	intId,
+				Name: 		name,
+				UxNumber: 	0,
+				Url:		url,
+				Status:		status,
+				Title: 		title,
+				Description:description,
+				Canonical:	canonical,
+				MetaRobot:	metaRobot,
+				OgTitle:	ogTitle,
+				OgDesc:		ogDesc,
+				OgImage:	ogImage,
+				OgUrl:		ogUrl,
+				Archive:	false,
+			})
+
+		}
+	}
+return pages,nil
+}
+

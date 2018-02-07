@@ -80,13 +80,13 @@
 
 <br>
 
-<h3>Name</h3>
+{{/*<h3>Name</h3>*/}}
 
 <form method="post" action="/site/update/process">
-    <label for="name">Site Name:</label>
+    <label for="name">Site Name</label>
     <input type="text" name="name" placeholder="Site's Name" required autofocus value="{{.Name}}">
     <br>
-    <label for="url">Url:</label>
+    <label for="url">Url</label>
     <input type="text" name="url" placeholder="Site's Url" required value="{{.Url}}">
     <input type="hidden" name="site_id" value="{{.Id}}">
     <input type="hidden" name="customer_id" value="{{.CustomerId}}">
