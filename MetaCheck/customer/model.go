@@ -9,6 +9,10 @@ import (
 	"encoding/csv"
 	"strings"
 	"io"
+	//"github.com/jinzhu/copier"
+	//"fmt"
+
+	"fmt"
 )
 
 
@@ -27,6 +31,7 @@ type Site struct {
 	Archive		bool
 	Customer	*Customer
 	Pages		[]Page
+	Images 		[]Image
 }
 
 type Page struct {
@@ -45,8 +50,19 @@ type Page struct {
 	OgImage     string
 	OgUrl		string
 	Archive     bool
+	Site		*Site
 }
 
+type Image struct {
+	Image_id	int
+	Site_id     int
+	Page_id		int
+	AltText		string
+	ImageUrl 	string
+	Name 		string
+	Notes 		string
+	PageUrl		string
+}
 
 
 func AllCustomers()([]Customer,error) {
@@ -173,6 +189,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	rows.Close()
 	return
 }
+
 func PrePutSite(r *http.Request) (Site, error) {
 	// get form values
 	site := Site{}
@@ -275,12 +292,14 @@ func UpdateSite(r *http.Request) (Site, error) {
 func PreUploadSite (r *http.Request) (Site, error) {
 	site := Site{}
 	site.Name = r.FormValue("name")
+	fmt.Println(site.Name)
 	strId := r.FormValue("site_id")
 	intId, err := strconv.Atoi(strId)
 	if err != nil {
 		return site, errors.New("406. Not Acceptable. Id not of correct type")
 	}
 	site.Id = intId
+
 	return site, nil
 }
 
@@ -391,25 +410,53 @@ func UploadSite4 (r *http.Request) ([]Page, error) {
 		return str
 	}
 
-func PutPage(pages []Page) ([]Page, error) {
+func PutPage(site Site) (error) {		//replaced pages []Page with site Site
 
-	for _, p := range pages {
+	for _, p := range site.Pages {
 
-		_, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		res, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		p.Site_id,p.Name,p.UxNumber,p.Url,p.Status,p.Title,p.Description,p.Canonical,p.MetaRobot,p.OgTitle,	p.OgDesc,		p.OgImage,p.OgUrl,p.Archive)
 
 		if err != nil {
 			//return pages, errors.New("500. Internal Server Error." + err.Error())
 			log.Fatalf("Could not open db: %v", err)
 		}
+		id, err := res.LastInsertId()
+		checkErr(err)
+		p.Page_id = int(id)
+
 	}
 
-	return pages, nil
+	return nil		// 2/10 removed pages from return
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-func UploadSite (r *http.Request) ([]Page, error) {
+func Upload (r *http.Request)(Site, error){  //changed [] Page with Site
+	site := Site{}
+	site, err := UploadHtml(r,site )  //replaced pages with site
+	checkErr(err)
+
+	err = PutPage(site)		//2/10 replaced pages with site   removed pages from return
+	checkErr(err)
+
+
+	site,err = GetPages(r)	//site has updated Page Id so as to match with Image Url Id
+	checkErr(err)
+
+	site, err = UploadImage(r, site)
+	//site, err = addPageIdToImage(site)
+
+	err = PutImage(site)
+	// push image data to mysql
+
+	return site, nil
+
+	//return pages, nil
+}
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+func UploadHtml (r *http.Request, site Site) (Site, error) {     //added site Site  replaced[]Page with Site
 
 
 	//site.Name = r.FormValue("name")
@@ -428,7 +475,9 @@ func UploadSite (r *http.Request) ([]Page, error) {
 	rdr := csv.NewReader(file)
 	rdr.FieldsPerRecord = -1
 	columns := make(map[string]int)
-	pages := []Page{}
+
+	//pages := []Page{}		//removed today
+
 	for row := 0; ; row++ {
 		record, err := rdr.Read()
 		if err == io.EOF {
@@ -455,7 +504,7 @@ func UploadSite (r *http.Request) ([]Page, error) {
 			ogImage := record[columns["og:image 1"]]
 			ogUrl := record[columns["og:url 1"]]
 
-			pages = append(pages, Page{
+			site.Pages = append(site.Pages, Page{
 				Site_id:	intId,
 				Name: 		name,
 				UxNumber: 	0,
@@ -474,6 +523,156 @@ func UploadSite (r *http.Request) ([]Page, error) {
 
 		}
 	}
-return pages,nil
+return site,nil			//replaced pages with site
 }
 
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+
+func GetPages(r *http.Request) (Site, error) {
+
+	name := r.FormValue("name")
+	site := Site{Name: name}
+
+
+	site.Pages = []Page{}
+
+	strId, err :=strconv.Atoi(r.FormValue("site_id"))
+	checkErr(err)
+
+	rows, err := config.DB.Query("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ?", strId)
+
+	if err != nil {
+		log.Fatalf("Could not get records: %v", err)
+	}
+
+	defer rows.Close()
+
+	//pages := make([]Page, 0)
+
+
+	for rows.Next() {
+
+		page := Page{}         // 2/10 uncommented
+		err := rows.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.UxNumber,&page.Url,&page.Status,&page.Title,&page.Description,&page.Canonical,&page.MetaRobot,&page.OgTitle,&page.OgDesc,&page.OgImage,&page.OgUrl,&page.Archive) // order matters, everything in select statement
+
+		checkErr(err)
+
+		site.Pages = append(site.Pages, page)
+	}
+	return site, nil
+}
+
+func UploadImage (r *http.Request, site Site) (Site, error) {
+
+	//site.Name = r.FormValue("name")
+	//fmt.Println(site.Name)
+	strId, err :=strconv.Atoi(r.FormValue("site_id"))
+	checkErr(err)
+
+	file, _, err := r.FormFile("image")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	rdr := csv.NewReader(file)
+	rdr.FieldsPerRecord = -1
+	columns := make(map[string]int)
+	//images := []Image{}
+	for row := 0; ; row++ {
+		record, err := rdr.Read()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatalln(err)
+		} else if row == 0 {
+			continue
+		} else if row == 1 {
+
+			for idx, column := range record {
+				columns[column] = idx
+			}
+		} else {
+			var pageid int
+
+			AltText := record[columns["Alt Text"]]
+			ImageUrl := record[columns["Destination"]]
+			Name := fixPageName(record[columns["Source"]])
+			PageUrl := record[columns["Source"]]
+
+			// adding page id here, cant add without major change with pointers since passing site around
+			for _, outer := range site.Pages{
+				if outer.Url == PageUrl{
+					pageid = outer.Page_id
+				}
+			}
+
+
+
+			site.Images = append(site.Images, Image{
+				Site_id:	strId,
+				AltText: 	AltText,
+				ImageUrl:	ImageUrl,
+				Name: 		Name,
+				PageUrl:	PageUrl,
+				Page_id:	pageid,
+			})
+
+		}
+	}
+	//fmt.Println(images)
+	return site,nil
+}
+
+func addPageIdToImage (site Site) (Site, error) {
+
+	//range over page - out loop
+
+	for outer := 0; outer < len(site.Pages); outer++{
+		for inner := 0; inner < len(site.Images); inner++{
+			if site.Pages[outer].Url == site.Images[inner].PageUrl {
+				site.Images[inner].PageUrl = site.Pages[outer].Url
+			}
+		}
+
+	}
+
+
+	//for _, outer := range site.Pages{
+	//
+	//	for _, inner := range site.Images{
+	//
+	//		if outer.Url == inner.PageUrl{
+	//			inner.Page_id = outer.Page_id
+	//			fmt.Println("Match")
+	//		}
+	//	}
+	//}
+
+	return site, nil
+}
+
+func PutImage(site Site) (error) {		//replaced pages []Page with site Site
+
+	for _, p := range site.Images {
+
+		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url) VALUES (?,?,?,?,?,?,?)",
+			p.Site_id,p.Page_id,p.AltText,p.ImageUrl,p.Name,p.Notes,p.PageUrl)
+
+		if err != nil {
+			//return pages, errors.New("500. Internal Server Error." + err.Error())
+			log.Fatalf("Could not INSERT into image: %v", err)
+		}
+		//id, err := res.LastInsertId()
+		//checkErr(err)
+		//p.Page_id = int(id)
+
+	}
+
+	return nil		// 2/10 removed pages from return
+}

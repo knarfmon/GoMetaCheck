@@ -1,16 +1,153 @@
-{{range .}}
-Site:       {{.Site_id}}
-Name:       {{.Name}}
-UxNumber    {{.UxNumber}}
-Url         {{.Url}}
-Status      {{.Status}}
-Title       {{.Title}}
-Description {{.Description}}
-Canonical   {{.Canonical}}
-MetaRobot   {{.MetaRobot}}
-OgTitle     {{.OgTitle}}
-OgDesc      {{.OgDesc}}
-OgImage     {{.OgImage}}
-OgUrl       {{.OgUrl}}
-Archive     {{.Archive}}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            height: 100vh;
+            width: 100vw;
+            padding-left: 40px;
+        }
+        p {
+            /*margin-left: 4rem;*/
+            font-size: 1rem;
+            color: black;
+        }
+
+        h2 {
+            margin-left: 4rem;
+        }
+        hr{
+            width:100%;
+            /*margin-left: 4rem;*/
+            size: 1px;
+
+        }
+        .createlink {
+            font-size: 1rem;
+            color: dodgerblue;
+            margin-left: 4rem;
+        }
+        .link {
+            font-size: 1rem;
+            color: dodgerblue;
+            /*margin-left: 65vw;*/
+            justify-items: flex-end;
+
+        }
+        section{
+            display: flex;
+            flex-flow: wrap;
+            /*justify-content: space-between;*/
+            /* formatting */
+
+            margin-left: 4rem;
+            margin-right: 4vw;
+        }
+        .col1{
+            justify-content: left;
+
+            width: 35vw;
+        }
+
+
+        .left{
+            justify-content: left;
+            /*float: left;*/
+            /*margin-right:50px;*/
+            width: 35vw;
+            color: dodgerblue;
+        }
+        a:hover{
+            color: blue;
+        }
+        .col2 {
+            width: 35vw;
+            margin-right: 50px;
+        }
+
+    </style>
+</head>
+<body>
+
+
+{{template "header"}}<br><br><br><br>
+
+
+<h2>Pages For Site: {{.Name}}</h2>
+
+<p class="createlink"><a href="/page/create?page_id={{.Page_id}}">Create New</a></p>
+<br>
+
+
+
+<section>
+    <h3 class="col1">Name</h3>
+    <h3 class="col2">Url</h3>
+
+
+
+
+
+
+{{range .Pages}}
+    <p><div class="left">
+    <a href="/customer/site?id={{.Page_id}}">{{.Name}}</a></div>
+    <div class="col2">{{.Url}}</div>
+
+    <div class="link">
+
+        {{/*<a href="/site/update?site_id={{.Id}}">Edit</a> |*/}}
+        {{/*<a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>*/}}
+
+    </div></p>
+
+    <hr>
 {{end}}
+
+</section>
+
+
+</body>
+</html>
+
+        {{/*{{range  .Images}}*/}}
+        {{/*Page_id:    {{.Page_id}}*/}}
+        {{/*Name:       {{.Name}}*/}}
+        {{/*Site_id:	{{.Site_id}}*/}}
+        {{/*AltText: 	{{.AltText}}*/}}
+        {{/*ImageUrl:	{{.ImageUrl}}*/}}
+        {{/*PageUrl:	{{.PageUrl}}*/}}
+
+        {{/*{{end}}*/}}
+
+
+        {{/*{{range .Pages}}*/}}
+
+{{/*Id:         {{.Page_id}}*/}}
+{{/*Site:       {{.Site_id}}*/}}
+{{/*Name:       {{.Name}}*/}}
+{{/*UxNumber    {{.UxNumber}}*/}}
+{{/*Url         {{.Url}}*/}}
+{{/*Status      {{.Status}}*/}}
+{{/*Title       {{.Title}}*/}}
+{{/*Description {{.Description}}*/}}
+{{/*Canonical   {{.Canonical}}*/}}
+{{/*MetaRobot   {{.MetaRobot}}*/}}
+{{/*OgTitle     {{.OgTitle}}*/}}
+{{/*OgDesc      {{.OgDesc}}*/}}
+{{/*OgImage     {{.OgImage}}*/}}
+{{/*OgUrl       {{.OgUrl}}*/}}
+{{/*Archive     {{.Archive}}*/}}
+
+{{/*{{end}}*/}}
