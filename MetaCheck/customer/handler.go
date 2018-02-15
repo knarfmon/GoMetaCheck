@@ -221,17 +221,31 @@ func SiteUploadProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-	config.TPL.ExecuteTemplate(w, "sitePagesIndex.gohtml", site)
+	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", site)
 	//config.TPL.ExecuteTemplate(w, "test.gohtml", site)  // 2/10 replaced pages with site
 }
+
+func PagesIndex(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	customer, err := GetPagesIndex(r)
+	if err != nil {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
+}
+
 
 func PageCreate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
+	config.TPL.ExecuteTemplate(w, "pageCreate.gohtml", nil)
 
 
 
-	//config.TPL.ExecuteTemplate(w, "siteCreate.gohtml", site)
 }
