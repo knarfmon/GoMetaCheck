@@ -76,6 +76,21 @@
             margin-right: 50px;
         }
 
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 7rem;
+        }
+        .sectionTitle1{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
     </style>
 </head>
 <body>
@@ -84,7 +99,15 @@
 {{template "header"}}<br><br><br><br>
 
 
-<h2>Sites For Customer: {{.Name}}</h2>
+<h2>Sites</h2>
+
+
+<div class = "sectionTitle1">
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.Name}}</div>
+</div>
+<br>
+
 
 <p class="createlink"><a href="/site/create?customer_id={{.Id}}">Create New</a></p>
 {{/*<br>*/}}

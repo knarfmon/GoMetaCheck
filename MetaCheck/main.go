@@ -41,10 +41,11 @@ func main() {    //====web====== init()
 	http.HandleFunc("/site/upload/process",customer.SiteUploadProcess)
 	http.HandleFunc("/pages/index",customer.PagesIndex)
 	http.HandleFunc("/page/create",customer.PageCreate)
+	http.HandleFunc("/page/details",customer.PageDetails)
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8085", nil)  //===== not here for web
+	http.ListenAndServe(":8092", nil)  //===== not here for web
 
 }
 

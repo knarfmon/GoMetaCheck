@@ -213,16 +213,14 @@ func SiteUploadProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	site, err := Upload(r)			//2/10  replaced pages with site
-	//pages, err := UploadSite(r)
-
-	//_, err = PutPage(pages)
+	_, err := Upload(r)			//2/10  replaced pages with site
+	customer, err := GetPagesIndex(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", site)
-	//config.TPL.ExecuteTemplate(w, "test.gohtml", site)  // 2/10 replaced pages with site
+	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
+
 }
 
 func PagesIndex(w http.ResponseWriter, r *http.Request) {
@@ -245,7 +243,19 @@ func PageCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	config.TPL.ExecuteTemplate(w, "pageCreate.gohtml", nil)
-
-
-
 }
+
+func PageDetails(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	page,err := GetPageDetails(r)
+	if err != nil {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", page)
+}
+
+
