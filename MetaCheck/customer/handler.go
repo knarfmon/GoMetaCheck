@@ -5,6 +5,7 @@ import (
 			"net/http"
 
 	"database/sql"
+	"fmt"
 )
 
 
@@ -250,12 +251,83 @@ func PageDetails(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	page,err := GetPageDetails(r)
+	pageDetail,err := GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
-	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", page)
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
 }
 
+func PageUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
 
+	pageDetail, err := GetPageDetails(r)
+	switch {
+	case err == sql.ErrNoRows:
+		http.NotFound(w, r)
+		return
+	case err != nil:
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	config.TPL.ExecuteTemplate(w, "pageUpdate.gohtml", pageDetail)
+}
+
+func PageUpdateProcess(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	//_, err := UpdatePage(r)
+	//if err != nil {
+	//	http.Error(w, http.StatusText(406), http.StatusBadRequest)
+	//	return
+	//}
+
+
+//
+//	css, err := GetCustomerSite(r)
+//	switch {
+//	case err == sql.ErrNoRows:
+//		http.NotFound(w, r)
+//		return
+//	case err != nil:
+//		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+//		return
+//	}
+//
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
+}
+
+func ImageUpdateProcess(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	test := r.FormValue("ImageUrl")
+	fmt.Println(test)
+	//_, err := UpdatePage(r)
+	//if err != nil {
+	//	http.Error(w, http.StatusText(406), http.StatusBadRequest)
+	//	return
+	//}
+
+
+	//
+	//	css, err := GetCustomerSite(r)
+	//	switch {
+	//	case err == sql.ErrNoRows:
+	//		http.NotFound(w, r)
+	//		return
+	//	case err != nil:
+	//		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+	//		return
+	//	}
+	//
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
+}

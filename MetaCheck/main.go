@@ -42,10 +42,14 @@ func main() {    //====web====== init()
 	http.HandleFunc("/pages/index",customer.PagesIndex)
 	http.HandleFunc("/page/create",customer.PageCreate)
 	http.HandleFunc("/page/details",customer.PageDetails)
+	http.HandleFunc("/page/update",customer.PageUpdate)
+	//http.HandleFunc("/image/update",customer.ImageUpdate)
+	http.HandleFunc("/page/update/process",customer.PageUpdateProcess)
+	http.HandleFunc("/image/update/process",customer.ImageUpdateProcess)
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8092", nil)  //===== not here for web
+	http.ListenAndServe(":8136", nil)  //===== not here for web
 
 }
 
