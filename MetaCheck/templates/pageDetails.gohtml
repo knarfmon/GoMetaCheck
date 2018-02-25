@@ -193,7 +193,7 @@
 
     <h2>Image Details</h2>
 
-    {{range .ImageDetail}}
+    {{range .Images}}
     <fieldset>
     <div class = "sectionTitle">
         <div class = "titlesDetail">Name:</div>
@@ -213,7 +213,7 @@
 
     <br> <br>
     <div class = "buttonarea">
-        <a href="/image/update?image_id={{.Image_id}}" class="button">Edit</a>
+        <a href="/image/update?image_id={{.Image_id}}&cname={{$cname}}&sname={{$sname}}" class="button">Edit</a>
     </div>
     </fieldset>
     {{end}}

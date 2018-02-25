@@ -12,7 +12,6 @@ import (
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
-	"fmt"
 
 )
 
@@ -70,6 +69,7 @@ type PageDetail struct{
 	SiteName		string
 	Detail			Page
 	Image			Image
+	Images 			[]Image
 }
 func AllCustomers()([]Customer,error) {
 
@@ -298,7 +298,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 func PreUploadSite (r *http.Request) (Site, error) {
 	site := Site{}
 	site.Name = r.FormValue("name")
-	fmt.Println(site.Name)
+
 	strId := r.FormValue("site_id")
 	intId, err := strconv.Atoi(strId)
 	if err != nil {
@@ -764,76 +764,121 @@ func  GetPageDetails(r *http.Request)(PageDetail, error)  {
 	if err != nil {
 		log.Fatalf("Could not scan page details: %v", err)
 	}
-	pageDetail := PageDetail{
-		CustomerName: 	cname,
-		SiteName: 		sname,
-		Detail: 		page,
-
-	}
-
-
-	//+++++++++++++++++++++++++  Image records per page  ++++++++++++++++++++++++++++++++++++
-	//image := Image{}
-	//
-	//rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where page_id = ?", intId)
-	//
-	//if err != nil {
-	//	log.Fatalf("Could not get image records: %v", err)
-	//}
-	//
-	//defer rows.Close()
-	//
-	//for rows.Next() {
-	//
-	//	image := Image{}
-	//	err := rows.Scan(&image.Image_id,&image.Site_id,&image.Page_id,&image.AltText,&image.ImageUrl,&image.Name,&image.Notes,&image.PageUrl)
-	//
-	//	checkErr(err)
-	//
-	//	images = append(images, image)
-	//}
-	//
 	//pageDetail := PageDetail{
 	//	CustomerName: 	cname,
 	//	SiteName: 		sname,
 	//	Detail: 		page,
-	//	ImageDetail:	images,
+	//
 	//}
+
+
+	//+++++++++++++++++++++++++  Image records per page  ++++++++++++++++++++++++++++++++++++
+	images := []Image{}
+
+	rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where page_id = ?", intId)
+
+	if err != nil {
+		log.Fatalf("Could not get image records: %v", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		image := Image{}
+		err := rows.Scan(&image.Image_id,&image.Site_id,&image.Page_id,&image.AltText,&image.ImageUrl,&image.Name,&image.Notes,&image.PageUrl)
+
+		checkErr(err)
+
+		images = append(images, image)
+	}
+
+	pageDetail := PageDetail{
+		CustomerName: 	cname,
+		SiteName: 		sname,
+		Detail: 		page,
+		Images:			images,
+	}
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	//fmt.Println(pageDetail)
 	return pageDetail, nil
 }
 
-//func UpdatePage(r *http.Request) (int, error) {
-//	// get form values for both page and image
-//	page := PageDetail{}
-//	site.Name = r.FormValue("name")
-//	site.Url = r.FormValue("url")
-//	strId := r.FormValue("site_id")
-//	strCustomerId := r.FormValue("customer_id")
-//
-//	if site.Name == "" || site.Url == ""  {
-//		return site, errors.New("400. Bad request. All fields must be complete.")
-//	}
-//
-//	intId, err := strconv.Atoi(strId)
-//	if err != nil {
-//		return site, errors.New("406. Not Acceptable. Id not of correct type")
-//	}
-//	site.Id = intId
-//
-//	intCustomerId, err := strconv.Atoi(strCustomerId)
-//	if err != nil {
-//		return site, errors.New("406. Not Acceptable. Id not of correct type")
-//	}
-//	site.CustomerId = intCustomerId
-//
-//
-//	// insert values
-//	_, err = config.DB.Exec("UPDATE site SET name=?,url=? WHERE id=?;", site.Name, site.Url, site.Id)
-//	if err != nil {
-//		return site, err
-//	}
-//	return site, nil
-//}
+func  GetImageDetails(r *http.Request)(PageDetail, error)  {
+
+	intId, err := strconv.Atoi(r.FormValue("image_id"))
+	checkErr(err)
+	cname := r.FormValue("cname")
+	sname := r.FormValue("sname")
+
+	row := config.DB.QueryRow("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where id = ?", intId)
+
+	if err != nil {
+		log.Fatalf("Could not get image details: %v", err)
+	}
+
+	image := Image{}
+	err = row.Scan(&image.Image_id,&image.Site_id,&image.Page_id,&image.AltText,&image.ImageUrl,&image.Name,&image.Notes,&image.PageUrl)
+
+	if err != nil {
+		log.Fatalf("Could not scan image details: %v", err)
+	}
+	pageDetail := PageDetail{
+		CustomerName: 	cname,
+		SiteName: 		sname,
+		Image: 			image,
+
+	}
+
+
+	return pageDetail, nil
+}
+
+
+func UpdatePage(r *http.Request) ( error) {
+
+	page := Page{}
+
+	page.Page_id,_ = strconv.Atoi(r.FormValue("page_id"))
+	page.Site_id,_ = strconv.Atoi(r.FormValue("site_id"))
+	page.Name = r.FormValue("Name")
+	page.UxNumber,_ = strconv.Atoi(r.FormValue("UxNumber"))
+	page.Url = r.FormValue("Url")
+	page.Status,_ = strconv.Atoi(r.FormValue("Status"))
+	page.Title = r.FormValue("Title")
+	page.Description = r.FormValue("Description")
+	page.Canonical = r.FormValue("Canonical")
+	page.MetaRobot = r.FormValue("MetaRobot")
+	page.OgTitle = r.FormValue("OgTitle")
+	page.OgDesc = r.FormValue("OgDesc")
+	page.OgImage = r.FormValue("OgImage")
+	page.OgUrl = r.FormValue("OgUrl")
+
+
+
+	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=? WHERE id=?;" ,page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl,  page.Page_id)
+	if err != nil {
+		return  err
+	}
+	return  nil
+}
+
+func UpdateImage(r *http.Request) ( error) {
+
+	image := Image{}
+
+	image.Image_id,_ = strconv.Atoi(r.FormValue("image_id"))
+	image.AltText = r.FormValue("AltText")
+	image.ImageUrl = r.FormValue("ImageUrl")
+	image.Name = r.FormValue("Name")
+
+
+	//alt_text,image_url,name,notes,page_url
+
+	_, err := config.DB.Exec("UPDATE image SET alt_text=?,image_url=?,name=? WHERE id=?;" ,image.AltText, image.ImageUrl, image.Name, image.Image_id)
+	if err != nil {
+		return  err
+	}
+	return  nil
+}

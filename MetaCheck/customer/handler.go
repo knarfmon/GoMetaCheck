@@ -5,7 +5,7 @@ import (
 			"net/http"
 
 	"database/sql"
-	"fmt"
+	//"fmt"
 )
 
 
@@ -278,18 +278,44 @@ func PageUpdate(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "pageUpdate.gohtml", pageDetail)
 }
 
+func ImageUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	pageDetail, err := GetImageDetails(r)
+	switch {
+	case err == sql.ErrNoRows:
+		http.NotFound(w, r)
+		return
+	case err != nil:
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	config.TPL.ExecuteTemplate(w, "imageUpdate.gohtml", pageDetail)
+}
+
+
 func PageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	//_, err := UpdatePage(r)
-	//if err != nil {
-	//	http.Error(w, http.StatusText(406), http.StatusBadRequest)
-	//	return
-	//}
+	 err := UpdatePage(r)
 
+	if err != nil {
+		http.Error(w, http.StatusText(406), http.StatusBadRequest)
+		return
+	}
 
+	pageDetail,err := GetPageDetails(r)
+	if err != nil {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
 //
 //	css, err := GetCustomerSite(r)
 //	switch {
@@ -301,7 +327,7 @@ func PageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 //		return
 //	}
 //
-	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
+//	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
 }
 
 func ImageUpdateProcess(w http.ResponseWriter, r *http.Request) {
@@ -309,25 +335,16 @@ func ImageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	test := r.FormValue("ImageUrl")
-	fmt.Println(test)
-	//_, err := UpdatePage(r)
-	//if err != nil {
-	//	http.Error(w, http.StatusText(406), http.StatusBadRequest)
-	//	return
-	//}
+	err := UpdateImage(r)
 
+	if err != nil {
+		http.Error(w, http.StatusText(406), http.StatusBadRequest)
+		return}
 
-	//
-	//	css, err := GetCustomerSite(r)
-	//	switch {
-	//	case err == sql.ErrNoRows:
-	//		http.NotFound(w, r)
-	//		return
-	//	case err != nil:
-	//		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-	//		return
-	//	}
-	//
-	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
+	pageDetail,err := GetPageDetails(r)
+	if err != nil {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
 }
