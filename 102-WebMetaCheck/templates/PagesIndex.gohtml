@@ -119,29 +119,17 @@
 <div class = "col3">{{.Name}}</div>
 </div>
 <br><br>
-<p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New Page</a></p>
+<p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New</a></p>
 {{$sname :=.Name}}
+
 <br>
 
-<section>
-<form method="get" action="/search/pages/index">
-    <label for="search">Find by name:</label>
-    <input type="text" name="search" placeholder="Search For..." >
-    <input type="hidden" name="site_id" value="{{.Id}}">
-    <input class="button" value="Search" type="submit">
-</form>
-</section>
-
-<br><br>
 
 
-{{if .Pages}}
 <section>
     <h3 class="col1">Name</h3>
     <h3 class="col2">Url</h3>
-{{else}}
-    <section><h3>No existing pages.</h3></section>
-{{end}}
+
     <br> <br>
 
 
@@ -168,3 +156,33 @@
 </body>
 </html>
 
+        {{/*{{range  .Images}}*/}}
+        {{/*Page_id:    {{.Page_id}}*/}}
+        {{/*Name:       {{.Name}}*/}}
+        {{/*Site_id:	{{.Site_id}}*/}}
+        {{/*AltText: 	{{.AltText}}*/}}
+        {{/*ImageUrl:	{{.ImageUrl}}*/}}
+        {{/*PageUrl:	{{.PageUrl}}*/}}
+
+        {{/*{{end}}*/}}
+
+
+        {{/*{{range .Pages}}*/}}
+
+{{/*Id:         {{.Page_id}}*/}}
+{{/*Site:       {{.Site_id}}*/}}
+{{/*Name:       {{.Name}}*/}}
+{{/*UxNumber    {{.UxNumber}}*/}}
+{{/*Url         {{.Url}}*/}}
+{{/*Status      {{.Status}}*/}}
+{{/*Title       {{.Title}}*/}}
+{{/*Description {{.Description}}*/}}
+{{/*Canonical   {{.Canonical}}*/}}
+{{/*MetaRobot   {{.MetaRobot}}*/}}
+{{/*OgTitle     {{.OgTitle}}*/}}
+{{/*OgDesc      {{.OgDesc}}*/}}
+{{/*OgImage     {{.OgImage}}*/}}
+{{/*OgUrl       {{.OgUrl}}*/}}
+{{/*Archive     {{.Archive}}*/}}
+
+{{/*{{end}}*/}}

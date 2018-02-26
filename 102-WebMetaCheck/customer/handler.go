@@ -1,7 +1,7 @@
 package customer
 
 import (
-			"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
+			"github.com/knarfmon/GoMetaCheck/102-WebMetaCheck/config"
 			"net/http"
 
 	"database/sql"
@@ -236,20 +236,6 @@ func PagesIndex(w http.ResponseWriter, r *http.Request) {
 
 	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
 }
-
-func SearchPagesIndex(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-		return
-	}
-	customer, err := GetSearchPagesIndex(r)
-	if err != nil {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-	}
-
-	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
-}
-
 
 
 func PageCreate(w http.ResponseWriter, r *http.Request) {

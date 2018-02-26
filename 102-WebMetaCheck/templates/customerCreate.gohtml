@@ -24,7 +24,7 @@
             color: black;
         }
 
-        h2,h3 ,h4,form {
+        h2,h3 {
             margin-left: 4rem;
         }
         hr{
@@ -35,11 +35,10 @@
         }
         input {
 
-            width: 30vw;
+            width: 60vw;
             font-size: 1rem;
             color: blue;
             border: 1px solid black;
-            margin-left: 4rem;
         }
         .buttonarea{
             display: flex;
@@ -70,49 +69,24 @@
         }
 
     </style>
-</head>
-<body>
-{{template "header"}}<br><br><br><br>
+    </head>
+    <body>
+    {{template "header"}}<br><br><br><br>
 
 
-<h2>Upload For {{.Name}}</h2>
+<h2>Customers</h2>
 
-{{/*<p> Create Pages</p>*/}}
+<p> Create</p>
 
+<br>
 
+<h3>Name</h3>
 
-{{/*<h3>Files</h3>*/}}
-
-
-
-
-
-<form method="post" enctype="multipart/form-data" action="/site/upload/process">
-    <div>
-        <h3><b> Populate Site With Pages From Frog Upload</b></h3>
-        <h4>1. Run Frog with chosen website.</h4>
-        <h4>2. Export both CSV files to desired folder.</h4>
-
-        <span>
-        <h4>3. Select internal_html.csv file</h4>
-        {{/*<h4><label for="html">Select internal_html.csv file</label></h4>*/}}
-        <input type="file" id="html" name="html"
-               accept="internal_html.csv" required>
-        </span>
-
-        <h4>4. Select all_images.csv file</h4>
-        {{/*<label for="image">Select all_images.csv file</label>*/}}
-        <input type="file" id="image" name="image"
-               accept="all_images.csv" required>
-
-        <input type="hidden" name="site_id" value="{{.Id}}">
-        <input type="hidden" name="name" value="{{.Name}}">
-    </div>
-    <h4>5. Select Upload. Wait approximately one minute for processing.</h4>
-    <br />
-    <div class = "buttonarea"><input class="button" type="submit" value="Upload">
-
-        <a href="#" class="button" onclick="history.back();">Cancel</a>
+<form method="post" action="/customer/create/process">
+    <input type="text" name="name" placeholder="Customer's Name" required autofocus>
+    <br>
+    <div class = "buttonarea"><input class="button" type="submit">
+        <a href="/customers" class="button">Cancel</a>
     </div>
 
 </form>

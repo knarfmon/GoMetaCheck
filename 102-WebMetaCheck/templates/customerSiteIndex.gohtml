@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Page</title>
+    <title>Customer</title>
     <style>
-        html, body, p,h1,h2,h3 {
+        html, body, p {
             padding: 0;
             border: 0;
             margin: 0;
@@ -24,11 +24,9 @@
             color: black;
         }
 
-        h2{
+        h2 {
             margin-left: 4rem;
         }
-
-
         hr{
             width:100%;
             /*margin-left: 4rem;*/
@@ -47,12 +45,6 @@
             justify-items: flex-end;
 
         }
-        .sectionTitle1{
-            display: flex;
-            flex-flow: row;
-            padding-bottom: 8px;
-        }
-
         section{
             display: flex;
             flex-flow: wrap;
@@ -67,16 +59,7 @@
 
             width: 35vw;
         }
-        .col3{
-            font-size: 1.2rem;
-            justify-content: left;
-        }
-        .titles{
 
-            margin-left: 4rem;
-            font-size: 1.2rem;
-            width: 7rem;
-        }
 
         .left{
             justify-content: left;
@@ -92,11 +75,21 @@
             width: 35vw;
             margin-right: 50px;
         }
+
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
         .titles{
 
             margin-left: 4rem;
             font-size: 1.2rem;
             width: 7rem;
+        }
+        .sectionTitle1{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
         }
     </style>
 </head>
@@ -104,67 +97,50 @@
 
 
 {{template "header"}}<br><br><br><br>
-<br>
-<h2>Pages</h2>
-<br>
+
+
+<h2>Sites</h2>
+
+
 <div class = "sectionTitle1">
-<div class = "titles">Customer:</div>
-<div class = "col3">{{.Name}}</div>
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.Name}}</div>
 </div>
-{{$cname := .Name}}
-<br>
-{{range .Sites}}
-<div class = "sectionTitle1">
-<div class = "titles">Site:</div>
-<div class = "col3">{{.Name}}</div>
-</div>
-<br><br>
-<p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New Page</a></p>
-{{$sname :=.Name}}
 <br>
 
-<section>
-<form method="get" action="/search/pages/index">
-    <label for="search">Find by name:</label>
-    <input type="text" name="search" placeholder="Search For..." >
-    <input type="hidden" name="site_id" value="{{.Id}}">
-    <input class="button" value="Search" type="submit">
-</form>
-</section>
 
-<br><br>
+<p class="createlink"><a href="/site/create?customer_id={{.Id}}">Create New</a></p>
+{{/*<br>*/}}
+{{/*<p class="createlink"><a href="/site/create">Create New From CSV File</a></p>*/}}
+{{/*<br>*/}}
 
 
-{{if .Pages}}
 <section>
     <h3 class="col1">Name</h3>
     <h3 class="col2">Url</h3>
-{{else}}
-    <section><h3>No existing pages.</h3></section>
-{{end}}
-    <br> <br>
 
 
 
 
-{{range .Pages}}
+
+
+{{range .Sites}}
     <p><div class="left">
-    <a href="/page/details?page_id={{.Page_id}}&cname={{$cname}}&sname={{$sname}}">{{.Name}}</a></div>
+    <a href="/pages/index?site_id={{.Id}}">{{.Name}}</a></div>
     <div class="col2">{{.Url}}</div>
 
-    {{/*<div class="link">*/}}
+    <div class="link">
 
-        {{/*<a href="/site/update?site_id={{.Id}}">Edit</a> |*/}}
-        {{/*<a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>*/}}
+        <a href="/site/update?site_id={{.Id}}">Edit</a> |
+        <a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>
 
-    {{/*</div></p>*/}}
+    </div></p>
 
     <hr>
 {{end}}
 
 </section>
 
-{{end}}
+
 </body>
 </html>
-

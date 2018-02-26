@@ -1,10 +1,10 @@
-package main  //====web======  metacheck
+package metacheck  //====web======  metacheck  from main, file name from main to metacheck.go
 
 
 import (
 	"net/http"
-	"github.com/knarfmon/GoMetaCheck/MetaCheck/customer"
-
+	"github.com/knarfmon/GoMetaCheck/102-WebMetaCheck/customer"
+	"html/template"
 
 )
 
@@ -19,12 +19,12 @@ import (
 	return n
 
 }*/
+var tpl *template.Template    // here for web
 
 
+func init() {    //====web====== init() or back to main()
 
-func main() {    //====web====== init()
-
-	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
+	tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
 	http.HandleFunc("/", customer.Index)
 	http.HandleFunc("/index", customer.Index)
 	http.HandleFunc("/customers",customer.CustomerIndex)
@@ -46,11 +46,10 @@ func main() {    //====web====== init()
 	http.HandleFunc("/image/update",customer.ImageUpdate)
 	http.HandleFunc("/page/update/process",customer.PageUpdateProcess)
 	http.HandleFunc("/image/update/process",customer.ImageUpdateProcess)
-	http.HandleFunc("/search/pages/index",customer.SearchPagesIndex)
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8116", nil)  //===== not here for web
+	//http.ListenAndServe(":8080", nil)  //===== not here for web
 
 }
 

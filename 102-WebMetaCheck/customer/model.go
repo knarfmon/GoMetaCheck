@@ -2,7 +2,7 @@ package customer
 
 import (
 	"errors"
-	"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
+	"github.com/knarfmon/GoMetaCheck/102-WebMetaCheck/config"
 	"log"
 	"net/http"
 	"strconv"
@@ -12,7 +12,7 @@ import (
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
-	"fmt"
+
 )
 
 
@@ -32,7 +32,6 @@ type Site struct {
 	Customer	*Customer
 	Pages		[]Page
 	Images 		[]Image
-	PageCount	int
 }
 
 type Page struct {
@@ -191,11 +190,6 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 		if err != nil {
 			return
 		}
-
-		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
-		err = row.Scan(&site.PageCount)
-		fmt.Println(site.PageCount)
-
 		customer.Sites = append(customer.Sites, site)
 	}
 	rows.Close()
@@ -887,68 +881,4 @@ func UpdateImage(r *http.Request) ( error) {
 		return  err
 	}
 	return  nil
-}
-
-func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
-	customer := Customer{}
-	customer.Sites = []Site{}
-	site := Site{}
-
-	search := r.FormValue("search")
-	intId, err := strconv.Atoi(r.FormValue("site_id"))
-	checkErr(err)
-
-
-	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
-	err = row.Scan(&site.CustomerId)
-
-	if err != nil {
-		log.Fatalf("Could not select from site: %v", err)
-	}
-
-	row = config.DB.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
-	err = row.Scan(&customer.Id,&customer.Name)
-
-	if err != nil {
-		log.Fatalf("Could not select from customer: %v", err)
-	}
-
-	query := ""
-
-
-	rows, err := config.DB.Query("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? and name LIKE %" + "?" + "%;", intId,search)
-
-	if err != nil {
-		log.Fatalf("Could not get page records: %v", err)
-	}
-
-	defer rows.Close()
-
-	for rows.Next() {
-
-		page := Page{}
-		err := rows.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.UxNumber,&page.Url,&page.Status,&page.Title,&page.Description,&page.Canonical,&page.MetaRobot,&page.OgTitle,&page.OgDesc,&page.OgImage,&page.OgUrl,&page.Archive) // order matters, everything in select statement
-
-		checkErr(err)
-
-		site.Pages = append(site.Pages, page)
-	}
-
-
-	row = config.DB.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
-
-	site = Site{Pages: site.Pages}
-	err = row.Scan(&site.Id,&site.CustomerId, &site.Name, &site.Url,&site.Archive)
-	if err != nil {
-		log.Fatalf("Could not scan into site: %v", err)
-	}
-	customer.Sites = append(customer.Sites, site)
-
-	//fmt.Println(customer)
-
-
-
-
-	fmt.Println(customer)
-	return customer, nil
 }
