@@ -98,6 +98,9 @@
             font-size: 1.2rem;
             width: 7rem;
         }
+        #getall{
+            color: dodgerblue;
+        }
     </style>
 </head>
 <body>
@@ -125,11 +128,13 @@
 
 <section>
 <form method="get" action="/search/pages/index">
-    <label for="search">Find by name:</label>
+    <label for="search">Find By Name:</label>
     <input type="text" name="search" placeholder="Search For..." >
     <input type="hidden" name="site_id" value="{{.Id}}">
     <input class="button" value="Search" type="submit">
 </form>
+    &nbsp;&nbsp;
+    <a id="getall" href="/pages/index?site_id={{.Id}}">Get All</a></div>
 </section>
 
 <br><br>

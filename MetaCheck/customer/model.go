@@ -897,7 +897,7 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
 	search := r.FormValue("search")
 	intId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
-
+	siteId := r.FormValue("site_id")
 
 	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
 	err = row.Scan(&site.CustomerId)
@@ -913,10 +913,11 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
 		log.Fatalf("Could not select from customer: %v", err)
 	}
 
-	query := ""
+	//rows, err := config.DB.Query("SELECT id,site_id,name,url FROM page where site_id = ? and name LIKE ?", intId,search)
 
+	query := "SELECT id,site_id,name,url FROM page where site_id = " + siteId + " and name LIKE '%" + search + "%';"
 
-	rows, err := config.DB.Query("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? and name LIKE %" + "?" + "%;", intId,search)
+	rows, err := config.DB.Query(query)
 
 	if err != nil {
 		log.Fatalf("Could not get page records: %v", err)
@@ -927,7 +928,7 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
 	for rows.Next() {
 
 		page := Page{}
-		err := rows.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.UxNumber,&page.Url,&page.Status,&page.Title,&page.Description,&page.Canonical,&page.MetaRobot,&page.OgTitle,&page.OgDesc,&page.OgImage,&page.OgUrl,&page.Archive) // order matters, everything in select statement
+		err := rows.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.Url)
 
 		checkErr(err)
 
