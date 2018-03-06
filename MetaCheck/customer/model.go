@@ -12,7 +12,7 @@ import (
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
-	"fmt"
+
 )
 
 
@@ -21,6 +21,7 @@ type Customer struct {
 	Name    	string
 	Archive 	bool
 	Sites		[]Site
+	Date 		string
 }
 
 type Site struct {
@@ -33,6 +34,7 @@ type Site struct {
 	Pages		[]Page
 	Images 		[]Image
 	PageCount	int
+	Date 		string
 }
 
 type Page struct {
@@ -72,9 +74,25 @@ type PageDetail struct{
 	Image			Image
 	Images 			[]Image
 }
-func AllCustomers()([]Customer,error) {
+func AllCustomers(r *http.Request)([]Customer,error) {
 
-	rows, err := config.DB.Query("SELECT id,name,archive FROM customer ORDER BY name")
+
+
+	var archive int
+	var query string
+
+
+	if r.FormValue("archived") == "yes"{
+
+		query = "SELECT id,name,archive,date FROM customer WHERE archive=1 ORDER BY name,date DESC"
+
+	}else{
+		query = "SELECT id,name,archive,date FROM customer WHERE archive=0 ORDER BY name"
+
+	}
+
+	rows, err := config.DB.Query(query)
+	//rows, err := config.DB.Query("SELECT id,name,archive FROM customer ORDER BY name")
 	if err != nil {
 		return nil, err
 	}
@@ -83,23 +101,39 @@ func AllCustomers()([]Customer,error) {
 
 	css := make([]Customer, 0)
 
+
+
+
 	for rows.Next() {
 
 		cs := Customer{}
-		err := rows.Scan(&cs.Id,&cs.Name,&cs.Archive) // order matters, everything in select statement
+		err := rows.Scan(&cs.Id,&cs.Name,&archive,&cs.Date) // order matters, everything in select statement
+
+
+
+		if archive == 0 {
+			cs.Archive = false
+		} else {
+			cs.Archive = true
+		}
+
+
 
 		if err != nil {
 			return nil,err
 		}
-
 		css = append(css, cs)
-
 
 	}
 	if err = rows.Err(); err != nil {
 		return nil,err
 	}
+
+
+
 	return css, nil
+
+
 }
 
 
@@ -127,17 +161,25 @@ func PutCustomer(r *http.Request) (Customer, error) {
 func OneCustomer(r *http.Request) (Customer, error) {
 	cs := Customer{}
 	id := r.FormValue("id")
+	var archive int
 	if id == "" {
 		return cs, errors.New("400. Bad Request.")
 	}
 
 	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", id)
 
-	err := row.Scan(&cs.Id, &cs.Name, &cs.Archive)
+	err := row.Scan(&cs.Id, &cs.Name, &archive)
+
+	if archive == 0 {
+		cs.Archive = false
+	} else {
+		cs.Archive = true
+	}
+
 	if err != nil {
 		return cs, err
 	}
-
+//fmt.Println(cs)
 	return cs, nil
 }
 
@@ -146,10 +188,22 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 	cs := Customer{}
 	cs.Name = r.FormValue("name")
 	strId := r.FormValue("id")
+checked := r.FormValue("archive") //will show "check" if box is checked
+
+if checked == "check"{
+	cs.Archive = true
+}else {
+	cs.Archive = false
+}
+
+
+
 
 	if cs.Name == ""  {
 		return cs, errors.New("400. Bad Request. Fields can't be empty.")
 	}
+
+
 
 	newId, err := strconv.Atoi(strId)
 	if err != nil {
@@ -158,7 +212,7 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 	cs.Id = newId
 
 	// insert values
-	_, err = config.DB.Exec("UPDATE customer SET name = ? WHERE id=?;", cs.Name, cs.Id)
+	_, err = config.DB.Exec("UPDATE customer SET name = ?, archive = ? WHERE id=?;", cs.Name,cs.Archive, cs.Id)
 	if err != nil {
 		return cs, err
 	}
@@ -168,7 +222,7 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	customer = Customer{}
 	customer.Sites = []Site{}
-
+	var query string
 	strId := r.FormValue("customer_id")
 	newId, err := strconv.Atoi(strId)
 	if err != nil {
@@ -180,21 +234,28 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 
 	err = row.Scan(&customer.Id, &customer.Name, &customer.Archive)
 
-	rows, err := config.DB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
 
+	if r.FormValue("archived") == "yes"{
+	query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
+	}else{
+	query = "select id,name,url,archive,date from site WHERE customer_id = ?"
+	}
+
+	rows, err := config.DB.Query(query, customer.Id)
+	//rows, err := config.DB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
 	if err != nil {
 		return
 	}
 	for rows.Next() {
 		site := Site{Customer: &customer}
-		err = rows.Scan(&site.Id, &site.Name, &site.Url,&site.Archive)
+		err = rows.Scan(&site.Id, &site.Name, &site.Url,&site.Archive,&site.Date)
 		if err != nil {
 			return
 		}
 
 		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
 		err = row.Scan(&site.PageCount)
-		fmt.Println(site.PageCount)
+		//fmt.Println(site.PageCount)
 
 		customer.Sites = append(customer.Sites, site)
 	}
@@ -950,6 +1011,6 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
 
 
 
-	fmt.Println(customer)
+	//fmt.Println(customer)
 	return customer, nil
 }

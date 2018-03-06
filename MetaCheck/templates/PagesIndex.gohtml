@@ -14,8 +14,8 @@
             flex-flow: column nowrap;
             justify-content: flex-start;
             align-items: left;
-            height: 100vh;
-            width: 100vw;
+            /*height: 100vh;*/
+            /*width: 100vw;*/
             padding-left: 40px;
         }
         p {
@@ -101,6 +101,27 @@
         #getall{
             color: dodgerblue;
         }
+
+        .button{
+
+            /*display: flex;*/
+            justify-content: center;
+            /*align-items: center;*/
+
+            color: white;
+            background-color: gray;
+            font-size: 1.2vw;
+            padding: 1px 8px;
+            margin-right: 5px;
+            width: 5vw;
+            border: none;
+
+            cursor: pointer;
+            /*border-radius: 8px;*/
+        }
+        .button:hover{
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -115,13 +136,13 @@
 <div class = "col3">{{.Name}}</div>
 </div>
 {{$cname := .Name}}
-<br>
+{{/*<br>*/}}
 {{range .Sites}}
 <div class = "sectionTitle1">
 <div class = "titles">Site:</div>
 <div class = "col3">{{.Name}}</div>
 </div>
-<br><br>
+<br>
 <p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New Page</a></p>
 {{$sname :=.Name}}
 <br>
@@ -132,9 +153,11 @@
     <input type="text" name="search" placeholder="Search For..." >
     <input type="hidden" name="site_id" value="{{.Id}}">
     <input class="button" value="Search" type="submit">
+    <a class="button" href="/pages/index?site_id={{.Id}}">Get All</a></div>
 </form>
-    &nbsp;&nbsp;
-    <a id="getall" href="/pages/index?site_id={{.Id}}">Get All</a></div>
+    {{/*&nbsp*/}}
+    {{/*&nbsp*/}}
+
 </section>
 
 <br><br>

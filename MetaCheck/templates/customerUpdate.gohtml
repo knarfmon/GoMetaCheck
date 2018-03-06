@@ -34,11 +34,13 @@
 
         }
         input {
-
+            display: flex;
+            flex-flow: column;
             width: 60vw;
             font-size: 1rem;
             color: blue;
             border: 1px solid black;
+            align-content: left;
         }
 
         .buttonarea{
@@ -67,14 +69,24 @@
             color: #000;
             background-color: lightgrey;
         }
-
+        #check{
+            /*width: 1rem;*/
+            width: 20px;
+            height: 20px;
+        }
+.red{
+    color: red;
+}
     </style>
 </head>
 <body>
 {{template "header"}}<br><br><br><br>
 
 
+{{if .Archive}}<h2 class="red">Customers - Archived</h2>
+{{else}}
 <h2>Customers</h2>
+{{end}}
 
 <p> Update</p>
 
@@ -85,15 +97,27 @@
 <form method="post" action="/customer/update/process">
     <label for="name">Customer Name</label>
     <input type="text" name="name" placeholder="Customer's Name" required autofocus value="{{.Name}}">
+<br>
+    <label for="archive">Archive </label>
+
+
+    <input id="check" type="checkbox" name="archive" value="check" {{if .Archive}}checked{{end}} >
+    {{if .Archive}}
+        (Deselecting this will make all sites and pages for this customer show.)
+    {{else}}
+        (Checking this will archive, that is hide, all sites and pages for this customer.)
+    {{end}}
     <input type="hidden" name="id" value="{{.Id}}">
-    <br>
+    <br><br>
+
 
     <div class = "buttonarea"><input class="button" type="submit">
-    <a href="/customers" class="button">Cancel</a>
+    <a href="/customers?archived=yes" class="button">Cancel</a>
     </div>
 
 </form>
 
+{{/*<input id="check" type="checkbox" name="archive" value="{{.Archive}}">*/}}
 
 </body>
 </html>

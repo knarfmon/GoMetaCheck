@@ -6,6 +6,8 @@ import (
 
 	"database/sql"
 	//"fmt"
+
+	"fmt"
 )
 
 
@@ -15,12 +17,18 @@ func CustomerIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	css, err := AllCustomers()
+	css, err := AllCustomers(r)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	config.TPL.ExecuteTemplate(w, "customerIndex.gohtml", css)
+	if r.FormValue("archived") == "yes" {
+		config.TPL.ExecuteTemplate(w, "customerIndexArchive.gohtml", css)
+
+	}else{
+		config.TPL.ExecuteTemplate(w, "customerIndex.gohtml", css)
+
+	}
 }
 
 
@@ -83,12 +91,13 @@ func CustomerUpdateProcess(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := UpdateCustomer(r)
+
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
 
-	http.Redirect(w, r, "/customers", http.StatusSeeOther)
+	http.Redirect(w, r, "/customers?archived=yes", http.StatusSeeOther)
 }
 
 func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
@@ -105,7 +114,17 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
+
+	if r.FormValue("archived") == "yes" {
+		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", css)
+		fmt.Println("customerSiteIndexArchive")
+	}else{
+		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
+		fmt.Println("customerSiteIndex")
+	}
+
+
+
 }
 
 func SiteCreate(w http.ResponseWriter, r *http.Request) {
