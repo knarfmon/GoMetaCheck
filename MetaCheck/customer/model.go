@@ -223,8 +223,8 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	customer = Customer{}
 	customer.Sites = []Site{}
 	var query string
-	strId := r.FormValue("customer_id")
-	newId, err := strconv.Atoi(strId)
+	newId, err := strconv.Atoi(r.FormValue("customer_id"))
+
 	if err != nil {
 		return customer, errors.New("406. Not Acceptable. Id not of correct type")
 	}
@@ -238,7 +238,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	if r.FormValue("archived") == "yes"{
 	query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
 	}else{
-	query = "select id,name,url,archive,date from site WHERE customer_id = ?"
+	query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0"
 	}
 
 	rows, err := config.DB.Query(query, customer.Id)
@@ -308,6 +308,7 @@ func PutSite(r *http.Request) (Site, error) {
 
 func OneSite(r *http.Request) (Site, error) {
 	site := Site{}
+	var archive int
 	strId := r.FormValue("site_id")
 	if strId == "" {
 		return site, errors.New("400. Bad Request.")
@@ -319,12 +320,19 @@ func OneSite(r *http.Request) (Site, error) {
 
 	site.Id = intId
 
-	row := config.DB.QueryRow("SELECT id,name,url,customer_id FROM site WHERE id = ?", site.Id)
+	row := config.DB.QueryRow("SELECT id,name,url,customer_id,archive FROM site WHERE id = ?", site.Id)
 
-	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.CustomerId)
+	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.CustomerId,&archive)
 	if err != nil {
 		return site, err
 	}
+
+	if archive == 0 {
+		site.Archive = false
+	} else {
+		site.Archive = true
+	}
+
 
 	return site, nil
 }

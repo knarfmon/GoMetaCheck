@@ -83,7 +83,7 @@
 {{template "header"}}<br><br><br><br>
 
 
-{{if .Archive}}<h2 class="red">Customers - Archived</h2>
+{{if .Archive}}<h2 class="red">Customer - Archived</h2>
 {{else}}
 <h2>Customers</h2>
 {{end}}
@@ -112,7 +112,11 @@
 
 
     <div class = "buttonarea"><input class="button" type="submit">
-    <a href="/customers?archived=yes" class="button">Cancel</a>
+        {{if .Archive}}
+            <a href="/customers?archived=yes" class="button">Cancel</a>
+        {{else}}
+            <a href="/customers" class="button">Cancel</a>
+        {{end}}
     </div>
 
 </form>

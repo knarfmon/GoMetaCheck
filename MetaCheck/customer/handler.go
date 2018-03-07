@@ -90,14 +90,17 @@ func CustomerUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := UpdateCustomer(r)
+	cs, err := UpdateCustomer(r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-
+if cs.Archive == true {
 	http.Redirect(w, r, "/customers?archived=yes", http.StatusSeeOther)
+}else{
+	http.Redirect(w, r, "/customers", http.StatusSeeOther)
+}
 }
 
 func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {

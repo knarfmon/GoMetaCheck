@@ -71,6 +71,12 @@
         a:hover{
             color: blue;
         }
+        .col1Row:hover{
+            color: red;
+        }
+        .col4Row:hover{
+            color: red;
+        }
         .col2 {
             width: 35vw;
             margin-right: 50px;
@@ -112,6 +118,9 @@
             width: 25vw;
             color: #ff6f6f;
         }
+        .col4Row{
+            color: #ff6f6f;
+        }
     </style>
 </head>
 <body>
@@ -129,8 +138,8 @@
 </div>
 <br>
 
+<br>
 
-<p class="createlink"><a href="/site/create?customer_id={{.Id}}">Create New Site</a></p>
 <br>
 <p class="createlink"><a class="link" href="/customer/site?customer_id={{.Id}}&archived=no">Show Standard</a></p>
 
@@ -160,12 +169,9 @@
 
         {{/*<a href="/site/update?site_id={{.Id}}">Edit</a> |*/}}
         {{/*<a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>*/}}
-    {{if gt .PageCount  0}}
-        <a href="/site/update?site_id={{.Id}}">Edit</a>
-    {{else}}
-        <a href="/site/update?site_id={{.Id}}">Edit</a> |
-        <a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>
-    {{end}}
+
+        <a class="col4Row" href="/site/update?site_id={{.Id}}&archived=yes">Edit</a>
+
 
     </div></p>
 

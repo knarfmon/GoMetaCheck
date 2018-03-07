@@ -67,14 +67,24 @@
             color: #000;
             background-color: lightgrey;
         }
-
+        #check{
+            /*width: 1rem;*/
+            width: 20px;
+            height: 20px;
+        }
+        .red{
+            color: red;
+        }
     </style>
 </head>
 <body>
 {{template "header"}}<br><br><br><br>
 
-
+{{if .Archive}}<h2 class="red">Site - Archived</h2>
+{{else}}
 <h2>Site</h2>
+{{end}}
+
 
 <p> Update</p>
 
@@ -88,10 +98,24 @@
     <br>
     <label for="url">Url</label>
     <input type="text" name="url" placeholder="Site's Url" required value="{{.Url}}">
+
+    <br>
+    <label for="archive">Archive </label>
+
+
+    <input id="check" type="checkbox" name="archive" value="check" {{if .Archive}}checked{{end}} >
+{{if .Archive}}
+    (Deselecting this will make this sites and all pages for this site show.)
+{{else}}
+    (Checking this will archive, that is hide, this site and all of its pages.)
+{{end}}
+
     <input type="hidden" name="site_id" value="{{.Id}}">
     <input type="hidden" name="customer_id" value="{{.CustomerId}}">
-    <br>
+    <br><br>
     <div class = "buttonarea"><input class="button" type="submit">
+
+
 
         <a href="#" class="button" onclick="history.back();">Cancel</a>
     </div>
