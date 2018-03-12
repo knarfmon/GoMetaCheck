@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Customer</title>
+    <title>Page</title>
     <style>
-        html, body, p {
+        html, body, p,h1,h2,h3 {
             padding: 0;
             border: 0;
             margin: 0;
@@ -15,7 +15,7 @@
             justify-content: flex-start;
             align-items: left;
             /*height: 100vh;*/
-            width: 100vw;
+            /*width: 100vw;*/
             padding-left: 40px;
         }
         p {
@@ -24,9 +24,11 @@
             color: black;
         }
 
-        h2 {
+        h2{
             margin-left: 4rem;
         }
+
+
         hr{
             width:100%;
             /*margin-left: 4rem;*/
@@ -45,6 +47,12 @@
             justify-items: flex-end;
 
         }
+        .sectionTitle1{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
+
         section{
             display: flex;
             flex-flow: wrap;
@@ -59,7 +67,16 @@
 
             width: 35vw;
         }
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        .titles{
 
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 7rem;
+        }
 
         .left{
             justify-content: left;
@@ -75,21 +92,35 @@
             width: 35vw;
             margin-right: 50px;
         }
-
-        .col3{
-            font-size: 1.2rem;
-            justify-content: left;
-        }
         .titles{
 
             margin-left: 4rem;
             font-size: 1.2rem;
             width: 7rem;
         }
-        .sectionTitle1{
-            display: flex;
-            flex-flow: row;
-            padding-bottom: 8px;
+        #getall{
+            color: dodgerblue;
+        }
+
+        .button{
+
+            /*display: flex;*/
+            justify-content: center;
+            /*align-items: center;*/
+
+            color: white;
+            background-color: gray;
+            font-size: 1.2vw;
+            padding: 1px 8px;
+            margin-right: 5px;
+            width: 5vw;
+            border: none;
+
+            cursor: pointer;
+            /*border-radius: 8px;*/
+        }
+        .button:hover{
+            color: white;
         }
     </style>
 </head>
@@ -97,60 +128,71 @@
 
 
 {{template "header"}}<br><br><br><br>
-
-
-<h2>Sites</h2>
-
-
+<br>
+<h2>Pages</h2>
+<br>
 <div class = "sectionTitle1">
-    <div class = "titles">Customer:</div>
-    <div class = "col3">{{.Name}}</div>
+<div class = "titles">Customer:</div>
+<div class = "col3">{{.Name}}</div>
+</div>
+{{$cname := .Name}}
+{{/*<br>*/}}
+{{range .Sites}}
+<div class = "sectionTitle1">
+<div class = "titles">Site:</div>
+<div class = "col3">{{.Name}}</div>
 </div>
 <br>
-
-
-<p class="createlink"><a href="/site/create?customer_id={{.Id}}">Create New Site</a></p>
-<br>
-<p class="createlink"><a class="link" href="/customer/site?customer_id={{.Id}}&archived=yes">Show Archived</a></p>
-
+<p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New Page</a></p>
+{{$sname :=.Name}}
 <br>
 
-{{if .Sites}}
+<section>
+<form method="get" action="/search/pages/index">
+    <label for="search">Find By Name:</label>
+    <input type="text" name="search" placeholder="Search For..." >
+    <input type="hidden" name="site_id" value="{{.Id}}">
+    <input class="button" value="Search" type="submit">
+    <a class="button" href="/pages/index?site_id={{.Id}}">Get All</a></div>
+</form>
+    {{/*&nbsp*/}}
+    {{/*&nbsp*/}}
+
+</section>
+
+<br><br>
+
+
+{{if .Pages}}
 <section>
     <h3 class="col1">Name</h3>
     <h3 class="col2">Url</h3>
 {{else}}
-<section><h3>No existing sites.</h3></section>
+    <section><h3>No existing pages.</h3></section>
 {{end}}
+    <br> <br>
 
 
 
 
-
-{{range .Sites}}
+{{range .Pages}}
     <p><div class="left">
-    <a href="/pages/index?site_id={{.Id}}">{{.Name}}</a></div>
+    <a href="/page/details?page_id={{.Page_id}}&cname={{$cname}}&sname={{$sname}}">{{.Name}}</a></div>
     <div class="col2">{{.Url}}</div>
 
-    <div class="link">
+    {{/*<div class="link">*/}}
 
         {{/*<a href="/site/update?site_id={{.Id}}">Edit</a> |*/}}
         {{/*<a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>*/}}
-    {{if gt .PageCount  0}}
-        <a href="/site/update?site_id={{.Id}}">Edit</a> |
-        <a href="/site/compare?site_id={{.Id}}&name={{.Name}}">Compare</a>
-    {{else}}
-        <a href="/site/update?site_id={{.Id}}">Edit</a> |
-        <a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>
-    {{end}}
 
-    </div></p>
+    {{/*</div></p>*/}}
 
     <hr>
 {{end}}
 
 </section>
 
-
+{{end}}
 </body>
 </html>
+

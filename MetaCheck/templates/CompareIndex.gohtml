@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page Compare</title>
+    <style>
+        html, body, p,h1,h2,h3 {
+            padding: 0;
+            border: 0;
+            margin: 0;
+            font-size: 1rem;
+            color: black;
+        }
+        body {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+           }
+        hr{
+            width:100%;
+            size: 1px;
+        }
+        .col1Title{
+            justify-content: left;
+            width: 50vw;
+            margin-left: 1rem;
+        }
+
+        .sectionHead{
+            display: flex;
+            flex-flow: row nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            background-color: dodgerblue;
+        }
+        .col1Head {
+            justify-content: left;
+            width: 15vw;
+            margin-left: 1rem;
+        }
+        .col2Head {
+            justify-content: left;
+            width: 30vw;
+        }
+        .col3Head {
+            justify-content: left;
+            width: 10vw;
+        }
+        .col4Head {
+            justify-content: left;
+            width: 45vw;
+        }
+
+
+
+        /*.sectionTitle1{*/
+            /*display: flex;*/
+            /*flex-flow: row;*/
+            /*padding-bottom: 8px;*/
+        /*}*/
+
+        /*section{*/
+            /*display: flex;*/
+            /*flex-flow: wrap;*/
+            /*!*justify-content: space-between;*!*/
+            /*!* formatting *!*/
+
+            /*margin-left: 4rem;*/
+            /*margin-right: 4vw;*/
+        /*}*/
+
+        /*}*/
+        /*.col3{*/
+            /*font-size: 1.2rem;*/
+            /*justify-content: left;*/
+        /*}*/
+        /*.titles{*/
+
+            /*margin-left: 4rem;*/
+            /*font-size: 1.2rem;*/
+            /*width: 7rem;*/
+        /*}*/
+
+
+        /*.col2 {*/
+            /*width: 35vw;*/
+            /*margin-right: 50px;*/
+        /*}*/
+        /*.titles{*/
+
+            /*margin-left: 4rem;*/
+            /*font-size: 1.2rem;*/
+            /*width: 7rem;*/
+        /*}*/
+
+
+
+    </style>
+</head>
+<body>
+
+
+{{template "header"}}<br><br><br><br>
+<br>
+<h2 class="col1Title">Compare Pages</h2>
+<br>
+
+<span class="col1Title">Customer: {{.CustomerName}}</span>
+<span class="col1Title">Site: {{.CsvSite.Name}}</span>
+<br>
+
+
+
+<div class="sectionHead">
+
+<div class="col1Head">Site Page:</div>
+<div class="col2Head">What is:</div>
+<div class="col3Head">Match ?:</div>
+<div class="col4Head">Comparison:</div>
+</div>
+
+
+
+{{range .CsvSite.Pages}}
+
+
+    <div class="col1">{{.Url}}</div>
+    <div class="col2">{{.Match}}</div>
+
+
+    <hr>
+{{end}}
+
+
+
+</body>
+</html>

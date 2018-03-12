@@ -2,7 +2,7 @@ package customer
 
 import (
 	"errors"
-	"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
+	"github.com/knarfmon/GoMetaCheck/103-WebMetaCheck/config"
 	"log"
 	"net/http"
 	"strconv"
@@ -38,33 +38,22 @@ type Site struct {
 }
 
 type Page struct {
-	Page_id			int
-	Site_id    		int
-	Name   		   	string
-	UxNumber		int
-	Url         	string
-	UrlMatch		bool
-	Status      	int
-	StatusMatch		bool
-	Title       	string //4
-	TitleMatch		bool
-	Description 	string
-	DesctiptionMatch	bool
-	Canonical   	string
-	CanonicalMatch	bool
-	MetaRobot   	string
-	MetaRobotMatch	bool
-	OgTitle     	string
-	OgTitleMatch	bool
-	OgDesc      	string
-	OgDescMatch		bool
-	OgImage     	string
-	OgImageMatch	bool
-	OgUrl			string
-	OgUrlMatch		bool
-	Archive     	bool
-	Site			*Site
-	Match			bool
+	Page_id		int
+	Site_id     int
+	Name        string
+	UxNumber    int
+	Url         string
+	Status      int
+	Title       string //4
+	Description string
+	Canonical   string
+	MetaRobot   string
+	OgTitle     string
+	OgDesc      string
+	OgImage     string
+	OgUrl		string
+	Archive     bool
+	Site		*Site
 }
 
 type Image struct {
@@ -85,16 +74,6 @@ type PageDetail struct{
 	Image			Image
 	Images 			[]Image
 }
-
-type Compare struct{
-	CustomerName	string
-	CsvSite			Site
-	StdSite			Site
-}
-
-
-
-
 func AllCustomers(r *http.Request)([]Customer,error) {
 
 
@@ -200,7 +179,7 @@ func OneCustomer(r *http.Request) (Customer, error) {
 	if err != nil {
 		return cs, err
 	}
-
+//fmt.Println(cs)
 	return cs, nil
 }
 
@@ -282,7 +261,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 
 		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
 		err = row.Scan(&site.PageCount)
-
+		//fmt.Println(site.PageCount)
 
 		customer.Sites = append(customer.Sites, site)
 	}
@@ -553,35 +532,11 @@ func PutPage(site Site) (error) {		//replaced pages []Page with site Site
 
 	return nil		// 2/10 removed pages from return
 }
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-func UploadForCompare (r *http.Request)(Compare, error) {
-	site_id,err := strconv.Atoi(r.FormValue("site_id"))
-	checkErr(err)
-
-	cname,sname := GetSiteCustomerName(site_id)
-
-
-	compare := Compare{}
-	compare.CustomerName = cname
-
-	site := Site{}
-	csvSite, err := UploadHtml(r,site)
-	csvSite.Name = sname
-	checkErr(err)
-
-	stdSite, err := GetPages(r)
-
-	compare.CsvSite =  csvSite
-	compare.StdSite = stdSite
-
-	return compare, nil
-}
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 func Upload (r *http.Request)(Site, error){  //changed [] Page with Site
 	site := Site{}
-
 	site, err := UploadHtml(r,site )  //replaced pages with site
 	checkErr(err)
 
@@ -773,87 +728,23 @@ func UploadImage (r *http.Request, site Site) (Site, error) {
 
 		}
 	}
-
+	//fmt.Println(images)
 	return site,nil
 }
 
-func MatchSites (compare Compare) (Compare, error) {
+func addPageIdToImage (site Site) (Site, error) {
 
 	//range over page - out loop
-	csvSite := compare.CsvSite	//outer
-	stdSite := compare.StdSite  //inner
-			//should match on ten items
-	for outer := 0; outer < len(csvSite.Pages); outer++{
-		csvSite.Pages[outer].Match = true
-		for inner := 0; inner < len(stdSite.Pages); inner++ {
 
-			if stdSite.Pages[inner].Url == csvSite.Pages[outer].Url {
-				csvSite.Pages[outer].UrlMatch = true
-
-
-			if stdSite.Pages[inner].Status == csvSite.Pages[outer].Status {
-				csvSite.Pages[outer].StatusMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
+	for outer := 0; outer < len(site.Pages); outer++{
+		for inner := 0; inner < len(site.Images); inner++{
+			if site.Pages[outer].Url == site.Images[inner].PageUrl {
+				site.Images[inner].PageUrl = site.Pages[outer].Url
 			}
-
-			if stdSite.Pages[inner].Title == csvSite.Pages[outer].Title {
-				csvSite.Pages[outer].TitleMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].Description == csvSite.Pages[outer].Description {
-				csvSite.Pages[outer].DesctiptionMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].Canonical == csvSite.Pages[outer].Canonical {
-				csvSite.Pages[outer].CanonicalMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].MetaRobot == csvSite.Pages[outer].MetaRobot {
-				csvSite.Pages[outer].MetaRobotMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgTitle == csvSite.Pages[outer].OgTitle {
-				csvSite.Pages[outer].OgTitleMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgDesc == csvSite.Pages[outer].OgDesc {
-				csvSite.Pages[outer].OgDescMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgImage == csvSite.Pages[outer].OgImage {
-				csvSite.Pages[outer].OgImageMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgUrl == csvSite.Pages[outer].OgUrl {
-				csvSite.Pages[outer].OgUrlMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-		}
-
-
-
 		}
 
 	}
-	//compare.CsvSite = csvSite
-	//compare.StdSite = stdSite
+
 
 	//for _, outer := range site.Pages{
 	//
@@ -866,7 +757,7 @@ func MatchSites (compare Compare) (Compare, error) {
 	//	}
 	//}
 
-	return compare, nil
+	return site, nil
 }
 
 func PutImage(site Site) (error) {		//replaced pages []Page with site Site
@@ -888,27 +779,6 @@ func PutImage(site Site) (error) {		//replaced pages []Page with site Site
 
 	return nil		// 2/10 removed pages from return
 }
-func GetSiteCustomerName(siteId int)(string,string){
-	var cname,sname string
-	var customer_id int
-
-	row := config.DB.QueryRow("SELECT customer_id,name FROM site WHERE id = ?", siteId)
-	err := row.Scan(&customer_id,&sname)
-
-	if err != nil {
-		log.Fatalf("Could not select from site: %v", err)
-	}
-
-	row = config.DB.QueryRow("SELECT name FROM customer WHERE id = ?", customer_id)
-	err = row.Scan(&cname)
-
-	if err != nil {
-		log.Fatalf("Could not select from customer: %v", err)
-	}
-
-	return cname, sname
-}
-
 
 func GetPagesIndex(r *http.Request) (Customer, error ) {
 	customer := Customer{}
@@ -963,7 +833,12 @@ func GetPagesIndex(r *http.Request) (Customer, error ) {
 		}
 		customer.Sites = append(customer.Sites, site)
 
+	//fmt.Println(customer)
 
+
+
+
+	//fmt.Println(customer)
 	return customer, nil
 }
 

@@ -14,62 +14,60 @@
             flex-flow: column nowrap;
             justify-content: flex-start;
             align-items: left;
-
-            width:  100vw;
+            height: 100vh;
+            padding-left: 40px;
         }
         p {
-
+            /*margin-left: 4rem;*/
             font-size: 1rem;
             color: black;
         }
 
-        h2{
+        h2,h3 {
             margin-left: 4rem;
         }
         hr{
             width:100%;
+            /*margin-left: 4rem;*/
             size: 1px;
 
         }
-
-        .showarchived {
+        .createlink {
             font-size: 1rem;
             color: dodgerblue;
-            justify-items: flex-end;
             margin-left: 4rem;
         }
-        .col3Row {
-           color: #ff6f6f;
+        .link {
+            font-size: 1rem;
+            color: dodgerblue;
+            /*margin-left: 65vw;*/
+            justify-items: flex-end;
+
+
         }
 
         section{
             display: flex;
             flex-flow: wrap;
+            /*justify-content: space-between;*/
+            /* formatting */
+
             margin-left: 4rem;
             margin-right: 4vw;
         }
 
+       .left{
+           justify-content: left;
+           /*float: left;*/
+           margin-right:50px;
+           width: 75%;
+           color: dodgerblue;
+       }
         a:hover{
             color: blue;
         }
-        .col1Row:hover, .col3Row:hover{
-            color: red;
-        }
 
-        .col1Title{
-           width: 35vw;
-        }
-        .col2Title{
-            width: 35vw;
-        }
-        .col1Row{
-            width: 35vw;
-            color: #ff6f6f;
-        }
-        .col2Row{
-            width: 35vw;
-            color: #ff6f6f;
-        }
+
     </style>
 </head>
 <body>
@@ -78,35 +76,32 @@
 {{template "header"}}<br><br><br><br>
 
 
-<h2>Customers - Archived</h2>
+<h2>Customers</h2>
 
+
+
+
+
+
+<p class="createlink"><a href="/customer/create">Create New Customer</a></p>
+<br>
+<p class="createlink"><a class="link" href="/customers?archived=yes">Show Archived</a></p>
 
 <br>
-<br>
-<a class="showarchived" href="/customers?archived=no">Show Standard</a>
 
-
-
-<br>
+<h3>Name</h3>
 <section>
-{{if .}}
 
-<h3 class="col1Title">Name</h3>
-<h3 class="col2Title">Date</h3>
-{{else}}
-    <h3>No existing archived customers.</h3>
-{{end}}
 
 {{range .}}
 
+    <p><div class="left">
+    <a href="/customer/site?customer_id={{.Id}}">{{.Name}}</a></div>
 
+    <div class="link">
+        <a href="/customer/update?id={{.Id}}">Edit</a>
+    </div></p>
 
-    <a class="col1Row" href="/customer/site?customer_id={{.Id}}&archived=yes">{{.Name}}</a>
-
-    <div class="col2Row">{{.Date}}</div>
-
-
-    <a class="col3Row" href="/customer/update?id={{.Id}}">Edit</a>
 
     <hr>
 {{ end }}
@@ -116,9 +111,6 @@
 
 </body>
 </html>
-
-
-
 
 
 

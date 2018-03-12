@@ -40,12 +40,12 @@
             color: blue;
             border: 1px solid black;
         }
-
         .buttonarea{
             display: flex;
             width: 15vw;
             justify-content: space-between;
         }
+
         .button{
 
             display: flex;
@@ -67,73 +67,29 @@
             color: #000;
             background-color: lightgrey;
         }
-        #check{
-            /*width: 1rem;*/
-            width: 20px;
-            height: 20px;
-        }
-        .red{
-            color: red;
-        }
+
     </style>
-</head>
-<body>
-{{template "header"}}<br><br><br><br>
-
-{{if .Archive}}<h2 class="red">Site - Archived</h2>
-{{else}}
-<h2>Site</h2>
-{{end}}
+    </head>
+    <body>
+    {{template "header"}}<br><br><br><br>
 
 
-<p> Update</p>
+<h2>Customers</h2>
+
+<p> Create</p>
 
 <br>
 
+<h3>Name</h3>
 
-
-<form method="post" action="/site/update/process">
-
-    {{if .Archive}}
-        <label for="name">Site Name</label>
-        <input type="text" name="name" placeholder="Site's Name" readonly value="{{.Name}}">
-        <br>
-        <label for="url">Url</label>
-        <input type="text" name="url" placeholder="Site's Url" readonly value="{{.Url}}">
-    {{else}}
-        <label for="name">Site Name</label>
-        <input type="text" name="name" placeholder="Site's Name" required autofocus value="{{.Name}}">
-        <br>
-        <label for="url">Url</label>
-        <input type="text" name="url" placeholder="Site's Url" required value="{{.Url}}">
-    {{end}}
-
-
-
-
+<form method="post" action="/customer/create/process">
+    <input type="text" name="name" placeholder="Customer's Name" required autofocus>
     <br>
-    <label for="archive">Archive </label>
-
-    <input id="check" type="checkbox" name="archive" value="check" {{if .Archive}}checked{{end}} >
-{{if .Archive}}
-    (Deselecting this will make this sites and all pages for this site show.)
-{{else}}
-    (Checking this will archive, that is hide, this site and all of its pages.)
-{{end}}
-
-    <input type="hidden" name="site_id" value="{{.Id}}">
-    <input type="hidden" name="customer_id" value="{{.CustomerId}}">
-    <br><br>
     <div class = "buttonarea"><input class="button" type="submit">
-
-
-
-        <a href="#" class="button" onclick="history.back();">Cancel</a>
+        <a href="/customers" class="button">Cancel</a>
     </div>
 
-
 </form>
-
 
 </body>
 </html>

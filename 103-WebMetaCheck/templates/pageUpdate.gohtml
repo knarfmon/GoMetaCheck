@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body, form {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            /*height: 100vh;*/
+            /*padding-left: 40px;*/
+            margin-left: 4rem;
+        }
+        p {
+            margin-left: 4rem;
+            font-size: 1rem;
+            color: black;
+        }
+
+
+
+        div.hr{
+            margin: 0;
+            width: 60vw;
+            /*margin-left: 4rem;*/
+            /*size: 50px;*/
+            /*border-top: 1px solid #8c8b8b;*/
+            color: #000000;
+            /*background-color: #000000;*/
+            height: 15px;
+        }
+
+        input {
+
+            width: 60vw;
+            font-size: 1rem;
+            color: blue;
+            /*border: 1px solid black;*/
+        }
+
+        .buttonarea{
+            display: flex;
+            width: 15vw;
+            justify-content: space-between;
+        }
+        .button{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            padding: 10px 30px;
+            margin-right: 15px;
+            width: 8vw;
+
+
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .button:hover {
+            color: #000;
+            background-color: lightgrey;
+        }
+        .sectionTitle{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 8rem;
+        }
+        .DescArea{
+            font-size: 1.2rem;
+            color: blue;
+            width: 60vw;
+        }
+        #PageDetails{
+            margin-left: 4rem;
+        }
+    </style>
+</head>
+<body>
+{{template "header"}}<br><br><br><br>
+
+<h2 id="PageDetails">Page Details</h2>
+
+<div class = "sectionTitle">
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.CustomerName}}</div>
+</div>
+{{$cname := .CustomerName}}
+
+<div class = "sectionTitle">
+    <div class = "titles">Site:</div>
+    <div class = "col3">{{.SiteName}}</div>
+</div>
+{{$sname :=.SiteName}}
+<br>
+
+
+<form method="post" action="/page/update/process">
+    <fieldset>
+    <label for="Name">Name</label>
+    <div>
+    <input type="text" name="Name" placeholder="Name"  autofocus value="{{.Detail.Name}}">
+    </div>
+    <br>
+    <label for="UxNumber">UxNumber</label>
+    <div>
+    <input type="text" name="UxNumber" placeholder="UxNumber"  value="{{.Detail.UxNumber}}">
+    </div>
+    <br>
+    <label for="Url">Url</label>
+    <div>
+    <input type="text" name="Url" placeholder="Url"  value="{{.Detail.Url}}">
+    </div>
+    <br>
+    <label for="Status">Status</label>
+    <div>
+    <input type="text" name="Status" placeholder="Status"  value="{{.Detail.Status}}">
+    </div>
+    <br>
+    <label for="Title">Title</label>
+    <div>
+    <input type="text" name="Title" placeholder="Title"  value="{{.Detail.Title}}">
+    </div>
+    <br>
+    {{/*<label for="Description">Description</label>*/}}
+    {{/*<input type="text" name="Description" placeholder="Description"  value="{{.Detail.Description}}">*/}}
+
+    <label for="Description">Description:</label>
+    <div>
+
+    <textarea id="Description" name="Description" rows="4" cols="15" class="DescArea" >{{.Detail.Description}}</textarea>
+    </div>
+    <br>
+    <label for="Canonical">Canonical</label>
+    <div>
+    <input type="text" name="Canonical" placeholder="Canonical"  value="{{.Detail.Canonical}}">
+    </div>
+    <br>
+    <label for="MetaRobot">MetaRobot</label>
+    <div>
+    <input type="text" name="MetaRobot" placeholder="MetaRobot"  value="{{.Detail.MetaRobot}}">
+    </div>
+    <br>
+    <label for="OgTitle">OgTitle</label>
+    <div>
+    <input type="text" name="OgTitle" placeholder="OgTitle"  value="{{.Detail.OgTitle}}">
+    </div>
+    <br>
+    <label for="OgDesc">OgDesc</label>
+    <div>
+    <input type="text" name="OgDesc" placeholder="OgDesc"  value="{{.Detail.OgDesc}}">
+    </div>
+    <br>
+    <label for="OgImage">OgImage</label>
+    <div>
+    <input type="text" name="OgImage" placeholder="OgImage"  value="{{.Detail.OgImage}}">
+    </div>
+    <br>
+    <label for="OgUrl">OgUrl</label>
+    <div>
+    <input type="text" name="OgUrl" placeholder="OgUrl"  value="{{.Detail.OgUrl}}">
+    </div>
+
+
+    <input type="hidden" name="site_id" value="{{.Detail.Site_id}}">
+    <input type="hidden" name="page_id" value="{{.Detail.Page_id}}">
+
+        <input type="hidden" name="cname" value="{{$cname}}">
+        <input type="hidden" name="sname" value="{{$sname}}">
+
+        <br>
+</fieldset>
+    <br><br>
+    <div class = "buttonarea">
+        <input class="button" type="submit">
+        <a href="#" class="button" onclick="history.back();">Cancel</a>
+    </div>
+</form>
+
+<br><br>
+
+</body>
+</html>

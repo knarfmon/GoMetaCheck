@@ -1,7 +1,7 @@
 package customer
 
 import (
-			"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
+			"github.com/knarfmon/GoMetaCheck/103-WebMetaCheck/config"
 			"net/http"
 
 	"database/sql"
@@ -123,7 +123,7 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("customerSiteIndexArchive")
 	}else{
 		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
-
+		fmt.Println("customerSiteIndex")
 	}
 
 
@@ -229,44 +229,6 @@ func SiteUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config.TPL.ExecuteTemplate(w, "siteUpload.gohtml", site)
-}
-
-func SiteCompare(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-		return
-	}
-	site, err := PreUploadSite(r)
-	if err != nil {
-		http.Error(w, http.StatusText(406), http.StatusMethodNotAllowed)
-		return
-	}
-
-	config.TPL.ExecuteTemplate(w, "siteCompare.gohtml", site)
-}
-
-func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-		return
-	}
-	compare, err := UploadForCompare(r)
-
-	if err != nil {
-		http.Error(w, http.StatusText(406), http.StatusBadRequest)
-		return
-	}
-
-	newcompare, err := MatchSites(compare)
-
-	if err != nil {
-		http.Error(w, http.StatusText(406), http.StatusBadRequest)
-		return
-	}
-
-
-	config.TPL.ExecuteTemplate(w, "CompareIndex.gohtml", newcompare)
-
 }
 
 func SiteUploadProcess(w http.ResponseWriter, r *http.Request) {
