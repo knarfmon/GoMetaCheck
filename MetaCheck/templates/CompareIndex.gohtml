@@ -32,8 +32,9 @@
             flex-flow: row nowrap;
             justify-content: flex-start;
             align-items: left;
-            background-color: dodgerblue;
+            background-color: #7aa1ff;
         }
+
         .col1Head {
             justify-content: left;
             width: 15vw;
@@ -44,16 +45,56 @@
             width: 30vw;
         }
         .col3Head {
-            justify-content: left;
+            display: flex;
+            flex-flow: row;
+            align-content: center;
+            justify-content: center;
             width: 10vw;
+
         }
         .col4Head {
             justify-content: left;
-            width: 45vw;
+            width: 30vw;
+            padding-left: 1rem;
         }
+        .sectionRow{
+            display: flex;
+            flex-flow: row;
+            justify-content: flex-start;
 
 
+        }
+        .col1 {
+            justify-content: left;
+            width: 15vw;
+            margin-left: 1rem;
+        }
+        .col2 {
+            justify-content: left;
+            width: 30vw;
+        }
+        .col3Match {
+            display: flex;
+            flex-flow: row;
+            justify-content: center;
+            width: 10vw;
+            background-color: greenyellow;
+            align-content: center;
 
+        }
+        .col3NoMatch {
+            display: flex;
+            flex-flow: row;
+            justify-content: center;
+            width: 10vw;
+            background-color: #ff6b73;
+            align-content: center;
+        }
+        .col4{
+            justify-content: left;
+            width: 30vw;
+            padding-left: 1rem;
+        }
         /*.sectionTitle1{*/
             /*display: flex;*/
             /*flex-flow: row;*/
@@ -111,28 +152,87 @@
 <br>
 
 
+{{range .Diffs}}
 
 <div class="sectionHead">
-
-<div class="col1Head">Site Page:</div>
-<div class="col2Head">What is:</div>
-<div class="col3Head">Match ?:</div>
+<div class="col1Head">Site Page: {{.UxNumber}}</div>
+<div class="col2Head">{{.Name}}:</div>
+<div class="col3Head">Match ?</div>
 <div class="col4Head">Comparison:</div>
 </div>
 
 
 
-{{range .CsvSite.Pages}}
 
 
-    <div class="col1">{{.Url}}</div>
-    <div class="col2">{{.Match}}</div>
+<div class="sectionRow">
+    <div class="col1">Page Url</div>
+    <div class="col2">{{.UrlStd}}</div>
+    {{if.UrlMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.UrlCsv}}</div>
+</div>
 
+<div class="sectionRow">
+    <div class="col1">Title Tag</div>
+    <div class="col2">{{.TitleStd}}</div>
+{{if.TitleMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.TitleCsv}}</div>
+</div>
 
-    <hr>
+<div class="sectionRow">
+    <div class="col1">Description Tag</div>
+    <div class="col2">{{.DescriptionStd}}</div>
+{{if.DescriptionMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.DescriptionCsv}}</div>
+</div>
+
+<div class="sectionRow">
+    <div class="col1">Canonical Tag</div>
+    <div class="col2">{{.CanonicalStd}}</div>
+{{if.CanonicalMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.CanonicalCsv}}</div>
+</div>
+
+<div class="sectionRow">
+    <div class="col1">MetaRobot Tag</div>
+    <div class="col2">{{.MetaRobotStd}}</div>
+{{if.MetaRobotMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.MetaRobotCsv}}</div>
+</div>
+
+<div class="sectionRow">
+    <div class="col1">OgTitle Tag</div>
+    <div class="col2">{{.OgTitleStd}}</div>
+{{if.OgTitleMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.OgTitleCsv}}</div>
+</div>
+
+<div class="sectionRow">
+    <div class="col1">OgDesc Tag</div>
+    <div class="col2">{{.OgDescStd}}</div>
+{{if.OgDescMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.OgDescCsv}}</div>
+</div>
+
+<div class="sectionRow">
+    <div class="col1">OgImage Tag</div>
+    <div class="col2">{{.OgImageStd}}</div>
+{{if.OgImageMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.OgImageCsv}}</div>
+</div>
+
+<div class="sectionRow">
+    <div class="col1">OgUrl Tag</div>
+    <div class="col2">{{.OgUrlStd}}</div>
+{{if.OgUrlMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">{{.OgUrlCsv}}</div>
+</div>
+
+<br>
+
 {{end}}
 
 
-
+{{/*{{range .CsvSite.Pages}}*/}}
 </body>
 </html>

@@ -15,99 +15,142 @@ import (
 
 )
 
-
 type Customer struct {
-	Id      	int
-	Name    	string
-	Archive 	bool
-	Sites		[]Site
-	Date 		string
+	Id      int
+	Name    string
+	Archive bool
+	Sites   []Site
+	Date    string
 }
 
 type Site struct {
-	Id         	int
-	CustomerId 	int
-	Name       	string
-	Url        	string
-	Archive		bool
-	Customer	*Customer
-	Pages		[]Page
-	Images 		[]Image
-	PageCount	int
-	Date 		string
+	Id         int
+	CustomerId int
+	Name       string
+	Url        string
+	Archive    bool
+	Customer   *Customer
+	Pages      []Page
+	Images     []Image
+	PageCount  int
+	Date       string
 }
 
 type Page struct {
-	Page_id			int
-	Site_id    		int
-	Name   		   	string
-	UxNumber		int
-	Url         	string
-	UrlMatch		bool
-	Status      	int
-	StatusMatch		bool
-	Title       	string //4
-	TitleMatch		bool
-	Description 	string
-	DesctiptionMatch	bool
-	Canonical   	string
-	CanonicalMatch	bool
-	MetaRobot   	string
-	MetaRobotMatch	bool
-	OgTitle     	string
-	OgTitleMatch	bool
-	OgDesc      	string
-	OgDescMatch		bool
-	OgImage     	string
-	OgImageMatch	bool
-	OgUrl			string
-	OgUrlMatch		bool
-	Archive     	bool
-	Site			*Site
-	Match			bool
+	Page_id          int
+	Site_id          int
+	Name             string
+	UxNumber         int
+	Url              string
+	UrlMatch         bool
+	Status           int
+	StatusMatch      bool
+	Title            string //4
+	TitleMatch       bool
+	Description      string
+	DesctiptionMatch bool
+	Canonical        string
+	CanonicalMatch   bool
+	MetaRobot        string
+	MetaRobotMatch   bool
+	OgTitle          string
+	OgTitleMatch     bool
+	OgDesc           string
+	OgDescMatch      bool
+	OgImage          string
+	OgImageMatch     bool
+	OgUrl            string
+	OgUrlMatch       bool
+	Archive          bool
+	Site             *Site
+	Match            bool
+}
+
+type Diff struct {
+	Page_id  int
+	Site_id  int
+	Name     string
+	UxNumber int
+
+	UrlStd   string
+	UrlCsv   string
+	UrlMatch bool
+
+	StatusStd   int
+	StatusCsv   int
+	StatusMatch bool
+
+	TitleStd   string //4
+	TitleCsv   string //4
+	TitleMatch bool
+
+	DescriptionStd   string
+	DescriptionCsv   string
+	DescriptionMatch bool
+
+	CanonicalStd   string
+	CanonicalCsv   string
+	CanonicalMatch bool
+
+	MetaRobotStd   string
+	MetaRobotCsv   string
+	MetaRobotMatch bool
+
+	OgTitleStd   string
+	OgTitleCsv   string
+	OgTitleMatch bool
+
+	OgDescStd   string
+	OgDescCsv   string
+	OgDescMatch bool
+
+	OgImageStd   string
+	OgImageCsv   string
+	OgImageMatch bool
+
+	OgUrlStd   string
+	OgUrlCsv   string
+	OgUrlMatch bool
+
+	Match bool
 }
 
 type Image struct {
-	Image_id	int
-	Site_id     int
-	Page_id		int
-	AltText		string
-	ImageUrl 	string
-	Name 		string
-	Notes 		string
-	PageUrl		string
+	Image_id int
+	Site_id  int
+	Page_id  int
+	AltText  string
+	ImageUrl string
+	Name     string
+	Notes    string
+	PageUrl  string
 }
 
-type PageDetail struct{
-	CustomerName 	string
-	SiteName		string
-	Detail			Page
-	Image			Image
-	Images 			[]Image
+type PageDetail struct {
+	CustomerName string
+	SiteName     string
+	Detail       Page
+	Image        Image
+	Images       []Image
 }
 
-type Compare struct{
-	CustomerName	string
-	CsvSite			Site
-	StdSite			Site
+type Compare struct {
+	CustomerName string
+	CsvSite      Site
+	StdSite      Site
+	Diffs        []Diff
 }
 
-
-
-
-func AllCustomers(r *http.Request)([]Customer,error) {
-
-
+func AllCustomers(r *http.Request) ([]Customer, error) {
 
 	var archive int
 	var query string
 
-
-	if r.FormValue("archived") == "yes"{
+	if r.FormValue("archived") == "yes" {
 
 		query = "SELECT id,name,archive,date FROM customer WHERE archive=1 ORDER BY name,date DESC"
 
-	}else{
+	} else {
 		query = "SELECT id,name,archive,date FROM customer WHERE archive=0 ORDER BY name"
 
 	}
@@ -122,15 +165,10 @@ func AllCustomers(r *http.Request)([]Customer,error) {
 
 	css := make([]Customer, 0)
 
-
-
-
 	for rows.Next() {
 
 		cs := Customer{}
-		err := rows.Scan(&cs.Id,&cs.Name,&archive,&cs.Date) // order matters, everything in select statement
-
-
+		err := rows.Scan(&cs.Id, &cs.Name, &archive, &cs.Date) // order matters, everything in select statement
 
 		if archive == 0 {
 			cs.Archive = false
@@ -138,38 +176,29 @@ func AllCustomers(r *http.Request)([]Customer,error) {
 			cs.Archive = true
 		}
 
-
-
 		if err != nil {
-			return nil,err
+			return nil, err
 		}
 		css = append(css, cs)
 
 	}
 	if err = rows.Err(); err != nil {
-		return nil,err
+		return nil, err
 	}
-
-
 
 	return css, nil
 
-
 }
-
 
 func PutCustomer(r *http.Request) (Customer, error) {
 	// get form values
 	cs := Customer{}
 	cs.Name = r.FormValue("name")
 
-
 	// validate form values
 	if cs.Name == "" {
 		return cs, errors.New("400. Bad request. All fields must be complete.")
 	}
-
-
 
 	// insert values
 	_, err := config.DB.Exec("INSERT INTO customer (name) VALUES (?)", cs.Name)
@@ -211,27 +240,21 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 	newId, err := strconv.Atoi(r.FormValue("id"))
 	checked := r.FormValue("archive") //will show "check" if box is checked
 
-if checked == "check"{
-	cs.Archive = true
+	if checked == "check" {
+		cs.Archive = true
 
-	_,err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;",newId)
-	if err != nil {
-		return cs, errors.New("406. Not Acceptable. Id not of correct type")
+		_, err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;", newId)
+		if err != nil {
+			return cs, errors.New("406. Not Acceptable. Id not of correct type")
+		}
+
+	} else {
+		cs.Archive = false
 	}
 
-}else {
-	cs.Archive = false
-}
-
-
-
-
-	if cs.Name == ""  {
+	if cs.Name == "" {
 		return cs, errors.New("400. Bad Request. Fields can't be empty.")
 	}
-
-
-
 
 	if err != nil {
 		return cs, errors.New("406. Not Acceptable. Id not of correct type")
@@ -239,7 +262,7 @@ if checked == "check"{
 	cs.Id = newId
 
 	// insert values
-	_, err = config.DB.Exec("UPDATE customer SET name = ?, archive = ? WHERE id=?;", cs.Name,cs.Archive, cs.Id)
+	_, err = config.DB.Exec("UPDATE customer SET name = ?, archive = ? WHERE id=?;", cs.Name, cs.Archive, cs.Id)
 	if err != nil {
 		return cs, err
 	}
@@ -261,11 +284,10 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 
 	err = row.Scan(&customer.Id, &customer.Name, &customer.Archive)
 
-
-	if r.FormValue("archived") == "yes"{
-	query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
-	}else{
-	query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0"
+	if r.FormValue("archived") == "yes" {
+		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
+	} else {
+		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0"
 	}
 
 	rows, err := config.DB.Query(query, customer.Id)
@@ -275,14 +297,13 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	}
 	for rows.Next() {
 		site := Site{Customer: &customer}
-		err = rows.Scan(&site.Id, &site.Name, &site.Url,&site.Archive,&site.Date)
+		err = rows.Scan(&site.Id, &site.Name, &site.Url, &site.Archive, &site.Date)
 		if err != nil {
 			return
 		}
 
 		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
 		err = row.Scan(&site.PageCount)
-
 
 		customer.Sites = append(customer.Sites, site)
 	}
@@ -304,8 +325,6 @@ func PrePutSite(r *http.Request) (Site, error) {
 	return site, nil
 }
 
-
-
 func PutSite(r *http.Request) (Site, error) {
 	// get form values
 	site := Site{}
@@ -319,14 +338,13 @@ func PutSite(r *http.Request) (Site, error) {
 	}
 	site.CustomerId = newId
 
-
 	// validate form values
-	if site.Name == "" || site.Url == ""  {
+	if site.Name == "" || site.Url == "" {
 		return site, errors.New("400. Bad request. All fields must be complete.")
 	}
 
 	// insert values
-	_, err = config.DB.Exec("INSERT INTO site (name,url,customer_id) VALUES (?,?,?)", site.Name,site.Url,site.CustomerId)
+	_, err = config.DB.Exec("INSERT INTO site (name,url,customer_id) VALUES (?,?,?)", site.Name, site.Url, site.CustomerId)
 	if err != nil {
 		return site, errors.New("500. Internal Server Error." + err.Error())
 	}
@@ -349,7 +367,7 @@ func OneSite(r *http.Request) (Site, error) {
 
 	row := config.DB.QueryRow("SELECT id,name,url,customer_id,archive FROM site WHERE id = ?", site.Id)
 
-	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.CustomerId,&archive)
+	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.CustomerId, &archive)
 	if err != nil {
 		return site, err
 	}
@@ -359,7 +377,6 @@ func OneSite(r *http.Request) (Site, error) {
 	} else {
 		site.Archive = true
 	}
-
 
 	return site, nil
 }
@@ -373,7 +390,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 	strCustomerId := r.FormValue("customer_id")
 	checked := r.FormValue("archive") //will show "check" if box is checked
 
-	if site.Name == "" || site.Url == ""  {
+	if site.Name == "" || site.Url == "" {
 		return site, errors.New("400. Bad request. All fields must be complete.")
 	}
 
@@ -389,9 +406,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 	}
 	site.CustomerId = intCustomerId
 
-
-
-	if checked == "check"{
+	if checked == "check" {
 		site.Archive = true
 
 		//_,err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;",newId)
@@ -399,10 +414,9 @@ func UpdateSite(r *http.Request) (Site, error) {
 		//	return cs, errors.New("406. Not Acceptable. Id not of correct type")
 		//}
 
-	}else {
+	} else {
 		site.Archive = false
 	}
-
 
 	// insert values
 	_, err = config.DB.Exec("UPDATE site SET name=?,url=?,archive=? WHERE id=?;", site.Name, site.Url, site.Archive, site.Id)
@@ -413,7 +427,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 	return site, nil
 }
 
-func PreUploadSite (r *http.Request) (Site, error) {
+func PreUploadSite(r *http.Request) (Site, error) {
 	site := Site{}
 	site.Name = r.FormValue("name")
 
@@ -427,11 +441,9 @@ func PreUploadSite (r *http.Request) (Site, error) {
 	return site, nil
 }
 
-
-func UploadSite4 (r *http.Request) ([]Page, error) {
+func UploadSite4(r *http.Request) ([]Page, error) {
 
 	site := Site{}
-
 
 	site.Name = r.FormValue("name")
 	strId := r.FormValue("site_id")
@@ -439,8 +451,6 @@ func UploadSite4 (r *http.Request) ([]Page, error) {
 	//if err != nil {
 	//	return pages, errors.New("406. Not Acceptable. Id not of correct type")
 	//}
-
-
 
 	file, _, err := r.FormFile("html")
 	if err != nil {
@@ -453,7 +463,6 @@ func UploadSite4 (r *http.Request) ([]Page, error) {
 	//bs, err := ioutil.ReadAll(file)  //seperate
 	//s := string(bs)    //seperate
 	//return s, nil     //seperate
-
 
 	rdr := csv.NewReader(file)
 	rdr.FieldsPerRecord = -1
@@ -472,8 +481,7 @@ func UploadSite4 (r *http.Request) ([]Page, error) {
 
 		//0 based
 
-
-		name := fixPageName(row[0])  //add strip function to get name
+		name := fixPageName(row[0]) //add strip function to get name
 		uxNumber := 0
 		url := row[0]
 		status, _ := strconv.Atoi(row[2])
@@ -481,65 +489,63 @@ func UploadSite4 (r *http.Request) ([]Page, error) {
 		description := row[10]
 		canonical := row[25]
 		metaRobot := row[23]
-		ogTitle  := row[42]
-		ogDesc  := row[43]
-		ogImage  := row[44]
-		ogUrl  := row[45]
+		ogTitle := row[42]
+		ogDesc := row[43]
+		ogImage := row[44]
+		ogUrl := row[45]
 		//archive := false
 
-
 		pages = append(pages, Page{
-			Site_id:	intId,
-			Name: 		name,
-			UxNumber: 	uxNumber,
-			Url:		url,
-			Status:		status,
-			Title: 		title,
-			Description:description,
-			Canonical:	canonical,
-			MetaRobot:	metaRobot,
-			OgTitle:	ogTitle,
-			OgDesc:		ogDesc,
-			OgImage:	ogImage,
-			OgUrl:		ogUrl,
-			Archive:	false,
+			Site_id:     intId,
+			Name:        name,
+			UxNumber:    uxNumber,
+			Url:         url,
+			Status:      status,
+			Title:       title,
+			Description: description,
+			Canonical:   canonical,
+			MetaRobot:   metaRobot,
+			OgTitle:     ogTitle,
+			OgDesc:      ogDesc,
+			OgImage:     ogImage,
+			OgUrl:       ogUrl,
+			Archive:     false,
 		})
 	}
-
 
 	return pages, nil
 }
 
-	func fixPageName(str string) (string){
+func fixPageName(str string) (string) {
 
-		startIndex := strings.LastIndex(str, "/") + 1
-		stopIndex := (len(str))
+	startIndex := strings.LastIndex(str, "/") + 1
+	stopIndex := (len(str))
 
-		if startIndex == stopIndex{
-			newstr := str[:(len(str))-1]
-			newstartIndex := strings.LastIndex(newstr, "/") + 1
-			newstopIndex := (len(newstr))
-			newstr = newstr[newstartIndex:newstopIndex]
-			newstr = strings.Replace(newstr, "-", " ", -1)
-			newstr = strings.Title(newstr)
+	if startIndex == stopIndex {
+		newstr := str[:(len(str))-1]
+		newstartIndex := strings.LastIndex(newstr, "/") + 1
+		newstopIndex := (len(newstr))
+		newstr = newstr[newstartIndex:newstopIndex]
+		newstr = strings.Replace(newstr, "-", " ", -1)
+		newstr = strings.Title(newstr)
 
-			return newstr
+		return newstr
 
-		}
-
-		str = str[startIndex:stopIndex]
-		str = strings.Replace(str, "-", " ", -1)
-		str = strings.Title(str)
-
-		return str
 	}
 
-func PutPage(site Site) (error) {		//replaced pages []Page with site Site
+	str = str[startIndex:stopIndex]
+	str = strings.Replace(str, "-", " ", -1)
+	str = strings.Title(str)
+
+	return str
+}
+
+func PutPage(site Site) (error) { //replaced pages []Page with site Site
 
 	for _, p := range site.Pages {
 
 		res, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		p.Site_id,p.Name,p.UxNumber,p.Url,p.Status,p.Title,p.Description,p.Canonical,p.MetaRobot,p.OgTitle,	p.OgDesc,		p.OgImage,p.OgUrl,p.Archive)
+			p.Site_id, p.Name, p.UxNumber, p.Url, p.Status, p.Title, p.Description, p.Canonical, p.MetaRobot, p.OgTitle, p.OgDesc, p.OgImage, p.OgUrl, p.Archive)
 
 		if err != nil {
 			//return pages, errors.New("500. Internal Server Error." + err.Error())
@@ -551,45 +557,45 @@ func PutPage(site Site) (error) {		//replaced pages []Page with site Site
 
 	}
 
-	return nil		// 2/10 removed pages from return
+	return nil // 2/10 removed pages from return
 }
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-func UploadForCompare (r *http.Request)(Compare, error) {
-	site_id,err := strconv.Atoi(r.FormValue("site_id"))
+func UploadForCompare(r *http.Request) (Compare, error) {
+	site_id, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
-	cname,sname := GetSiteCustomerName(site_id)
-
+	cname, sname := GetSiteCustomerName(site_id)
 
 	compare := Compare{}
 	compare.CustomerName = cname
 
 	site := Site{}
-	csvSite, err := UploadHtml(r,site)
+	csvSite, err := UploadHtml(r, site)
 	csvSite.Name = sname
 	checkErr(err)
 
 	stdSite, err := GetPages(r)
 
-	compare.CsvSite =  csvSite
+	compare.CsvSite = csvSite
 	compare.StdSite = stdSite
 
 	return compare, nil
 }
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-func Upload (r *http.Request)(Site, error){  //changed [] Page with Site
+func Upload(r *http.Request) (Site, error) { //changed [] Page with Site
 	site := Site{}
 
-	site, err := UploadHtml(r,site )  //replaced pages with site
+	site, err := UploadHtml(r, site) //replaced pages with site
 	checkErr(err)
 
-	err = PutPage(site)		//2/10 replaced pages with site   removed pages from return
+	err = PutPage(site) //2/10 replaced pages with site   removed pages from return
 	checkErr(err)
 
-
-	site,err = GetPages(r)	//site has updated Page Id so as to match with Image Url Id
+	site, err = GetPages(r) //site has updated Page Id so as to match with Image Url Id
 	checkErr(err)
 
 	site, err = UploadImage(r, site)
@@ -602,10 +608,10 @@ func Upload (r *http.Request)(Site, error){  //changed [] Page with Site
 
 	//return pages, nil
 }
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-func UploadHtml (r *http.Request, site Site) (Site, error) {     //added site Site  replaced[]Page with Site
-
+func UploadHtml(r *http.Request, site Site) (Site, error) { //added site Site  replaced[]Page with Site
 
 	//site.Name = r.FormValue("name")
 	strId := r.FormValue("site_id")
@@ -642,7 +648,7 @@ func UploadHtml (r *http.Request, site Site) (Site, error) {     //added site Si
 		} else {
 			name := fixPageName(record[columns["Address"]])
 			url := record[columns["Address"]]
-			status,_ := strconv.Atoi(record[columns["Status Code"]])
+			status, _ := strconv.Atoi(record[columns["Status Code"]])
 			title := record[columns["Title 1"]]
 			description := record[columns["Meta Description 1"]]
 			canonical := record[columns["Canonical Link Element 1"]]
@@ -653,25 +659,25 @@ func UploadHtml (r *http.Request, site Site) (Site, error) {     //added site Si
 			ogUrl := record[columns["og:url 1"]]
 
 			site.Pages = append(site.Pages, Page{
-				Site_id:	intId,
-				Name: 		name,
-				UxNumber: 	0,
-				Url:		url,
-				Status:		status,
-				Title: 		title,
-				Description:description,
-				Canonical:	canonical,
-				MetaRobot:	metaRobot,
-				OgTitle:	ogTitle,
-				OgDesc:		ogDesc,
-				OgImage:	ogImage,
-				OgUrl:		ogUrl,
-				Archive:	false,
+				Site_id:     intId,
+				Name:        name,
+				UxNumber:    0,
+				Url:         url,
+				Status:      status,
+				Title:       title,
+				Description: description,
+				Canonical:   canonical,
+				MetaRobot:   metaRobot,
+				OgTitle:     ogTitle,
+				OgDesc:      ogDesc,
+				OgImage:     ogImage,
+				OgUrl:       ogUrl,
+				Archive:     false,
 			})
 
 		}
 	}
-return site,nil			//replaced pages with site
+	return site, nil //replaced pages with site
 }
 
 func checkErr(err error) {
@@ -680,16 +686,14 @@ func checkErr(err error) {
 	}
 }
 
-
 func GetPages(r *http.Request) (Site, error) {
 
 	name := r.FormValue("name")
 	site := Site{Name: name}
 
-
 	site.Pages = []Page{}
 
-	strId, err :=strconv.Atoi(r.FormValue("site_id"))
+	strId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
 	rows, err := config.DB.Query("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ?", strId)
@@ -702,11 +706,10 @@ func GetPages(r *http.Request) (Site, error) {
 
 	//pages := make([]Page, 0)
 
-
 	for rows.Next() {
 
-		page := Page{}         // 2/10 uncommented
-		err := rows.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.UxNumber,&page.Url,&page.Status,&page.Title,&page.Description,&page.Canonical,&page.MetaRobot,&page.OgTitle,&page.OgDesc,&page.OgImage,&page.OgUrl,&page.Archive) // order matters, everything in select statement
+		page := Page{}                                                                                                                                                                                                                                // 2/10 uncommented
+		err := rows.Scan(&page.Page_id, &page.Site_id, &page.Name, &page.UxNumber, &page.Url, &page.Status, &page.Title, &page.Description, &page.Canonical, &page.MetaRobot, &page.OgTitle, &page.OgDesc, &page.OgImage, &page.OgUrl, &page.Archive) // order matters, everything in select statement
 
 		checkErr(err)
 
@@ -715,11 +718,11 @@ func GetPages(r *http.Request) (Site, error) {
 	return site, nil
 }
 
-func UploadImage (r *http.Request, site Site) (Site, error) {
+func UploadImage(r *http.Request, site Site) (Site, error) {
 
 	//site.Name = r.FormValue("name")
 	//fmt.Println(site.Name)
-	strId, err :=strconv.Atoi(r.FormValue("site_id"))
+	strId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
 	file, _, err := r.FormFile("image")
@@ -754,100 +757,107 @@ func UploadImage (r *http.Request, site Site) (Site, error) {
 			PageUrl := record[columns["Source"]]
 
 			// adding page id here, cant add without major change with pointers since passing site around
-			for _, outer := range site.Pages{
-				if outer.Url == PageUrl{
+			for _, outer := range site.Pages {
+				if outer.Url == PageUrl {
 					pageid = outer.Page_id
 				}
 			}
 
-
-
 			site.Images = append(site.Images, Image{
-				Site_id:	strId,
-				AltText: 	AltText,
-				ImageUrl:	ImageUrl,
-				Name: 		Name,
-				PageUrl:	PageUrl,
-				Page_id:	pageid,
+				Site_id:  strId,
+				AltText:  AltText,
+				ImageUrl: ImageUrl,
+				Name:     Name,
+				PageUrl:  PageUrl,
+				Page_id:  pageid,
 			})
 
 		}
 	}
 
-	return site,nil
+	return site, nil
 }
 
-func MatchSites (compare Compare) (Compare, error) {
+func MatchSites(compare Compare) (Compare, error) {
 
 	//range over page - out loop
-	csvSite := compare.CsvSite	//outer
-	stdSite := compare.StdSite  //inner
-			//should match on ten items
-	for outer := 0; outer < len(csvSite.Pages); outer++{
+	csvSite := compare.CsvSite //outer
+	stdSite := compare.StdSite //inner
+
+	compare.Diffs = []Diff{}
+
+	//should match on ten items
+	for outer := 0; outer < len(csvSite.Pages); outer++ {
 		csvSite.Pages[outer].Match = true
 		for inner := 0; inner < len(stdSite.Pages); inner++ {
 
 			if stdSite.Pages[inner].Url == csvSite.Pages[outer].Url {
-				csvSite.Pages[outer].UrlMatch = true
 
+				diff := Diff{}
 
-			if stdSite.Pages[inner].Status == csvSite.Pages[outer].Status {
-				csvSite.Pages[outer].StatusMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
+				diff.UrlCsv = csvSite.Pages[outer].Url
+				diff.UrlStd = stdSite.Pages[inner].Url
+				diff.UrlMatch = true
+
+				diff.StatusCsv = csvSite.Pages[outer].Status
+				diff.StatusStd = stdSite.Pages[inner].Status
+				if stdSite.Pages[inner].Status == csvSite.Pages[outer].Status {
+					diff.StatusMatch = true
+				}
+
+				diff.TitleCsv = csvSite.Pages[outer].Title
+				diff.TitleStd = stdSite.Pages[inner].Title
+				if stdSite.Pages[inner].Title == csvSite.Pages[outer].Title {
+					diff.TitleMatch = true
+				}
+
+				diff.DescriptionCsv = csvSite.Pages[outer].Description
+				diff.DescriptionStd = stdSite.Pages[inner].Description
+				if stdSite.Pages[inner].Description == csvSite.Pages[outer].Description {
+					diff.DescriptionMatch = true
+				}
+
+				diff.CanonicalCsv = csvSite.Pages[outer].Canonical
+				diff.CanonicalStd = stdSite.Pages[inner].Canonical
+				if stdSite.Pages[inner].Canonical == csvSite.Pages[outer].Canonical {
+					diff.CanonicalMatch = true
+				}
+
+				diff.MetaRobotCsv = csvSite.Pages[outer].MetaRobot
+				diff.MetaRobotStd = stdSite.Pages[inner].MetaRobot
+				if stdSite.Pages[inner].MetaRobot == csvSite.Pages[outer].MetaRobot {
+					diff.MetaRobotMatch = true
+				}
+
+				diff.OgTitleCsv = csvSite.Pages[outer].OgTitle
+				diff.OgTitleStd = stdSite.Pages[inner].OgTitle
+				if stdSite.Pages[inner].OgTitle == csvSite.Pages[outer].OgTitle {
+					diff.OgTitleMatch = true
+				}
+
+				diff.OgDescCsv = csvSite.Pages[outer].OgDesc
+				diff.OgDescStd = stdSite.Pages[inner].OgDesc
+				if stdSite.Pages[inner].OgDesc == csvSite.Pages[outer].OgDesc {
+					diff.OgDescMatch = true
+				}
+
+				diff.OgImageCsv = csvSite.Pages[outer].OgImage
+				diff.OgImageStd = stdSite.Pages[inner].OgImage
+				if stdSite.Pages[inner].OgImage == csvSite.Pages[outer].OgImage {
+					diff.OgImageMatch = true
+				}
+
+				diff.OgUrlCsv = csvSite.Pages[outer].OgUrl
+				diff.OgUrlStd = stdSite.Pages[inner].OgUrl
+				if stdSite.Pages[inner].OgUrl == csvSite.Pages[outer].OgUrl {
+					diff.OgUrlMatch = true
+				}
+				diff.UxNumber = stdSite.Pages[inner].UxNumber
+				diff.Name = stdSite.Pages[inner].Name
+
+				compare.Diffs = append(compare.Diffs, diff)
+
 			}
-
-			if stdSite.Pages[inner].Title == csvSite.Pages[outer].Title {
-				csvSite.Pages[outer].TitleMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].Description == csvSite.Pages[outer].Description {
-				csvSite.Pages[outer].DesctiptionMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].Canonical == csvSite.Pages[outer].Canonical {
-				csvSite.Pages[outer].CanonicalMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].MetaRobot == csvSite.Pages[outer].MetaRobot {
-				csvSite.Pages[outer].MetaRobotMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgTitle == csvSite.Pages[outer].OgTitle {
-				csvSite.Pages[outer].OgTitleMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgDesc == csvSite.Pages[outer].OgDesc {
-				csvSite.Pages[outer].OgDescMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgImage == csvSite.Pages[outer].OgImage {
-				csvSite.Pages[outer].OgImageMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-			if stdSite.Pages[inner].OgUrl == csvSite.Pages[outer].OgUrl {
-				csvSite.Pages[outer].OgUrlMatch = true
-			} else {
-				csvSite.Pages[outer].Match = false
-			}
-
-		}
-
-
 
 		}
 
@@ -869,12 +879,12 @@ func MatchSites (compare Compare) (Compare, error) {
 	return compare, nil
 }
 
-func PutImage(site Site) (error) {		//replaced pages []Page with site Site
+func PutImage(site Site) (error) { //replaced pages []Page with site Site
 
 	for _, p := range site.Images {
 
 		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url) VALUES (?,?,?,?,?,?,?)",
-			p.Site_id,p.Page_id,p.AltText,p.ImageUrl,p.Name,p.Notes,p.PageUrl)
+			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl)
 
 		if err != nil {
 			//return pages, errors.New("500. Internal Server Error." + err.Error())
@@ -886,14 +896,14 @@ func PutImage(site Site) (error) {		//replaced pages []Page with site Site
 
 	}
 
-	return nil		// 2/10 removed pages from return
+	return nil // 2/10 removed pages from return
 }
-func GetSiteCustomerName(siteId int)(string,string){
-	var cname,sname string
+func GetSiteCustomerName(siteId int) (string, string) {
+	var cname, sname string
 	var customer_id int
 
 	row := config.DB.QueryRow("SELECT customer_id,name FROM site WHERE id = ?", siteId)
-	err := row.Scan(&customer_id,&sname)
+	err := row.Scan(&customer_id, &sname)
 
 	if err != nil {
 		log.Fatalf("Could not select from site: %v", err)
@@ -909,31 +919,27 @@ func GetSiteCustomerName(siteId int)(string,string){
 	return cname, sname
 }
 
-
-func GetPagesIndex(r *http.Request) (Customer, error ) {
+func GetPagesIndex(r *http.Request) (Customer, error) {
 	customer := Customer{}
 	customer.Sites = []Site{}
 	site := Site{}
 
-
 	intId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
-
 
 	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
 	err = row.Scan(&site.CustomerId)
 
 	if err != nil {
-			log.Fatalf("Could not select from site: %v", err)
+		log.Fatalf("Could not select from site: %v", err)
 	}
 
 	row = config.DB.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
-	err = row.Scan(&customer.Id,&customer.Name)
+	err = row.Scan(&customer.Id, &customer.Name)
 
 	if err != nil {
 		log.Fatalf("Could not select from customer: %v", err)
 	}
-
 
 	rows, err := config.DB.Query("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ?", intId)
 
@@ -946,28 +952,26 @@ func GetPagesIndex(r *http.Request) (Customer, error ) {
 	for rows.Next() {
 
 		page := Page{}
-		err := rows.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.UxNumber,&page.Url,&page.Status,&page.Title,&page.Description,&page.Canonical,&page.MetaRobot,&page.OgTitle,&page.OgDesc,&page.OgImage,&page.OgUrl,&page.Archive) // order matters, everything in select statement
+		err := rows.Scan(&page.Page_id, &page.Site_id, &page.Name, &page.UxNumber, &page.Url, &page.Status, &page.Title, &page.Description, &page.Canonical, &page.MetaRobot, &page.OgTitle, &page.OgDesc, &page.OgImage, &page.OgUrl, &page.Archive) // order matters, everything in select statement
 
 		checkErr(err)
 
 		site.Pages = append(site.Pages, page)
 	}
 
-
 	row = config.DB.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
 
-		site = Site{Pages: site.Pages}
-		err = row.Scan(&site.Id,&site.CustomerId, &site.Name, &site.Url,&site.Archive)
-		if err != nil {
-			log.Fatalf("Could not scan into site: %v", err)
-		}
-		customer.Sites = append(customer.Sites, site)
-
+	site = Site{Pages: site.Pages}
+	err = row.Scan(&site.Id, &site.CustomerId, &site.Name, &site.Url, &site.Archive)
+	if err != nil {
+		log.Fatalf("Could not scan into site: %v", err)
+	}
+	customer.Sites = append(customer.Sites, site)
 
 	return customer, nil
 }
 
-func  GetPageDetails(r *http.Request)(PageDetail, error)  {
+func GetPageDetails(r *http.Request) (PageDetail, error) {
 
 	intId, err := strconv.Atoi(r.FormValue("page_id"))
 	checkErr(err)
@@ -981,7 +985,7 @@ func  GetPageDetails(r *http.Request)(PageDetail, error)  {
 	}
 
 	page := Page{}
-	err = row.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.UxNumber,&page.Url,&page.Status,&page.Title,&page.Description,&page.Canonical,&page.MetaRobot,&page.OgTitle,&page.OgDesc,&page.OgImage,&page.OgUrl,&page.Archive) // order matters, everything in select statement
+	err = row.Scan(&page.Page_id, &page.Site_id, &page.Name, &page.UxNumber, &page.Url, &page.Status, &page.Title, &page.Description, &page.Canonical, &page.MetaRobot, &page.OgTitle, &page.OgDesc, &page.OgImage, &page.OgUrl, &page.Archive) // order matters, everything in select statement
 
 	if err != nil {
 		log.Fatalf("Could not scan page details: %v", err)
@@ -992,7 +996,6 @@ func  GetPageDetails(r *http.Request)(PageDetail, error)  {
 	//	Detail: 		page,
 	//
 	//}
-
 
 	//+++++++++++++++++++++++++  Image records per page  ++++++++++++++++++++++++++++++++++++
 	images := []Image{}
@@ -1008,7 +1011,7 @@ func  GetPageDetails(r *http.Request)(PageDetail, error)  {
 	for rows.Next() {
 
 		image := Image{}
-		err := rows.Scan(&image.Image_id,&image.Site_id,&image.Page_id,&image.AltText,&image.ImageUrl,&image.Name,&image.Notes,&image.PageUrl)
+		err := rows.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.ImageUrl, &image.Name, &image.Notes, &image.PageUrl)
 
 		checkErr(err)
 
@@ -1016,10 +1019,10 @@ func  GetPageDetails(r *http.Request)(PageDetail, error)  {
 	}
 
 	pageDetail := PageDetail{
-		CustomerName: 	cname,
-		SiteName: 		sname,
-		Detail: 		page,
-		Images:			images,
+		CustomerName: cname,
+		SiteName:     sname,
+		Detail:       page,
+		Images:       images,
 	}
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -1027,7 +1030,7 @@ func  GetPageDetails(r *http.Request)(PageDetail, error)  {
 	return pageDetail, nil
 }
 
-func  GetImageDetails(r *http.Request)(PageDetail, error)  {
+func GetImageDetails(r *http.Request) (PageDetail, error) {
 
 	intId, err := strconv.Atoi(r.FormValue("image_id"))
 	checkErr(err)
@@ -1041,33 +1044,30 @@ func  GetImageDetails(r *http.Request)(PageDetail, error)  {
 	}
 
 	image := Image{}
-	err = row.Scan(&image.Image_id,&image.Site_id,&image.Page_id,&image.AltText,&image.ImageUrl,&image.Name,&image.Notes,&image.PageUrl)
+	err = row.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.ImageUrl, &image.Name, &image.Notes, &image.PageUrl)
 
 	if err != nil {
 		log.Fatalf("Could not scan image details: %v", err)
 	}
 	pageDetail := PageDetail{
-		CustomerName: 	cname,
-		SiteName: 		sname,
-		Image: 			image,
-
+		CustomerName: cname,
+		SiteName:     sname,
+		Image:        image,
 	}
-
 
 	return pageDetail, nil
 }
 
-
-func UpdatePage(r *http.Request) ( error) {
+func UpdatePage(r *http.Request) (error) {
 
 	page := Page{}
 
-	page.Page_id,_ = strconv.Atoi(r.FormValue("page_id"))
-	page.Site_id,_ = strconv.Atoi(r.FormValue("site_id"))
+	page.Page_id, _ = strconv.Atoi(r.FormValue("page_id"))
+	page.Site_id, _ = strconv.Atoi(r.FormValue("site_id"))
 	page.Name = r.FormValue("Name")
-	page.UxNumber,_ = strconv.Atoi(r.FormValue("UxNumber"))
+	page.UxNumber, _ = strconv.Atoi(r.FormValue("UxNumber"))
 	page.Url = r.FormValue("Url")
-	page.Status,_ = strconv.Atoi(r.FormValue("Status"))
+	page.Status, _ = strconv.Atoi(r.FormValue("Status"))
 	page.Title = r.FormValue("Title")
 	page.Description = r.FormValue("Description")
 	page.Canonical = r.FormValue("Canonical")
@@ -1077,35 +1077,32 @@ func UpdatePage(r *http.Request) ( error) {
 	page.OgImage = r.FormValue("OgImage")
 	page.OgUrl = r.FormValue("OgUrl")
 
-
-
-	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=? WHERE id=?;" ,page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl,  page.Page_id)
+	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=? WHERE id=?;", page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl, page.Page_id)
 	if err != nil {
-		return  err
+		return err
 	}
-	return  nil
+	return nil
 }
 
-func UpdateImage(r *http.Request) ( error) {
+func UpdateImage(r *http.Request) (error) {
 
 	image := Image{}
 
-	image.Image_id,_ = strconv.Atoi(r.FormValue("image_id"))
+	image.Image_id, _ = strconv.Atoi(r.FormValue("image_id"))
 	image.AltText = r.FormValue("AltText")
 	image.ImageUrl = r.FormValue("ImageUrl")
 	image.Name = r.FormValue("Name")
 
-
 	//alt_text,image_url,name,notes,page_url
 
-	_, err := config.DB.Exec("UPDATE image SET alt_text=?,image_url=?,name=? WHERE id=?;" ,image.AltText, image.ImageUrl, image.Name, image.Image_id)
+	_, err := config.DB.Exec("UPDATE image SET alt_text=?,image_url=?,name=? WHERE id=?;", image.AltText, image.ImageUrl, image.Name, image.Image_id)
 	if err != nil {
-		return  err
+		return err
 	}
-	return  nil
+	return nil
 }
 
-func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
+func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 	customer := Customer{}
 	customer.Sites = []Site{}
 	site := Site{}
@@ -1123,7 +1120,7 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
 	}
 
 	row = config.DB.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
-	err = row.Scan(&customer.Id,&customer.Name)
+	err = row.Scan(&customer.Id, &customer.Name)
 
 	if err != nil {
 		log.Fatalf("Could not select from customer: %v", err)
@@ -1144,27 +1141,23 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error ) {
 	for rows.Next() {
 
 		page := Page{}
-		err := rows.Scan(&page.Page_id,&page.Site_id,&page.Name,&page.Url)
+		err := rows.Scan(&page.Page_id, &page.Site_id, &page.Name, &page.Url)
 
 		checkErr(err)
 
 		site.Pages = append(site.Pages, page)
 	}
 
-
 	row = config.DB.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
 
 	site = Site{Pages: site.Pages}
-	err = row.Scan(&site.Id,&site.CustomerId, &site.Name, &site.Url,&site.Archive)
+	err = row.Scan(&site.Id, &site.CustomerId, &site.Name, &site.Url, &site.Archive)
 	if err != nil {
 		log.Fatalf("Could not scan into site: %v", err)
 	}
 	customer.Sites = append(customer.Sites, site)
 
 	//fmt.Println(customer)
-
-
-
 
 	//fmt.Println(customer)
 	return customer, nil
