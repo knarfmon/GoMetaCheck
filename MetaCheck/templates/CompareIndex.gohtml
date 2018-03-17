@@ -13,7 +13,7 @@
         }
         body {
             display: flex;
-            flex-flow: column nowrap;
+            flex-flow: column;
             justify-content: flex-start;
             align-items: left;
            }
@@ -21,28 +21,40 @@
             width:100%;
             size: 1px;
         }
+        .sectionTitle{
+            display: flex;
+            flex-flow: column;
+            justify-content: flex-start;
+        }
         .col1Title{
             justify-content: left;
-            width: 50vw;
+            width: 30vw;
             margin-left: 1rem;
         }
+        .col2Title{
+            justify-content: left;
+            width: 30vw;
 
+        }
         .sectionHead{
             display: flex;
-            flex-flow: row nowrap;
+            flex-flow: row;
             justify-content: flex-start;
             align-items: left;
             background-color: #7aa1ff;
+            font-size: large;
+            color: white;
         }
 
         .col1Head {
             justify-content: left;
-            width: 15vw;
+            width: 10vw;
             margin-left: 1rem;
         }
         .col2Head {
             justify-content: left;
             width: 30vw;
+            padding-right: 1rem;
         }
         .col3Head {
             display: flex;
@@ -66,12 +78,13 @@
         }
         .col1 {
             justify-content: left;
-            width: 15vw;
+            width: 10vw;
             margin-left: 1rem;
         }
         .col2 {
             justify-content: left;
             width: 30vw;
+            padding-right: 1rem;
         }
         .col3Match {
             display: flex;
@@ -95,6 +108,17 @@
             width: 30vw;
             padding-left: 1rem;
         }
+        .DescArea{
+            /*font-size: 1.2rem;*/
+            /*color: blue;*/
+            width: 30vw;
+        }
+        textarea{
+            border: transparent;
+            font-family: inherit;
+            font-size: inherit;
+        }
+
         /*.sectionTitle1{*/
             /*display: flex;*/
             /*flex-flow: row;*/
@@ -147,8 +171,16 @@
 <h2 class="col1Title">Compare Pages</h2>
 <br>
 
+<div class="sectionTitle">
 <span class="col1Title">Customer: {{.CustomerName}}</span>
+
 <span class="col1Title">Site: {{.CsvSite.Name}}</span>
+<span class="col1Title">Mismatch Html Count: {{.Mismatch}}</span>
+<span class="col1Title">Mismatch Image Count: {{.MismatchImage}}</span>
+{{/*<span class="col1Title">Standard Count:{{.StdPageCount}} - Compare Count:{{.CsvPageCount}}*/}}
+{{/*- Matching: {{.MatchPageCount}}</span>*/}}
+</div>
+
 <br>
 
 
@@ -228,11 +260,37 @@
     <div class="col4">{{.OgUrlCsv}}</div>
 </div>
 
-<br>
+{{range .DiffImages}}
+<hr>
+<div class="sectionRow">
+    <div class="col1">Image Url</div>
+    <div class="col2">
+    <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.ImageUrlStd}}</textarea>
+    </div>
+    <div class="col3Match">Match</div>
+    <div class="col4">
+    <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.ImageUrlCsv}}</textarea>
+    </div>
+</div>
+
+<div class="sectionRow">
+    <div class="col1">Alt Text</div>
+    <div class="col2">
+        <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.AltTextStd}}</textarea>
+    </div>
+{{if.Match}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
+    <div class="col4">
+        <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.AltTextCsv}}</textarea>
+    </div>
+</div>
+
+
+
+
 
 {{end}}
 
-
+{{end}}
 {{/*{{range .CsvSite.Pages}}*/}}
 </body>
 </html>

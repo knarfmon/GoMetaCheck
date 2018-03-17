@@ -12,7 +12,7 @@ import (
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
-
+	"fmt"
 )
 
 type Customer struct {
@@ -42,25 +42,15 @@ type Page struct {
 	Name             string
 	UxNumber         int
 	Url              string
-	UrlMatch         bool
 	Status           int
-	StatusMatch      bool
 	Title            string //4
-	TitleMatch       bool
 	Description      string
-	DesctiptionMatch bool
 	Canonical        string
-	CanonicalMatch   bool
 	MetaRobot        string
-	MetaRobotMatch   bool
 	OgTitle          string
-	OgTitleMatch     bool
 	OgDesc           string
-	OgDescMatch      bool
 	OgImage          string
-	OgImageMatch     bool
 	OgUrl            string
-	OgUrlMatch       bool
 	Archive          bool
 	Site             *Site
 	Match            bool
@@ -113,7 +103,27 @@ type Diff struct {
 	OgUrlMatch bool
 
 	Match bool
+
+	DiffImages		[]DiffImage		//contains only the ones for the page
 }
+
+type DiffImage struct{
+	AltTextStd		string
+	AltTextCsv		string
+	//xAltTextMatch	string		// remove ones with x in front, not using
+
+	ImageUrlStd		string
+	ImageUrlCsv		string
+	//xImageUrlMatch	string
+
+	PageUrlStd		string
+	PageUrlCsv		string
+	//xPageUrlMatch	string
+
+	NameStd			string
+	Match			bool
+}
+
 
 type Image struct {
 	Image_id int
@@ -124,6 +134,7 @@ type Image struct {
 	Name     string
 	Notes    string
 	PageUrl  string
+	Match	bool
 }
 
 type PageDetail struct {
@@ -135,10 +146,19 @@ type PageDetail struct {
 }
 
 type Compare struct {
+
 	CustomerName string
 	CsvSite      Site
 	StdSite      Site
 	Diffs        []Diff
+	//DiffImage		DiffImage
+	DiffImages		[]DiffImage  //moved this under diff
+	Mismatch		int
+	MismatchImage	int
+	CsvPageCount	int
+	StdPageCount	int
+	MatchPageCount	int
+	BlankAltText	int
 }
 
 func AllCustomers(r *http.Request) ([]Customer, error) {
@@ -572,11 +592,16 @@ func UploadForCompare(r *http.Request) (Compare, error) {
 	compare.CustomerName = cname
 
 	site := Site{}
-	csvSite, err := UploadHtml(r, site)
-	csvSite.Name = sname
+	//Create site, uploads pages and images into Site.-----------------
+	csvSite, err := UploadHtml(r, site)   //from csv
+	csvSite, err = UploadImage(r, csvSite) //from csv
 	checkErr(err)
+	//-----------------------------------------------------------
+	csvSite.Name = sname
+
 
 	stdSite, err := GetPages(r)
+	stdSite.Images = GetImages(r)
 
 	compare.CsvSite = csvSite
 	compare.StdSite = stdSite
@@ -599,6 +624,7 @@ func Upload(r *http.Request) (Site, error) { //changed [] Page with Site
 	checkErr(err)
 
 	site, err = UploadImage(r, site)
+
 	//site, err = addPageIdToImage(site)
 
 	err = PutImage(site)
@@ -685,6 +711,35 @@ func checkErr(err error) {
 		panic(err)
 	}
 }
+func GetImages(r *http.Request) ([]Image){
+
+	images := []Image{}
+
+	site_id, err := strconv.Atoi(r.FormValue("site_id"))
+	checkErr(err)
+
+
+	rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where site_id = ?", site_id)
+
+	if err != nil {
+		log.Fatalf("Could not get image records: %v", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		image := Image{}
+		err := rows.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.ImageUrl, &image.Name, &image.Notes, &image.PageUrl)
+
+		checkErr(err)
+
+		images = append(images, image)
+	}
+
+
+	return images
+}
 
 func GetPages(r *http.Request) (Site, error) {
 
@@ -721,7 +776,7 @@ func GetPages(r *http.Request) (Site, error) {
 func UploadImage(r *http.Request, site Site) (Site, error) {
 
 	//site.Name = r.FormValue("name")
-	//fmt.Println(site.Name)
+
 	strId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
@@ -778,6 +833,75 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 	return site, nil
 }
 
+func MatchPerPage(compare Compare) (Compare, error) {
+	//takes all compared images in diffimages and places them in their respective page
+	//outer loop is the Diffs, inner loop is the DiffImages
+	for outer := 0; outer < len(compare.Diffs); outer++ {
+		for inner := 0; inner < len(compare.DiffImages); inner++ {
+			if compare.Diffs[outer].UrlStd == compare.DiffImages[inner].PageUrlStd{
+				compare.Diffs[outer].DiffImages = append(compare.Diffs[outer].DiffImages,compare.DiffImages[inner])
+
+			}
+
+
+		}
+
+	}
+	return compare,nil
+}
+
+
+func MatchImages(compare Compare) (Compare, error) {
+	//takes csv and std images and tries to match them, places them all in compare.DiffImages
+
+	//range over page - out loop
+	csvSite := compare.CsvSite //outer
+	stdSite := compare.StdSite //inner
+
+	compare.DiffImages = []DiffImage{}
+
+	var mismatchImage int
+
+	fmt.Println("csvImages count",len(csvSite.Images))
+	for outer := 0; outer < len(csvSite.Images); outer++ {
+		var noMatch string
+		diffImage := DiffImage{
+			PageUrlCsv:  csvSite.Images[outer].PageUrl,
+			ImageUrlCsv: csvSite.Images[outer].ImageUrl,
+			AltTextCsv:  csvSite.Images[outer].AltText,
+		}
+		for inner := 0; inner < len(stdSite.Images); inner++ {
+
+			if stdSite.Images[inner].PageUrl != csvSite.Images[outer].PageUrl{continue}
+			diffImage.PageUrlStd = stdSite.Images[inner].PageUrl
+
+
+			if stdSite.Images[inner].ImageUrl != csvSite.Images[outer].ImageUrl{continue}
+			diffImage.ImageUrlStd = stdSite.Images[inner].ImageUrl
+
+			noMatch = stdSite.Images[inner].AltText
+			if stdSite.Images[inner].AltText != csvSite.Images[outer].AltText {continue}//next inner loop
+			diffImage.AltTextStd = stdSite.Images[inner].AltText
+			diffImage.Match = true
+
+
+			break
+
+		}
+
+			if diffImage.Match == false{
+				diffImage.AltTextStd = noMatch
+				mismatchImage++
+			}
+
+		compare.DiffImages = append(compare.DiffImages, diffImage)
+
+		}
+	compare.MismatchImage = mismatchImage
+	return compare, nil
+}
+
+
 func MatchSites(compare Compare) (Compare, error) {
 
 	//range over page - out loop
@@ -785,8 +909,11 @@ func MatchSites(compare Compare) (Compare, error) {
 	stdSite := compare.StdSite //inner
 
 	compare.Diffs = []Diff{}
+	compare.Mismatch = 0
+	compare.CsvPageCount = len(csvSite.Pages)
+	compare.StdPageCount = len(stdSite.Pages)
 
-	//should match on ten items
+	//should match on ten items for HTML csv
 	for outer := 0; outer < len(csvSite.Pages); outer++ {
 		csvSite.Pages[outer].Match = true
 		for inner := 0; inner < len(stdSite.Pages); inner++ {
@@ -803,55 +930,56 @@ func MatchSites(compare Compare) (Compare, error) {
 				diff.StatusStd = stdSite.Pages[inner].Status
 				if stdSite.Pages[inner].Status == csvSite.Pages[outer].Status {
 					diff.StatusMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.TitleCsv = csvSite.Pages[outer].Title
 				diff.TitleStd = stdSite.Pages[inner].Title
 				if stdSite.Pages[inner].Title == csvSite.Pages[outer].Title {
 					diff.TitleMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.DescriptionCsv = csvSite.Pages[outer].Description
 				diff.DescriptionStd = stdSite.Pages[inner].Description
 				if stdSite.Pages[inner].Description == csvSite.Pages[outer].Description {
 					diff.DescriptionMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.CanonicalCsv = csvSite.Pages[outer].Canonical
 				diff.CanonicalStd = stdSite.Pages[inner].Canonical
 				if stdSite.Pages[inner].Canonical == csvSite.Pages[outer].Canonical {
 					diff.CanonicalMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.MetaRobotCsv = csvSite.Pages[outer].MetaRobot
 				diff.MetaRobotStd = stdSite.Pages[inner].MetaRobot
 				if stdSite.Pages[inner].MetaRobot == csvSite.Pages[outer].MetaRobot {
 					diff.MetaRobotMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.OgTitleCsv = csvSite.Pages[outer].OgTitle
 				diff.OgTitleStd = stdSite.Pages[inner].OgTitle
 				if stdSite.Pages[inner].OgTitle == csvSite.Pages[outer].OgTitle {
 					diff.OgTitleMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.OgDescCsv = csvSite.Pages[outer].OgDesc
 				diff.OgDescStd = stdSite.Pages[inner].OgDesc
 				if stdSite.Pages[inner].OgDesc == csvSite.Pages[outer].OgDesc {
 					diff.OgDescMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.OgImageCsv = csvSite.Pages[outer].OgImage
 				diff.OgImageStd = stdSite.Pages[inner].OgImage
 				if stdSite.Pages[inner].OgImage == csvSite.Pages[outer].OgImage {
 					diff.OgImageMatch = true
-				}
+				}else {compare.Mismatch++}
 
 				diff.OgUrlCsv = csvSite.Pages[outer].OgUrl
 				diff.OgUrlStd = stdSite.Pages[inner].OgUrl
 				if stdSite.Pages[inner].OgUrl == csvSite.Pages[outer].OgUrl {
 					diff.OgUrlMatch = true
-				}
+				}else {compare.Mismatch++}
+
 				diff.UxNumber = stdSite.Pages[inner].UxNumber
 				diff.Name = stdSite.Pages[inner].Name
 
@@ -871,10 +999,11 @@ func MatchSites(compare Compare) (Compare, error) {
 	//
 	//		if outer.Url == inner.PageUrl{
 	//			inner.Page_id = outer.Page_id
-	//			fmt.Println("Match")
+	//
 	//		}
 	//	}
 	//}
+	compare.MatchPageCount = len(compare.Diffs)
 
 	return compare, nil
 }
@@ -1026,7 +1155,7 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	}
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	//fmt.Println(pageDetail)
+
 	return pageDetail, nil
 }
 
@@ -1157,8 +1286,8 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 	}
 	customer.Sites = append(customer.Sites, site)
 
-	//fmt.Println(customer)
 
-	//fmt.Println(customer)
+
+
 	return customer, nil
 }

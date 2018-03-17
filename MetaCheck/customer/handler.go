@@ -257,7 +257,9 @@ func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newcompare, err := MatchSites(compare)
+	compare, err = MatchSites(compare)
+	compare, err = MatchImages(compare)
+	compare, err = MatchPerPage(compare)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
@@ -265,7 +267,7 @@ func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	config.TPL.ExecuteTemplate(w, "CompareIndex.gohtml", newcompare)
+	config.TPL.ExecuteTemplate(w, "CompareIndex.gohtml", compare)
 
 }
 
