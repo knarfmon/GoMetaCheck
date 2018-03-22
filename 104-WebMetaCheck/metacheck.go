@@ -1,8 +1,9 @@
-package main //====web======  metacheck
+package metacheck //====web======  metacheck
 
 import (
-	"github.com/knarfmon/GoMetaCheck/MetaCheck/customer"
+	"github.com/knarfmon/GoMetaCheck/104-WebMetaCheck/customer"
 	"net/http"
+	"html/template"
 )
 
 /*func (s site) SiteName(n string) string {
@@ -12,13 +13,13 @@ import (
 	return n
 
 }*/
+var tpl *template.Template    // here for web
 
-func main() { //====web====== init()
+func init() { //====web====== init()
 
 	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
 	http.HandleFunc("/", customer.Index)
 	http.HandleFunc("/index", customer.Index)
-	http.HandleFunc("/index/signup", customer.IndexSignup)
 	http.HandleFunc("/customers", customer.CustomerIndex)
 	http.HandleFunc("/customer/create", customer.CustomerCreate)
 	http.HandleFunc("/customer/create/process", customer.CustomerCreateProcess)
@@ -44,6 +45,6 @@ func main() { //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8107", nil) //===== not here for web
+	//http.ListenAndServe(":8093", nil) //===== not here for web
 
 }

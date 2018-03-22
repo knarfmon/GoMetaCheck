@@ -1,7 +1,7 @@
 package customer
 
 import (
-			"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
+			"github.com/knarfmon/GoMetaCheck/104-WebMetaCheck/config"
 			"net/http"
 
 	"database/sql"
@@ -30,13 +30,7 @@ func CustomerIndex(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
-func IndexSignup(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-		return
-	}
-	config.TPL.ExecuteTemplate(w, "signup.gohtml", nil)
-}
+
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {

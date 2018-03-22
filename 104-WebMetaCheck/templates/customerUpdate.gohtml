@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body, form {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            height: 100vh;
+            /*padding-left: 40px;*/
+            margin-left: 4rem;
+        }
+        p {
+            margin-left: 4rem;
+            font-size: 1rem;
+            color: black;
+        }
+
+        h2,h3 {
+            margin-left: 4rem;
+        }
+        hr{
+            width: 86vw;
+            margin-left: 4rem;
+            size: 1px;
+
+        }
+        input {
+            display: flex;
+            flex-flow: column;
+            width: 60vw;
+            font-size: 1rem;
+            color: blue;
+            border: 1px solid black;
+            align-content: left;
+        }
+
+        .buttonarea{
+            display: flex;
+            width: 15vw;
+            justify-content: space-between;
+        }
+        .button{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            padding: 10px 30px;
+            margin-right: 15px;
+            width: 8vw;
+
+
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .button:hover {
+            color: #000;
+            background-color: lightgrey;
+        }
+        #check{
+            /*width: 1rem;*/
+            width: 20px;
+            height: 20px;
+        }
+.red{
+    color: red;
+}
+    </style>
+</head>
+<body>
+{{template "header"}}<br><br><br><br>
+
+
+{{if .Archive}}<h2 class="red">Customer - Archived</h2>
+{{else}}
+<h2>Customers</h2>
+{{end}}
+
+<p> Update</p>
+
+<br>
+
+
+
+
+<form method="post" action="/customer/update/process">
+    <label for="name">Customer Name</label>
+{{if .Archive}}
+    <input type="text" name="name" placeholder="Customer's Name" readonly value="{{.Name}}">
+{{else}}
+    <input type="text" name="name" placeholder="Customer's Name" required autofocus value="{{.Name}}">
+        {{end}}
+<br>
+    <label for="archive">Archive </label>
+
+
+    <input id="check" type="checkbox" name="archive" value="check" {{if .Archive}}checked{{end}} >
+    {{if .Archive}}
+        (Deselecting this will make all sites and pages for this customer show.)
+    {{else}}
+        (Checking this will archive, that is hide, all sites and pages for this customer.)
+    {{end}}
+    <input type="hidden" name="id" value="{{.Id}}">
+    <br><br>
+
+
+    <div class = "buttonarea"><input class="button" type="submit">
+        {{if .Archive}}
+            <a href="/customers?archived=yes" class="button">Cancel</a>
+        {{else}}
+            <a href="/customers" class="button">Cancel</a>
+        {{end}}
+    </div>
+
+</form>
+
+{{/*<input id="check" type="checkbox" name="archive" value="{{.Archive}}">*/}}
+
+</body>
+</html>
