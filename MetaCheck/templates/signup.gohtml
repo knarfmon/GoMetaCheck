@@ -16,9 +16,6 @@
             font-size: 1vw;
         }
 
-
-
-
         form{
             display: flex;
             flex-flow: column;
@@ -58,7 +55,11 @@
             letter-spacing: .7rem;
             text-transform: uppercase;
         }
-
+        .form-field-err{
+            color: red;
+            width: 25rem;
+            text-align: left;
+        }
 
     </style>
 </head>
@@ -69,19 +70,96 @@
 <h1>Meta Check</h1>
 
 <br><br>
-<form method="post">
+<form method="POST" action="/index/signup/process" id="form-create-user">
+    {{/*id="form-create-user">*/}}
 
-    <input class="inputLogin" type="email" name="username" placeholder="Email"><br><br>
-    <input class="inputLogin" type="text" name="password"  placeholder="Password" readonly
-           onfocus="this.removeAttribute('readonly');"><br><br>
-    <input class="inputLogin" type="text" name="firstname" placeholder="First Name"><br><br>
-    <input class="inputLogin" type="text" name="lastname" placeholder="Last Name"><br><br>
+    <input class="inputLogin" type="text" name="username" id="username"  placeholder="User Name For Sign In" required>
+    {{/*<input class="inputLogin" type="text" name="password"  placeholder="Password" readonly*/}}
+           {{/*onfocus="this.removeAttribute('readonly');"><br><br>*/}}
+    <p class="form-field-err" id="username-err"></p>
+    <input class="inputLogin" type="password" name="password" id="password1" placeholder="Password For Sign In" required>
+    <p></p>
+    <input class="inputLogin" type="password" name="password" id="password2" placeholder="Confirm Password">
+    <p class="form-field-err" id="password-err"></p>
+    <input class="inputLogin" type="text" name="firstname" placeholder="First Name" required>
+    <p></p>
+    <input class="inputLogin" type="text" name="lastname" placeholder="Last Name" required> <br><br>
 
-    <input class="button" type="submit">
+    <input class="button" type="submit" id="submitbutton">
     <br><br>
     <a href="#"  onclick="history.back();">Cancel</a>
 
 </form>
+
+<script>
+    var formUser = document.querySelector('#form-create-user');
+    var username = document.querySelector('#username');
+    var p1 = document.querySelector('#password1');
+    var p2 = document.querySelector('#password2');
+
+    var nameErr = document.querySelector('#username-err');
+    var pErr = document.querySelector('#password-err');
+
+    //    username must be unique
+    username.addEventListener('input', function(){
+        console.log(username.value);
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/checkUserName', true);
+        xhr.addEventListener('readystatechange', function(){
+            if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200){
+                var item = xhr.responseText;
+                console.log(item);
+                if (item == 'false') {
+                    nameErr.textContent = 'Username taken - Try another name!';
+                    document.querySelector('#submitbutton').disabled = true;
+                } else {
+                    nameErr.textContent = '';
+                    document.querySelector('#submitbutton').disabled = false;
+                }
+            }
+        });
+        xhr.send(username.value);
+    });
+
+
+    p2.addEventListener('focusout',function (e) {
+        var ok = validatePasswords();
+
+        if (!ok) {
+            e.preventDefault();
+            return;
+        }
+    });
+
+
+    //    Validate passwords
+    //    listen for submit button click
+    formUser.addEventListener('submit', function(e){
+        var ok = validatePasswords();
+
+        if (!ok) {
+            e.preventDefault();
+            return;
+        }
+    });
+
+    function validatePasswords() {
+        pErr.textContent = '';
+        if (p1.value === '') {
+            pErr.textContent = 'Enter a password.';
+            return false;
+        }
+        if (p1.value !== p2.value) {
+            pErr.textContent = 'Your passwords did not match. Please re-enter your passwords.';
+            p1.value = '';
+            p2.value = '';
+            return false;
+        }
+        return true;
+    };
+
+</script>
 
 </body>
 </html>

@@ -9,10 +9,16 @@ import (
 	"encoding/csv"
 	"strings"
 	"io"
+	//"github.com/satori/go.uuid"
+	//"golang.org/x/crypto/bcrypt"
+
+
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
 	"fmt"
+	//"github.com/satori/go.uuid"
+	//"golang.org/x/crypto/bcrypt"
 )
 
 type Customer struct {
@@ -159,6 +165,14 @@ type Compare struct {
 	StdPageCount	int
 	MatchPageCount	int
 	BlankAltText	int
+}
+
+type User struct {
+	UserName string
+	Password []byte
+	First    string
+	Last     string
+	Role     string
 }
 
 func AllCustomers(r *http.Request) ([]Customer, error) {
@@ -1290,4 +1304,65 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 
 
 	return customer, nil
+}
+
+func PutUser(r *http.Request)(User, error){
+
+	//if alreadyLoggedIn(req) {
+	//	http.Redirect(w, req, "/", http.StatusSeeOther)
+	//	return
+	//}
+	var u User
+	//var putUserOk = true
+	//var userNameOk = true
+	// process form submission
+
+		// get form values
+		//un := r.FormValue("username")
+		//p := r.FormValue("password")
+		//f := r.FormValue("firstname")
+		//l := r.FormValue("lastname")
+		//r := req.FormValue("role")
+
+		//// check db to see if username taken?
+		//if(IsUserNameOk(un)) == false {userNameOk = false}
+		//http.Error(w, "Username already taken", http.StatusForbidden)
+
+		//}
+		//// create session
+		//sID, _ := uuid.NewV4()
+		//c := &http.Cookie{
+		//	Name:  "session",
+		//	Value: sID.String(),
+		//}
+		//http.SetCookie(w, c)
+		//dbSessions[c.Value] = un
+		//// store user in dbUsers
+		//bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
+		//if err != nil {
+		//	http.Error(w, "Internal server error", http.StatusInternalServerError)
+		//	return
+		//}
+		//u = user{un, bs, f, l, r}
+		//dbUsers[un] = u
+		//// redirect
+		//http.Redirect(w, req, "/", http.StatusSeeOther)
+//if userNameOk == false {putUserOk = false}
+
+	return u, nil
+}
+
+func IsUserNameOk(name string) string{
+
+	var mycount string
+
+	row := config.DB.QueryRow("select count(*) from user where userid = ?",name)
+	err := row.Scan(&mycount)
+
+	if err != nil {
+		log.Fatalf("Could not select from site: %v", err)
+	}
+	if mycount == "1"{return "false"}
+
+return "true"
 }

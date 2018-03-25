@@ -19,6 +19,8 @@ func main() { //====web====== init()
 	http.HandleFunc("/", customer.Index)
 	http.HandleFunc("/index", customer.Index)
 	http.HandleFunc("/index/signup", customer.IndexSignup)
+	http.HandleFunc("/index/signup/process", customer.IndexSignupProcess)
+	http.HandleFunc("/checkUserName", customer.CheckUserName)
 	http.HandleFunc("/customers", customer.CustomerIndex)
 	http.HandleFunc("/customer/create", customer.CustomerCreate)
 	http.HandleFunc("/customer/create/process", customer.CustomerCreateProcess)
@@ -44,6 +46,6 @@ func main() { //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8107", nil) //===== not here for web
+	http.ListenAndServe(":8099", nil) //===== not here for web
 
 }

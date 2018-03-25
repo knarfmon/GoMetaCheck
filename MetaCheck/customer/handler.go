@@ -8,6 +8,7 @@ import (
 	//"fmt"
 
 	"fmt"
+	"io/ioutil"
 )
 
 
@@ -37,6 +38,22 @@ func IndexSignup(w http.ResponseWriter, r *http.Request) {
 	}
 	config.TPL.ExecuteTemplate(w, "signup.gohtml", nil)
 }
+
+func IndexSignupProcess(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, err := PutUser(r)
+	if err != nil {
+		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
+		return
+	}
+
+	config.TPL.ExecuteTemplate(w, "index.gohtml", nil)
+}
+
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -429,4 +446,22 @@ func ImageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+}
+
+func CheckUserName(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	bs, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	sbs := string(bs)
+
+	sbs = IsUserNameOk(sbs)
+
+	fmt.Fprint(w, sbs)
 }
