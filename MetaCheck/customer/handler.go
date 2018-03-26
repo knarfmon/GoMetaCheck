@@ -45,13 +45,14 @@ func IndexSignupProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := PutUser(r)
+	_, err := ProcessNewUser(w,r)
+
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "index.gohtml", nil)
+	config.TPL.ExecuteTemplate(w, "index.gohtml", "Sucessful Registration")
 }
 
 

@@ -19,6 +19,8 @@ import (
 	"fmt"
 	//"github.com/satori/go.uuid"
 	//"golang.org/x/crypto/bcrypt"
+	//"github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Customer struct {
@@ -1306,48 +1308,56 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 	return customer, nil
 }
 
-func PutUser(r *http.Request)(User, error){
+func ProcessNewUser(w http.ResponseWriter, r *http.Request)(User, error){
 
 	//if alreadyLoggedIn(req) {
 	//	http.Redirect(w, req, "/", http.StatusSeeOther)
 	//	return
 	//}
 	var u User
-	//var putUserOk = true
-	//var userNameOk = true
+
 	// process form submission
 
 		// get form values
-		//un := r.FormValue("username")
-		//p := r.FormValue("password")
-		//f := r.FormValue("firstname")
-		//l := r.FormValue("lastname")
-		//r := req.FormValue("role")
+		un := r.FormValue("username")
+		p := r.FormValue("password")
+		f := r.FormValue("firstname")
+		l := r.FormValue("lastname")
 
-		//// check db to see if username taken?
-		//if(IsUserNameOk(un)) == false {userNameOk = false}
-		//http.Error(w, "Username already taken", http.StatusForbidden)
-
-		//}
-		//// create session
+		// create session
 		//sID, _ := uuid.NewV4()
 		//c := &http.Cookie{
 		//	Name:  "session",
 		//	Value: sID.String(),
 		//}
 		//http.SetCookie(w, c)
+		//
+		//fmt.Println(c)
+
+		//create entry into session table with sid > (sid) and username > (userid)  MAYBE NOT HERE, SIGN IN
+
 		//dbSessions[c.Value] = un
-		//// store user in dbUsers
-		//bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
-		//if err != nil {
-		//	http.Error(w, "Internal server error", http.StatusInternalServerError)
-		//	return
-		//}
-		//u = user{un, bs, f, l, r}
-		//dbUsers[un] = u
-		//// redirect
-		//http.Redirect(w, req, "/", http.StatusSeeOther)
-//if userNameOk == false {putUserOk = false}
+
+		// store user in db User
+		var encryptErr = errors.New("Encrypt Error")
+		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
+		if err != nil {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return u, encryptErr
+		}
+		u = User	{	UserName:	un,
+						Password:	bs,
+						First:		f,
+						Last:		l,
+					}
+	var insertErr = errors.New("User Insert Error")
+		if InsertUser(u) != err {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return u, insertErr
+		}
+		// redirect
+		//http.Redirect(w, r, "/", http.StatusSeeOther)
+
 
 	return u, nil
 }
@@ -1355,6 +1365,8 @@ func PutUser(r *http.Request)(User, error){
 func IsUserNameOk(name string) string{
 
 	var mycount string
+
+	//if strings.Index(name, "@intouchsol.com") == -1 {return "intouchsol"}
 
 	row := config.DB.QueryRow("select count(*) from user where userid = ?",name)
 	err := row.Scan(&mycount)
@@ -1365,4 +1377,15 @@ func IsUserNameOk(name string) string{
 	if mycount == "1"{return "false"}
 
 return "true"
+}
+
+func InsertUser(u User) (error) {
+
+	// insert values
+	_, err := config.DB.Exec("INSERT INTO user (userid,password,fname,lname,role) VALUES (?,?,?,?,?)", u.UserName,u.Password,u.First,u.Last,"guest")
+
+	if err != nil {
+		return  errors.New("500. Unable to create new user." + err.Error())
+	}
+	return nil
 }

@@ -93,6 +93,9 @@
             letter-spacing: .7rem;
             text-transform: uppercase;
         }
+        #success{
+            color: lime;
+        }
     </style>
 
     {{/*<link rel="stylesheet" href="public/css/reset.css">*/}}
@@ -111,6 +114,8 @@
     </form>
     <br>
     <a class="signup" href="/index/signup">Not signed up. Register now.</a>
+
+    <h3 id="success">{{.}}</h3>
 </div>
 
 {{template "svgs"}}

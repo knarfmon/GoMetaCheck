@@ -73,13 +73,13 @@
 <form method="POST" action="/index/signup/process" id="form-create-user">
     {{/*id="form-create-user">*/}}
 
-    <input class="inputLogin" type="text" name="username" id="username"  placeholder="User Name For Sign In" required>
+    <input class="inputLogin" type="email" name="username" id="username"  placeholder="Email (e.g. myemail@intouchsol.com)" title="Please use an @intouchsol.com email." required>
     {{/*<input class="inputLogin" type="text" name="password"  placeholder="Password" readonly*/}}
            {{/*onfocus="this.removeAttribute('readonly');"><br><br>*/}}
     <p class="form-field-err" id="username-err"></p>
-    <input class="inputLogin" type="password" name="password" id="password1" placeholder="Password For Sign In" required>
+    <input class="inputLogin" type="password" name="password" id="password1" placeholder="Password For Sign In, 4 character minimum" minlength="4" title="Minimum characters is 4." required>
     <p></p>
-    <input class="inputLogin" type="password" name="password" id="password2" placeholder="Confirm Password">
+    <input class="inputLogin" type="password" name="password" id="password2" placeholder="Confirm Password" minlength="4">
     <p class="form-field-err" id="password-err"></p>
     <input class="inputLogin" type="text" name="firstname" placeholder="First Name" required>
     <p></p>
@@ -87,9 +87,11 @@
 
     <input class="button" type="submit" id="submitbutton">
     <br><br>
-    <a href="#"  onclick="history.back();">Cancel</a>
+    <a href="#"  onclick="history.back();">Return to Log In Page</a>
 
 </form>
+
+
 
 <script>
     var formUser = document.querySelector('#form-create-user');
@@ -100,11 +102,24 @@
     var nameErr = document.querySelector('#username-err');
     var pErr = document.querySelector('#password-err');
 
+
+
+    username.addEventListener('focusout', function () {
+        if((username.value).indexOf("@intouchsol") === -1){
+            nameErr.textContent = 'Please use company email, xxx@intouchsol.com';
+            document.querySelector('#submitbutton').disabled = true;
+            }
+    });
+    //
+
     //    username must be unique
     username.addEventListener('input', function(){
         console.log(username.value);
 
-        var xhr = new XMLHttpRequest();
+
+
+
+    var xhr = new XMLHttpRequest();
         xhr.open('POST', '/checkUserName', true);
         xhr.addEventListener('readystatechange', function(){
             if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200){
@@ -117,7 +132,9 @@
                     nameErr.textContent = '';
                     document.querySelector('#submitbutton').disabled = false;
                 }
+
             }
+
         });
         xhr.send(username.value);
     });
