@@ -18,6 +18,7 @@ func main() { //====web====== init()
 	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
 	http.HandleFunc("/", customer.Index)
 	http.HandleFunc("/index", customer.Index)
+	http.HandleFunc("/login", customer.LoginHandler)
 	http.HandleFunc("/index/signup", customer.IndexSignup)
 	http.HandleFunc("/index/signup/process", customer.IndexSignupProcess)
 	http.HandleFunc("/checkUserName", customer.CheckUserName)
@@ -46,6 +47,6 @@ func main() { //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8104", nil) //===== not here for web
+	http.ListenAndServe(":8100", nil) //===== not here for web
 
 }

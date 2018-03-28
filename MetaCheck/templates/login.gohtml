@@ -60,37 +60,37 @@
             width: 25rem;
             text-align: left;
         }
+        .signup {
+            color: dodgerblue;
+        }
 
     </style>
 </head>
 <body>
 {{template "header"}}
 <br><br><br><br><br><br>
-<h1>Registration</h1>
-<h1>For</h1>
+<h1>Sign In</h1>
+<h1>To</h1>
 <h1>Meta Check</h1>
 
 <br><br>
-<form method="POST" action="/index/signup/process" id="form-create-user">
-    {{/*id="form-create-user">*/}}
+<form method="POST" action="/index/login/process" id="form-create-user">
 
     <input class="inputLogin" type="email" name="username" id="username"  placeholder="Email (e.g. myemail@intouchsol.com)" title="Please use an @intouchsol.com email." required>
-    {{/*<input class="inputLogin" type="text" name="password"  placeholder="Password" readonly*/}}
-           {{/*onfocus="this.removeAttribute('readonly');"><br><br>*/}}
     <p class="form-field-err" id="username-err"></p>
-    <input class="inputLogin" type="password" name="password" id="password1" placeholder="Password For Sign In, 4 character minimum" minlength="4" title="Minimum characters is 4." required>
+    <input class="inputLogin" type="password" name="password" id="password1" placeholder="Password" required>
     <p></p>
-    <input class="inputLogin" type="password" name="password" id="password2" placeholder="Confirm Password" minlength="4">
-    <p class="form-field-err" id="password-err"></p>
-    <input class="inputLogin" type="text" name="firstname" placeholder="First Name" required>
-    <p></p>
-    <input class="inputLogin" type="text" name="lastname" placeholder="Last Name" required> <br><br>
-
+    <br>
     <input class="button" type="submit" id="submitbutton">
-    <br><br>
-    <a href="#"  onclick="history.back();">Return to Sign In Page</a>
-
 </form>
+
+<h3 id="success">{{.}}</h3>
+<br><br>
+<a class="signup" href="/index/signup">Not signed up. Register now.</a>
+<br><br>
+<a class="signup" href="#"  onclick="history.back();">Back</a>
+
+
 
 
 

@@ -24,8 +24,8 @@
             height: 75px;
             /* layout */
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            /*justify-content: space-between;*/
+            /*align-items: center;*/
             /* format */
             color: white;
             background-color: gray;
@@ -36,7 +36,7 @@
         nav {
             /* layout */
             display: flex;
-            justify-content: center;
+            /*justify-content: center;*/
             align-items: center;
             /* format */
             /*padding-left: 40px;*/
@@ -66,6 +66,12 @@
             justify-content: flex-start;
             align-items: center;
             margin-left: 0;
+        }
+        .headerRight{
+            margin-left: 60vw;
+        }
+        .headerLeft{
+            justify-content: flex-start;
         }
 
         a{
@@ -106,13 +112,22 @@
 </head>
 <header>
     <nav>
-
+        <div class="headerLeft">
         <ul>
 
             <li><a href="/">Home</a></li>
             <li><a href="/customers">Customers</a></li>
         </ul>
+        </div>
 
+
+        <div class="headerRight">
+            <ul>
+
+                <li><a href="/login">Log In</a></li>
+
+            </ul>
+        </div>
 
     </nav>
 

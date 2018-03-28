@@ -64,6 +64,13 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "index.gohtml", nil)
 }
 
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	config.TPL.ExecuteTemplate(w, "login.gohtml", nil)
+}
 
 func CustomerCreate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
