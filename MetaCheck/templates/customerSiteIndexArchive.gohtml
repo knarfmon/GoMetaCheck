@@ -54,20 +54,7 @@
             margin-left: 4rem;
             margin-right: 4vw;
         }
-        .col1{
-            justify-content: left;
 
-            width: 35vw;
-        }
-
-
-        .left{
-            justify-content: left;
-            /*float: left;*/
-            /*margin-right:50px;*/
-            width: 35vw;
-            color: dodgerblue;
-        }
         a:hover{
             color: blue;
         }
@@ -157,7 +144,7 @@
 
 {{range .Sites}}
 
-    <a class="col1Row" href="/pages/index?site_id={{.Id}}">{{.Name}}</a>
+    <a class="col1Row" href="/pages/index?site_id={{.Id}}&archived=yes">{{.Name}}</a>
     <div class="col2Row">{{.Url}}</div>
     <div class="col3Row">{{.Date}}</div>
 

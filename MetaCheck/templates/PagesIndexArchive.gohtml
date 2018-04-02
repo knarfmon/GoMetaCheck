@@ -86,11 +86,23 @@
             color: dodgerblue;
         }
         a:hover{
-            color: blue;
+            color: red;
         }
         .col2 {
             width: 35vw;
             margin-right: 50px;
+        }
+        .col1Row{
+            justify-content: left;
+            /*float: left;*/
+            /*margin-right:50px;*/
+            width: 35vw;
+            color: #ff6f6f;
+        }
+        .col2Row{
+            width: 35vw;
+            margin-right: 50px;
+            color: #ff6f6f;
         }
         .titles{
 
@@ -129,13 +141,15 @@
 
 {{template "header"}}<br><br><br><br>
 <br>
-<h2>Pages</h2>
+<h2>Pages Archived</h2>
 <br>
 <div class = "sectionTitle1">
 <div class = "titles">Customer:</div>
 <div class = "col3">{{.Name}}</div>
 </div>
 {{$cname := .Name}}
+
+
 {{/*<br>*/}}
 {{range .Sites}}
 <div class = "sectionTitle1">
@@ -143,22 +157,20 @@
 <div class = "col3">{{.Name}}</div>
 </div>
 <br>
-<p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New Page</a></p>
+{{/*<p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New Page</a></p>*/}}
+<p class="createlink"><a class="link" href="/pages/index?site_id={{.Id}}&archived=no">Show Standard</a></p>
 {{$sname :=.Name}}
 <br>
 
-<p class="createlink"><a class="link" href="/pages/index?site_id={{.Id}}&archived=yes">Show Archived</a></p>
-<br>
 <section>
 <form method="get" action="/search/pages/index">
     <label for="search">Find By Name:</label>
     <input type="text" name="search" placeholder="Search For..." >
     <input type="hidden" name="site_id" value="{{.Id}}">
     <input class="button" value="Search" type="submit">
-    <a class="button" href="/pages/index?site_id={{.Id}}">Get All</a></div>
+    <a class="button" href="/pages/index?site_id={{.Id}}&archived=yes">Get All</a></div>
 </form>
-    {{/*&nbsp*/}}
-    {{/*&nbsp*/}}
+
 
 </section>
 
@@ -178,9 +190,9 @@
 
 
 {{range .Pages}}
-    <p><div class="left">
+    <p><div class="col1Row">
     <a href="/page/details?page_id={{.Page_id}}&cname={{$cname}}&sname={{$sname}}">{{.Name}}</a></div>
-    <div class="col2">{{.Url}}</div>
+    <div class="col2Row">{{.Url}}</div>
 
     {{/*<div class="link">*/}}
 

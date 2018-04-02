@@ -16,7 +16,6 @@ import (
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
-	"fmt"
 	//"github.com/satori/go.uuid"
 	//"golang.org/x/crypto/bcrypt"
 	//"github.com/satori/go.uuid"
@@ -279,13 +278,28 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 	if checked == "check" {
 		cs.Archive = true
 
+		//Archive site
 		_, err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;", newId)
 		if err != nil {
-			return cs, errors.New("406. Not Acceptable. Id not of correct type")
+			return cs, errors.New("406. Not Acceptable. Archiving site failed")
+		}
+		//Archive page
+		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
+		if err != nil {
+			return cs, errors.New("406. Not Acceptable. Archiving page failed")
 		}
 
 	} else {
 		cs.Archive = false
+		_, err = config.DB.Exec("UPDATE site Set archive = 0 WHERE customer_id = ?;", newId)
+		if err != nil {
+			return cs, errors.New("406. Not Acceptable. Archiving site failed")
+		}
+		//Archive page
+		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
+		if err != nil {
+			return cs, errors.New("406. Not Acceptable. Archiving page failed")
+		}
 	}
 
 	if cs.Name == "" {
@@ -323,7 +337,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	if r.FormValue("archived") == "yes" {
 		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
 	} else {
-		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0"
+		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0 ORDER BY name ASC"
 	}
 
 	rows, err := config.DB.Query(query, customer.Id)
@@ -426,6 +440,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 	strCustomerId := r.FormValue("customer_id")
 	checked := r.FormValue("archive") //will show "check" if box is checked
 
+
 	if site.Name == "" || site.Url == "" {
 		return site, errors.New("400. Bad request. All fields must be complete.")
 	}
@@ -442,16 +457,22 @@ func UpdateSite(r *http.Request) (Site, error) {
 	}
 	site.CustomerId = intCustomerId
 
+
 	if checked == "check" {
 		site.Archive = true
 
-		//_,err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;",newId)
-		//if err != nil {
-		//	return cs, errors.New("406. Not Acceptable. Id not of correct type")
-		//}
+		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id = ?;", intId)
+		if err != nil {
+			return site, errors.New("406. Not Acceptable. Archiving page failed")
+		}
 
 	} else {
 		site.Archive = false
+
+		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id = ?;",intId)
+		if err != nil {
+			return site, errors.New("406. Not Acceptable. Archiving page failed")
+		}
 	}
 
 	// insert values
@@ -466,7 +487,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 func PreUploadSite(r *http.Request) (Site, error) {
 	site := Site{}
 	site.Name = r.FormValue("name")
-
+	site.Url = r.FormValue("url")
 	strId := r.FormValue("site_id")
 	intId, err := strconv.Atoi(strId)
 	if err != nil {
@@ -494,11 +515,7 @@ func UploadSite4(r *http.Request) ([]Page, error) {
 	}
 	defer file.Close()
 
-	//
-	//fmt.Println("\nfile:", file,  "\nerr", err)     //seperate
-	//bs, err := ioutil.ReadAll(file)  //seperate
-	//s := string(bs)    //seperate
-	//return s, nil     //seperate
+
 
 	rdr := csv.NewReader(file)
 	rdr.FieldsPerRecord = -1
@@ -672,7 +689,6 @@ func UploadHtml(r *http.Request, site Site) (Site, error) { //added site Site  r
 	rdr.FieldsPerRecord = -1
 	columns := make(map[string]int)
 
-	//pages := []Page{}		//removed today
 
 	for row := 0; ; row++ {
 		record, err := rdr.Read()
@@ -766,8 +782,15 @@ func GetPages(r *http.Request) (Site, error) {
 
 	strId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
+	var query string
 
-	rows, err := config.DB.Query("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ?", strId)
+
+	if r.FormValue("archived") == "yes"{
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
+	}else{
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0"
+	}
+	rows, err := config.DB.Query(query, strId)
 
 	if err != nil {
 		log.Fatalf("Could not get records: %v", err)
@@ -878,7 +901,7 @@ func MatchImages(compare Compare) (Compare, error) {
 
 	var mismatchImage int
 
-	fmt.Println("csvImages count",len(csvSite.Images))
+
 	for outer := 0; outer < len(csvSite.Images); outer++ {
 		var noMatch string
 		diffImage := DiffImage{
@@ -932,6 +955,7 @@ func MatchSites(compare Compare) (Compare, error) {
 	//should match on ten items for HTML csv
 	for outer := 0; outer < len(csvSite.Pages); outer++ {
 		csvSite.Pages[outer].Match = true
+
 		for inner := 0; inner < len(stdSite.Pages); inner++ {
 
 			if stdSite.Pages[inner].Url == csvSite.Pages[outer].Url {
@@ -1068,6 +1092,7 @@ func GetPagesIndex(r *http.Request) (Customer, error) {
 	customer := Customer{}
 	customer.Sites = []Site{}
 	site := Site{}
+	var query string
 
 	intId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
@@ -1085,8 +1110,18 @@ func GetPagesIndex(r *http.Request) (Customer, error) {
 	if err != nil {
 		log.Fatalf("Could not select from customer: %v", err)
 	}
+	//if r.FormValue("archived") == "yes"{
+	//	query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
+	//}else{
+	//	query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0"
+	//}
 
-	rows, err := config.DB.Query("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ?", intId)
+	if r.FormValue("archived") == "yes"{
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
+	}else{
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0"
+	}
+	rows, err := config.DB.Query(query, intId)
 
 	if err != nil {
 		log.Fatalf("Could not get page records: %v", err)

@@ -90,7 +90,7 @@
 
 <br>
 
-
+{{/*accepts type site, sql is SELECT id,name,url,customer_id,archive FROM site*/}}
 
 <form method="post" action="/site/update/process">
 
@@ -123,6 +123,8 @@
 
     <input type="hidden" name="site_id" value="{{.Id}}">
     <input type="hidden" name="customer_id" value="{{.CustomerId}}">
+
+
     <br><br>
     <div class = "buttonarea"><input class="button" type="submit">
 

@@ -115,7 +115,11 @@
 <body>
     {{template "header"}}<br><br><br>
 <br>
+{{if .Detail.Archive}}
+<h2 style="color: red">Page Details Archived</h2>
+{{else}}
 <h2>Page Details</h2>
+{{end}}
 
 <div class = "sectionTitle">
     <div class = "titles">Customer:</div>

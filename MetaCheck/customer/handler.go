@@ -151,7 +151,7 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 
 	if r.FormValue("archived") == "yes" {
 		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", css)
-		fmt.Println("customerSiteIndexArchive")
+
 	}else{
 		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
 
@@ -327,7 +327,15 @@ func PagesIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
-	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
+	if r.FormValue("archived") == "yes" {
+		config.TPL.ExecuteTemplate(w, "PagesIndexArchive.gohtml", customer)
+
+	}else{
+		config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
+	}
+
+
+
 }
 
 func SearchPagesIndex(w http.ResponseWriter, r *http.Request) {

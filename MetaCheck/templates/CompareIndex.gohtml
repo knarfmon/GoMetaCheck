@@ -26,6 +26,12 @@
             flex-flow: column;
             justify-content: flex-start;
         }
+        .siteErr{
+            justify-content: center;
+            width: 50vw;
+            margin-left: 1rem;
+            color: red;
+        }
         .col1Title{
             justify-content: left;
             width: 30vw;
@@ -176,11 +182,24 @@
 <span class="col1Title">Customer: {{.CustomerName}}</span>
 
 <span class="col1Title">Site: {{.CsvSite.Name}}</span>
+
+
+{{if .Diffs}}
 <span class="col1Title">Mismatch Html Count: {{.Mismatch}}</span>
 <span class="col1Title">Mismatch Image Count: {{.MismatchImage}}</span>
 {{/*<span class="col1Title">Standard Count:{{.StdPageCount}} - Compare Count:{{.CsvPageCount}}*/}}
 {{/*- Matching: {{.MatchPageCount}}</span>*/}}
 </div>
+{{else}}
+<br><br>
+<div class="siteErr">
+    <h1>No comparison can be made with the selected Frog file.</h1>
+    <h1>The Url for the standard site does not match the site url from the Frog file.</h1>
+    <br>
+    <h1>Use the browser back arrow to go back to upload page.</h1>
+    <h1>Check for correct site scanned or the file selected for upload.</h1>
+</div>
+{{end}}
 
 <br>
 

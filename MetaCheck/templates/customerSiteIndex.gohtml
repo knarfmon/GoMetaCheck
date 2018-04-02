@@ -138,7 +138,7 @@
         {{/*<a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>*/}}
     {{if gt .PageCount  0}}
         <a href="/site/update?site_id={{.Id}}">Edit</a> |
-        <a href="/site/compare?site_id={{.Id}}&name={{.Name}}">Compare</a>
+        <a href="/site/compare?site_id={{.Id}}&name={{.Name}}&url={{.Url}}">Compare</a>
     {{else}}
         <a href="/site/update?site_id={{.Id}}">Edit</a> |
         <a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>
