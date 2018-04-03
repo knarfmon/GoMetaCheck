@@ -1256,8 +1256,12 @@ func UpdatePage(r *http.Request) (error) {
 	page.OgDesc = r.FormValue("OgDesc")
 	page.OgImage = r.FormValue("OgImage")
 	page.OgUrl = r.FormValue("OgUrl")
+	checked := r.FormValue("archive") //will show "check" if box is checked
+	var intArchived int
+	if checked == "check" {intArchived = 1}
 
-	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=? WHERE id=?;", page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl, page.Page_id)
+
+	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=?,archive=? WHERE id=?;", page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl,intArchived, page.Page_id)
 	if err != nil {
 		return err
 	}
