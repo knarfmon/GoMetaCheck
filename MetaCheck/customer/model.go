@@ -9,6 +9,7 @@ import (
 	"encoding/csv"
 	"strings"
 	"io"
+	"github.com/arbovm/levenshtein"
 	//"github.com/satori/go.uuid"
 	//"golang.org/x/crypto/bcrypt"
 
@@ -20,6 +21,8 @@ import (
 	//"golang.org/x/crypto/bcrypt"
 	//"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+	"fmt"
+	"sort"
 )
 
 type Customer struct {
@@ -166,6 +169,13 @@ type Compare struct {
 	StdPageCount	int
 	MatchPageCount	int
 	BlankAltText	int
+	UrlMisMatch		int
+}
+
+type MisCompare struct {
+	StdPage		Page
+	CsvPage		Page
+	MetricMatch	int
 }
 
 type User struct {
@@ -788,7 +798,7 @@ func GetPages(r *http.Request) (Site, error) {
 	if r.FormValue("archived") == "yes"{
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
 	}else{
-		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0"
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
 	}
 	rows, err := config.DB.Query(query, strId)
 
@@ -952,14 +962,18 @@ func MatchSites(compare Compare) (Compare, error) {
 	compare.CsvPageCount = len(csvSite.Pages)
 	compare.StdPageCount = len(stdSite.Pages)
 
+
+
+	fmt.Println("Items in CSV ",len(csvSite.Pages))
 	//should match on ten items for HTML csv
 	for outer := 0; outer < len(csvSite.Pages); outer++ {
-		csvSite.Pages[outer].Match = true
+
 
 		for inner := 0; inner < len(stdSite.Pages); inner++ {
 
 			if stdSite.Pages[inner].Url == csvSite.Pages[outer].Url {
-
+				csvSite.Pages[outer].Match = true
+				stdSite.Pages[inner].Match = true
 				diff := Diff{}
 
 				diff.UrlCsv = csvSite.Pages[outer].Url
@@ -1030,23 +1044,140 @@ func MatchSites(compare Compare) (Compare, error) {
 		}
 
 	}
-	//compare.CsvSite = csvSite
-	//compare.StdSite = stdSite
+//---------------------- Matching of pages with typo's in url's, unable to match otherwise------------
+	fmt.Println("Items matched ",len(compare.Diffs))
 
-	//for _, outer := range site.Pages{
-	//
-	//	for _, inner := range site.Images{
-	//
-	//		if outer.Url == inner.PageUrl{
-	//			inner.Page_id = outer.Page_id
-	//
-	//		}
-	//	}
+	csvMisPages := []Page{}
+	stdMisPages := []Page{}
+	//Creates slice of csv pages with mis matched urls
+	for _,value :=range csvSite.Pages{
+		if value.Match == false{fmt.Println("Found CSV Url Mismatch ",value.Url)
+		csvMisPages = append(csvMisPages,value)}
+}
+		compare.UrlMisMatch = len(csvMisPages)
+//fmt.Println("csvMisPages ",csvMisPages)
+	//Creates slice of std pages with mis matched urls
+	for _,value :=range stdSite.Pages{
+		if value.Match == false{fmt.Println("Found STD Url Mismatch ",value.Url)
+			stdMisPages = append(stdMisPages,value)
+			}
+	}
+	//Compare pages in slices, determine greatest % correlation for match
+	//Duplicate titles and descriptions prevent secondary matching on them
+	misCompares := []MisCompare{}
+	for _,outer := range stdMisPages{
+		for _,inner := range csvMisPages{
+			misCompare := MisCompare{}
+			misCompare.CsvPage = inner
+			misCompare.StdPage = outer
+			misCompare.MetricMatch = levenshtein.Distance(outer.Url, inner.Url)
+
+			misCompares = append(misCompares,misCompare)
+
+			fmt.Printf("The distance between %v and %v is %v\n",
+				outer.Url, inner.Url, levenshtein.Distance(outer.Url, inner.Url))
+		}
+	}
+//sort slice to bring lowest metric to top, then skim of the number of mismatches
+	sort.Slice(misCompares, func(i, j int) bool { return misCompares[i].MetricMatch < misCompares[j].MetricMatch })
+
+	fmt.Println("-----------------miscompares slice------------------" )
+	for count := 0; count < len(csvMisPages); count++{
+		misCompares = misCompares[count]
+		fmt.Println(misCompares[count])
+		fmt.Println("+++++++++++++")
+	}
+
+	//fmt.Println("-----------------miscompares slice------------------" )
+	//for _,value := range misCompares{
+	//	fmt.Println(value)
+	//	fmt.Println("+++++++++++++")
 	//}
+
+
+
+	//s1 := "kitten"
+	//s2 := "kitten/"
+	//fmt.Printf("The distance between %v and %v is %v\n",
+	//	s1, s2, levenshtein.Distance(s1, s2))
+	// -> The distance between kitten and sitting is 3
+
+	compare,_ = CompareMisMatch(compare,misCompares)
+
+
 	compare.MatchPageCount = len(compare.Diffs)
 
 	return compare, nil
 }
+
+func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error){
+
+	for _,value := range misCompares{
+		diff := Diff{}
+
+		diff.UrlCsv = value.CsvPage.Url
+		diff.UrlStd = value.StdPage.Url
+		diff.UrlMatch = false
+
+		diff.StatusCsv = value.CsvPage.Status
+		diff.StatusStd = value.StdPage.Status
+		if diff.StatusCsv == diff.StatusStd {
+			diff.StatusMatch = true
+		}else {compare.Mismatch++}
+
+		diff.TitleCsv = value.CsvPage.Title
+		diff.TitleStd = value.StdPage.Title
+		if diff.TitleCsv == diff.TitleStd {
+			diff.TitleMatch = true
+		}else {compare.Mismatch++}
+
+		diff.DescriptionCsv = value.CsvPage.Description
+		diff.DescriptionStd = value.StdPage.Description
+		if diff.DescriptionCsv == diff.DescriptionStd {
+			diff.DescriptionMatch = true
+		}else {compare.Mismatch++}
+
+		diff.CanonicalCsv = value.CsvPage.Canonical
+		diff.CanonicalStd = value.StdPage.Canonical
+		if diff.CanonicalCsv == diff.CanonicalStd {
+			diff.CanonicalMatch = true
+		}else {compare.Mismatch++}
+
+		diff.MetaRobotCsv = value.CsvPage.MetaRobot
+		diff.MetaRobotStd = value.StdPage.MetaRobot
+		if diff.MetaRobotCsv == diff.MetaRobotStd {
+			diff.MetaRobotMatch = true
+		}else {compare.Mismatch++}
+
+		diff.OgTitleCsv = value.CsvPage.OgTitle
+		diff.OgTitleStd = value.StdPage.OgTitle
+		if diff.OgTitleCsv == diff.OgTitleStd {
+			diff.OgTitleMatch = true
+		}else {compare.Mismatch++}
+
+		diff.OgDescCsv = value.CsvPage.OgDesc
+		diff.OgDescStd = value.StdPage.OgDesc
+		if diff.OgDescCsv == diff.OgDescStd {
+			diff.OgDescMatch = true
+		}else {compare.Mismatch++}
+
+		diff.OgImageCsv = value.CsvPage.OgImage
+		diff.OgImageStd = value.StdPage.OgImage
+		if diff.OgImageCsv == diff.OgImageStd {
+			diff.OgImageMatch = true
+		}else {compare.Mismatch++}
+
+		diff.OgUrlCsv = value.CsvPage.OgUrl
+		diff.OgUrlStd = value.StdPage.OgUrl
+		if diff.OgUrlCsv == diff.OgUrlStd {
+			diff.OgUrlMatch = true
+		}else {compare.Mismatch++}
+
+		compare.Diffs = append(compare.Diffs, diff)
+	}
+	return compare,nil
+}
+
 
 func PutImage(site Site) (error) { //replaced pages []Page with site Site
 
@@ -1119,7 +1250,7 @@ func GetPagesIndex(r *http.Request) (Customer, error) {
 	if r.FormValue("archived") == "yes"{
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
 	}else{
-		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0"
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
 	}
 	rows, err := config.DB.Query(query, intId)
 
