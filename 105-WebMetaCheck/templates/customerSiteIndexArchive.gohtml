@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            /*height: 100vh;*/
+            width: 100vw;
+            padding-left: 40px;
+        }
+        p {
+            /*margin-left: 4rem;*/
+            font-size: 1rem;
+            color: black;
+        }
+
+        h2 {
+            margin-left: 4rem;
+        }
+        hr{
+            width:100%;
+            /*margin-left: 4rem;*/
+            size: 1px;
+
+        }
+        .createlink {
+            font-size: 1rem;
+            color: dodgerblue;
+            margin-left: 4rem;
+        }
+        .link {
+            font-size: 1rem;
+            color: dodgerblue;
+            /*margin-left: 65vw;*/
+            justify-items: flex-end;
+
+        }
+        section{
+            display: flex;
+            flex-flow: wrap;
+            /*justify-content: space-between;*/
+            /* formatting */
+
+            margin-left: 4rem;
+            margin-right: 4vw;
+        }
+
+        a:hover{
+            color: blue;
+        }
+        .col1Row:hover{
+            color: red;
+        }
+        .col4Row:hover{
+            color: red;
+        }
+        .col2 {
+            width: 35vw;
+            margin-right: 50px;
+        }
+
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 7rem;
+        }
+        .sectionTitle1{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
+        .col1Title{
+            width: 25vw;
+        }
+        .col2Title{
+            width: 25vw;
+        }
+        .col3Title{
+            width: 25vw;
+        }
+        .col1Row{
+            width: 25vw;
+            color: #ff6f6f;
+        }
+        .col2Row{
+            width: 25vw;
+            color: #ff6f6f;
+        }
+        .col3Row{
+            width: 25vw;
+            color: #ff6f6f;
+        }
+        .col4Row{
+            color: #ff6f6f;
+        }
+    </style>
+</head>
+<body>
+
+
+{{template "header"}}<br><br><br><br>
+
+
+<h2>Sites - Archived</h2>
+
+
+<div class = "sectionTitle1">
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.Name}}</div>
+</div>
+<br>
+
+<br>
+
+<br>
+<p class="createlink"><a class="link" href="/customer/site?customer_id={{.Id}}&archived=no">Show Standard</a></p>
+
+<br>
+
+{{if .Sites}}
+<section>
+    <h3 class="col1Title">Name</h3>
+    <h3 class="col2Title">Url</h3>
+    <h3 class="col3Title">Date</h3>
+{{else}}
+<section><h3>No existing sites.</h3></section>
+{{end}}
+
+
+{{range .Sites}}
+
+    <a class="col1Row" href="/pages/index?site_id={{.Id}}&archived=yes">{{.Name}}</a>
+    <div class="col2Row">{{.Url}}</div>
+    <div class="col3Row">{{.Date}}</div>
+
+    {{/*<p><div class="left">*/}}
+    {{/*<a href="/pages/index?site_id={{.Id}}">{{.Name}}</a></div>*/}}
+    {{/*<div class="col2">{{.Url}}</div>*/}}
+
+    <div class="link">
+
+        {{/*<a href="/site/update?site_id={{.Id}}">Edit</a> |*/}}
+        {{/*<a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>*/}}
+
+        <a class="col4Row" href="/site/update?site_id={{.Id}}&archived=yes">Edit</a>
+
+
+    </div></p>
+
+    <hr>
+{{end}}
+
+</section>
+
+
+</body>
+</html>

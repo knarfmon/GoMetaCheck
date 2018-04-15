@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body, form {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            /*height: 100vh;*/
+            /*padding-left: 40px;*/
+            margin-left: 4rem;
+        }
+        p {
+            margin-left: 4rem;
+            font-size: 1rem;
+            color: black;
+        }
+
+
+
+        div.hr{
+            margin: 0;
+            width: 60vw;
+            /*margin-left: 4rem;*/
+            /*size: 50px;*/
+            /*border-top: 1px solid #8c8b8b;*/
+            color: #000000;
+            /*background-color: #000000;*/
+            height: 15px;
+        }
+
+        input {
+
+            width: 60vw;
+            font-size: 1rem;
+            color: blue;
+            /*border: 1px solid black;*/
+        }
+
+        .buttonarea{
+            display: flex;
+            width: 15vw;
+            justify-content: space-between;
+        }
+        .button{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            padding: 10px 30px;
+            margin-right: 15px;
+            width: 8vw;
+
+
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .button:hover {
+            color: #000;
+            background-color: lightgrey;
+        }
+        .sectionTitle{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 8rem;
+        }
+        .DescArea{
+            font-size: 1.2rem;
+            color: blue;
+            width: 60vw;
+        }
+        #PageDetails{
+            margin-left: 4rem;
+        }
+    </style>
+</head>
+<body>
+{{template "header"}}<br><br><br><br>
+
+<h2 id="PageDetails">Image Details</h2>
+
+<div class = "sectionTitle">
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.CustomerName}}</div>
+</div>
+{{$cname := .CustomerName}}
+
+<div class = "sectionTitle">
+    <div class = "titles">Site:</div>
+    <div class = "col3">{{.SiteName}}</div>
+</div>
+{{$sname :=.SiteName}}
+
+<br>
+
+
+
+<form method="post" action="/image/update/process">
+    {{/*<h2>Image Details</h2>*/}}
+
+
+<fieldset>
+
+    <label for="Name">Name</label>
+    <div>
+        <input type="text" name="Name" placeholder="Name"  value="{{.Image.Name}}">
+    </div>
+    <br>
+    <label for="AltText">Alt Text:</label>
+    <div>
+        <textarea name="AltText" rows="4" cols="12" class="DescArea" >{{.Image.AltText}}</textarea>
+    </div>
+    <br>
+    <label for="ImageUrl">Image Url</label>
+    <div>
+        <input type="text" name="ImageUrl" placeholder="Image Url"  value="{{.Image.ImageUrl}}">
+    </div>
+        <br>
+    <input type="hidden" name="page_id" value="{{.Image.Page_id}}">
+    <input type="hidden" name="image_id" value="{{.Image.Image_id}}">
+    <input type="hidden" name="cname" value="{{$cname}}">
+    <input type="hidden" name="sname" value="{{$sname}}">
+</fieldset>
+    <br> <br>
+    <div class = "buttonarea">
+        <input class="button" type="submit">
+        <a href="#" class="button" onclick="history.back();">Cancel</a>
+    </div>
+
+
+
+    {{/*<input type="hidden" name="site_id" value="{{.Id}}">*/}}
+    {{/*<input type="hidden" name="customer_id" value="{{.CustomerId}}">*/}}
+    <br>
+
+
+
+</form>
+<br><br>
+
+</body>
+</html>
