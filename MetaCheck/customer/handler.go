@@ -374,6 +374,20 @@ func PageDetails(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
 }
 
+func PageDiff(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	GetPageDiff(w,r)
+
+	//if err != nil {
+	//	http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	//}
+	//
+	//config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDiff)
+}
+
 func PageUpdate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)

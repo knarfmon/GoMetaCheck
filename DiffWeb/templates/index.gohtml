@@ -3,17 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Test Program</title>
-
+    <link rel="stylesheet" href="public/css/index.css">
 </head>
 <body>
 
+<h1>testting 123</h1>
 
-
-
-{{.}}
+<ul>
+{{range .}}
+    <li>{{.MottoNew}} - {{.MottoOld}} - `{{.MottoDiff}}`</li>
+{{end}}
+</ul>
+<h3 id="oldHTML">Franky</h3>
+<h3 id="newHTML">frankyy</h3>
+<h2 id="comparison"></h2>
 
 
 </body>
+
+{{/*<script src="public/js/htmldiff.js"></script>*/}}
+
+{{/*<script>*/}}
+    {{/*// Diff HTML strings*/}}
+    {{/*output = htmldiff(oldHTML, newHTML);*/}}
+
+    {{/*// Show HTML diff output as HTML (crazy right?)!*/}}
+    {{/*document.getElementById("comparison").innerHTML = output;*/}}
+{{/*</script>*/}}
 
 <footer>
 

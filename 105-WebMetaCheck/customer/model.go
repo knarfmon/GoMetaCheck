@@ -2,7 +2,7 @@ package customer
 
 import (
 	"errors"
-	"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
+	"github.com/knarfmon/GoMetaCheck/105-WebMetaCheck/config"
 	"log"
 	"net/http"
 	"strconv"

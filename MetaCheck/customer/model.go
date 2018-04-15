@@ -23,6 +23,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"fmt"
 	"sort"
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 type Customer struct {
@@ -1082,11 +1083,13 @@ func MatchSites(compare Compare) (Compare, error) {
 	sort.Slice(misCompares, func(i, j int) bool { return misCompares[i].MetricMatch < misCompares[j].MetricMatch })
 
 	fmt.Println("-----------------miscompares slice------------------" )
-	for count := 0; count < len(csvMisPages); count++{
-		misCompares = misCompares[count]
-		fmt.Println(misCompares[count])
-		fmt.Println("+++++++++++++")
-	}
+	//for count := 0; count < len(csvMisPages); count++{
+	//	misCompares = misCompares[count]
+	//	fmt.Println(misCompares[count])
+	//	fmt.Println("+++++++++++++")
+	//}
+
+
 
 	//fmt.Println("-----------------miscompares slice------------------" )
 	//for _,value := range misCompares{
@@ -1102,10 +1105,17 @@ func MatchSites(compare Compare) (Compare, error) {
 	//	s1, s2, levenshtein.Distance(s1, s2))
 	// -> The distance between kitten and sitting is 3
 
+	misCompares = misCompares[:len(csvMisPages)]
+
 	compare,_ = CompareMisMatch(compare,misCompares)
 
 
 	compare.MatchPageCount = len(compare.Diffs)
+
+	//Final sort before handing off to template
+	//sort.Slice(misCompares, func(i, j int) bool { return misCompares[i].MetricMatch < misCompares[j].MetricMatch })
+
+	sort.Slice(compare.Diffs, func(i, j int) bool { return compare.Diffs[i].Name < compare.Diffs[j].Name })
 
 	return compare, nil
 }
@@ -1172,6 +1182,9 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 		if diff.OgUrlCsv == diff.OgUrlStd {
 			diff.OgUrlMatch = true
 		}else {compare.Mismatch++}
+
+		diff.UxNumber = value.StdPage.UxNumber
+		diff.Name = value.StdPage.Name
 
 		compare.Diffs = append(compare.Diffs, diff)
 	}
@@ -1415,6 +1428,92 @@ func UpdateImage(r *http.Request) (error) {
 		return err
 	}
 	return nil
+}
+func FindDiff(std string, csv string)(string){
+	dmp := diffmatchpatch.New()
+	diffs := dmp.DiffMain(std, csv, false)
+
+
+	return dmp.DiffPrettyHtml(diffs)
+}
+
+func GetPageDiff(w http.ResponseWriter, r *http.Request){
+	std := r.FormValue("std")
+	this_csv := r.FormValue("csv")
+	customer := r.FormValue("customer")
+	site := r.FormValue("site")
+	url := r.FormValue("url")
+	field := r.FormValue("field")
+
+	diff := FindDiff(std,this_csv)
+
+	str :=`<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	<meta charset="UTF-8">
+	<title>Illustrator</title>
+	<link rel="stylesheet" href="public/css/pageDiff.css">
+
+	</head>
+<header>
+    <nav>
+        <div class="headerLeft">
+        <ul>
+
+            <li><a href="/">Home</a></li>
+            <li><a href="/customers">Customers</a></li>
+        </ul>
+        </div>
+
+
+        <div class="headerRight">
+            <ul>
+
+                <li><a href="/login">Log In</a></li>
+
+            </ul>
+        </div>
+
+    </nav>
+
+</header>
+<br><br><br><br>
+<body>
+
+<h2 class="col1Title">Comparison Illustrator</h2>
+<div class="col1Section">Customer: `+ customer +`</div>
+<div class="col1Section">Site: `+ site +` </div>
+<div class="col1Section">Url: `+ url +` </div>
+<br>
+
+<div class="col1Section">Standard - `+ field +` </div>
+
+<div class="col1Text">`+ std +` </div>
+
+<br>
+<div class="col1Section">Comparison - `+ field +` </div>
+
+<div class="col1Text">`+ this_csv +`</div>
+
+<br>
+<span class="col1Section">Illustrated Difference - `+ field +` </span><span class="col1TitleGreen">Addition</span>
+<span class="col1TitleRed">Deletion</span>
+
+<div class="col1Text">`+ diff +`</div>
+
+<div class = "buttonarea">
+
+<a href="#" class="button" onclick="window.print(); ">Print</a>
+
+<a href="#" class="button" onclick="history.back();">Cancel</a>
+
+    </div>
+
+	</body>
+	</html>
+`
+	fmt.Fprint(w,str)
+return
 }
 
 func GetSearchPagesIndex(r *http.Request) (Customer, error) {

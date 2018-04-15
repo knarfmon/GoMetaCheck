@@ -1,7 +1,7 @@
 package customer
 
 import (
-			"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
+			"github.com/knarfmon/GoMetaCheck/105-WebMetaCheck/config"
 			"net/http"
 
 	"database/sql"

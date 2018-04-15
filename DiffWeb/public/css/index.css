@@ -1,0 +1,22 @@
+html, body, #atf, h1, h2, div, nav, header {
+    padding: 0;
+    border: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+h1 {
+    color: red;
+    font-size: 6rem;
+    text-align: center;
+    border: 2px solid hotpink;
+}
+/*ins {*/
+    /*text-decoration: none;*/
+    /*background-color: #d4fcbc;*/
+/*}*/
+
+/*del {*/
+    /*text-decoration: line-through;*/
+    /*background-color: #fb5662;*/
+    /*color: #555;*/
+/*}*/

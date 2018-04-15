@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/knarfmon/GoMetaCheck/002-Package/dog"
+
 )
 
 func main() {
@@ -10,6 +11,7 @@ func main() {
 
 
 	Dog.Speak()
+
 
 
 }

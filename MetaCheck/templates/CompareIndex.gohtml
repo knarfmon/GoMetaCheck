@@ -114,6 +114,11 @@
             width: 30vw;
             padding-left: 1rem;
         }
+        .col5{
+            justify-content: left;
+            width: 20vw;
+            padding-left: 1rem;
+        }
         .DescArea{
             /*font-size: 1.2rem;*/
             /*color: blue;*/
@@ -125,7 +130,14 @@
             font-size: inherit;
             resize: none;
         }
-
+        .createlink {
+            font-size: 1rem;
+            color: dodgerblue;
+            margin-left: 1rem;
+        }
+        a:hover{
+            color: blue;
+        }
         /*.sectionTitle1{*/
             /*display: flex;*/
             /*flex-flow: row;*/
@@ -180,9 +192,9 @@
 
 <div class="sectionTitle">
 <span class="col1Title">Customer: {{.CustomerName}}</span>
-
+{{$customer := .CustomerName}}
 <span class="col1Title">Site: {{.CsvSite.Name}}</span>
-
+{{$site := .CsvSite.Name}}
 
 {{if .Diffs}}
 <span class="col1Title">Mismatch Html Count: {{.Mismatch}}</span>
@@ -214,8 +226,15 @@
 <div class="col4Head">Comparison:</div>
 </div>
 
-
-
+{{$fieldUrl := "Url"}}
+{{$fieldTitle := "Title"}}
+{{$fieldDescription := "Description"}}
+{{$fieldCanonical := "Canonical"}}
+{{$fieldMetaRobot := "MetaRobot"}}
+{{$fieldOgTitle := "OgTitle"}}
+{{$fieldOgDesc := "OgDesc"}}
+{{$fieldOgImage := "OgImage"}}
+{{$fieldOgUrl := "OgUrl"}}
 
 
 <div class="sectionRow">
@@ -223,6 +242,7 @@
     <div class="col2">{{.UrlStd}}</div>
     {{if.UrlMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.UrlCsv}}</div>
+    {{if .UrlMatch}}{{else}}<a class="createlink" href="/diff?std={{.UrlStd}}&csv={{.UrlCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldUrl}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
@@ -230,6 +250,7 @@
     <div class="col2">{{.TitleStd}}</div>
 {{if.TitleMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.TitleCsv}}</div>
+{{if .TitleMatch}}{{else}}<a class="createlink" href="/diff?std={{.TitleStd}}&csv={{.TitleCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldTitle}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
@@ -237,6 +258,7 @@
     <div class="col2">{{.DescriptionStd}}</div>
 {{if.DescriptionMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.DescriptionCsv}}</div>
+{{if .DescriptionMatch}}{{else}}<a class="createlink" href="/diff?std={{.DescriptionStd}}&csv={{.DescriptionCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldDescription}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
@@ -244,6 +266,7 @@
     <div class="col2">{{.CanonicalStd}}</div>
 {{if.CanonicalMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.CanonicalCsv}}</div>
+{{if .CanonicalMatch}}{{else}}<a class="createlink" href="/diff?std={{.CanonicalStd}}&csv={{.CanonicalCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldCanonical}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
@@ -251,13 +274,14 @@
     <div class="col2">{{.MetaRobotStd}}</div>
 {{if.MetaRobotMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.MetaRobotCsv}}</div>
+{{if .MetaRobotMatch}}{{else}}<a class="createlink" href="/diff?std={{.MetaRobotStd}}&csv={{.MetaRobotCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldMetaRobot}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
     <div class="col1">OgTitle Tag</div>
     <div class="col2">{{.OgTitleStd}}</div>
 {{if.OgTitleMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
-    <div class="col4">{{.OgTitleCsv}}</div>
+    <div class="col4">{{.OgTitleCsv}}</div>{{if .OgTitleMatch}}{{else}}<a class="createlink" href="/diff?std={{.OgTitleStd}}&csv={{.OgTitleCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldOgTitle}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
@@ -265,6 +289,7 @@
     <div class="col2">{{.OgDescStd}}</div>
 {{if.OgDescMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.OgDescCsv}}</div>
+{{if .OgDescMatch}}{{else}}<a class="createlink" href="/diff?std={{.OgDescStd}}&csv={{.OgDescCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldOgDesc}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
@@ -272,6 +297,7 @@
     <div class="col2">{{.OgImageStd}}</div>
 {{if.OgImageMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.OgImageCsv}}</div>
+{{if .OgImageMatch}}{{else}}<a class="createlink" href="/diff?std={{.OgImageStd}}&csv={{.OgImageCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldOgImage}}">Show Differences</a>{{end}}
 </div>
 
 <div class="sectionRow">
@@ -279,6 +305,7 @@
     <div class="col2">{{.OgUrlStd}}</div>
 {{if.OgUrlMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">{{.OgUrlCsv}}</div>
+{{if .OgUrlMatch}}{{else}}<a class="createlink" href="/diff?std={{.OgUrlStd}}&csv={{.OgUrlCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldOgUrl}}">Show Differences</a>{{end}}
 </div>
 
 {{range .DiffImages}}
