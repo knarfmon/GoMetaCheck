@@ -275,6 +275,14 @@ func SiteCompare(w http.ResponseWriter, r *http.Request) {
 
 	config.TPL.ExecuteTemplate(w, "siteCompare.gohtml", site)
 }
+func SitePdf(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	//GetSitePdf(w,r)
+}
+
 
 func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -380,13 +388,16 @@ func PageDiff(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	GetPageDiff(w,r)
-
-	//if err != nil {
-	//	http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-	//}
-	//
-	//config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDiff)
 }
+
+func PageDiffPrint_h(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	PageDiffPrint(w,r)
+}
+
 
 func PageUpdate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -424,6 +435,16 @@ func ImageUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	config.TPL.ExecuteTemplate(w, "imageUpdate.gohtml", pageDetail)
+}
+
+func ImageCreate(w http.ResponseWriter, r *http.Request)  {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+	custSitePage := GetCustSitePage(r)
+
+	config.TPL.ExecuteTemplate(w, "imageCreate.gohtml",custSitePage)
 }
 
 

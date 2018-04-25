@@ -108,6 +108,11 @@
             font-family: inherit;
             font-size: inherit;
         }
+        .createlink {
+            font-size: 1rem;
+            color: dodgerblue;
+            margin-left: 4rem;
+        }
 
     </style>
 
@@ -137,6 +142,10 @@
         <div class = "titles">Page:</div>
         <div class = "col3">{{.Detail.Name}}</div>
 </div>
+    <br>
+    <p class="createlink"><a href="/image/create?siteId={{.Detail.Site_id}}&pageId={{.Detail.Page_id}}&customerName={{.CustomerName}}&siteName={{.SiteName}}&pageName={{.Detail.Name}}">Create New Image Detail</a></p>
+
+
 <br><br>
     <fieldset>
     <div class = "sectionTitle">

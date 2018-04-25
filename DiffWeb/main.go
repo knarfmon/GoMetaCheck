@@ -66,7 +66,7 @@ fmt.Println(sages)
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
 
-	http.ListenAndServe(":8086", nil)
+	http.ListenAndServe(":8082", nil)
 
 
 }
@@ -80,7 +80,9 @@ func FindDiff(std string, csv string)(string){
 	diffs := dmp.DiffMain(std, csv, false)
 
 
-	return dmp.DiffPrettyHtml(diffs)
+return dmp.DiffText2(diffs)
+//return dmp.DiffPrettyText(diffs)
+	//return dmp.DiffPrettyHtml(diffs)
 }
 
 

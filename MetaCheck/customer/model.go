@@ -23,7 +23,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"fmt"
 	"sort"
-	"github.com/sergi/go-diff/diffmatchpatch"
+	//"github.com/sergi/go-diff/diffmatchpatch"
+	//"github.com/jung-kurt/gofpdf"
+	"time"
+	"github.com/knarfmon/go-diff/diffmatchpatch"
+	"github.com/jung-kurt/gofpdf"
 )
 
 type Customer struct {
@@ -65,6 +69,15 @@ type Page struct {
 	Archive          bool
 	Site             *Site
 	Match            bool
+}
+
+type CustSitePage struct {
+	CustomerId		int
+	CustomerName    string
+	SiteId          int
+	SiteName        string
+	PageId          int
+	PageName        string
 }
 
 type Diff struct {
@@ -965,7 +978,7 @@ func MatchSites(compare Compare) (Compare, error) {
 
 
 
-	fmt.Println("Items in CSV ",len(csvSite.Pages))
+
 	//should match on ten items for HTML csv
 	for outer := 0; outer < len(csvSite.Pages); outer++ {
 
@@ -1046,7 +1059,7 @@ func MatchSites(compare Compare) (Compare, error) {
 
 	}
 //---------------------- Matching of pages with typo's in url's, unable to match otherwise------------
-	fmt.Println("Items matched ",len(compare.Diffs))
+
 
 	csvMisPages := []Page{}
 	stdMisPages := []Page{}
@@ -1082,7 +1095,7 @@ func MatchSites(compare Compare) (Compare, error) {
 //sort slice to bring lowest metric to top, then skim of the number of mismatches
 	sort.Slice(misCompares, func(i, j int) bool { return misCompares[i].MetricMatch < misCompares[j].MetricMatch })
 
-	fmt.Println("-----------------miscompares slice------------------" )
+	//fmt.Println("-----------------miscompares slice------------------" )
 	//for count := 0; count < len(csvMisPages); count++{
 	//	misCompares = misCompares[count]
 	//	fmt.Println(misCompares[count])
@@ -1354,6 +1367,28 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	return pageDetail, nil
 }
 
+func GetCustSitePage(r *http.Request)(CustSitePage){
+
+	customerName := r.FormValue("customerName")
+	siteId, _ := strconv.Atoi(r.FormValue("siteId"))
+	siteName := r.FormValue("siteName")
+	pageId,_ := strconv.Atoi(r.FormValue("pageId"))
+	pageName := r.FormValue("pageName")
+
+	return CustSitePage{
+		CustomerName: 	customerName,
+		SiteId: 		siteId,
+		SiteName:		siteName,
+		PageId: 		pageId,
+		PageName: 		pageName,
+
+
+	}
+
+
+
+}
+
 func GetImageDetails(r *http.Request) (PageDetail, error) {
 
 	intId, err := strconv.Atoi(r.FormValue("image_id"))
@@ -1436,6 +1471,13 @@ func FindDiff(std string, csv string)(string){
 
 	return dmp.DiffPrettyHtml(diffs)
 }
+func FindPdfDiff(std string, csv string)(string){
+	dmp := diffmatchpatch.New()
+	diffs := dmp.DiffMain(std, csv, true)
+
+
+	return dmp.DiffPdfText(diffs)
+}
 
 func GetPageDiff(w http.ResponseWriter, r *http.Request){
 	std := r.FormValue("std")
@@ -1503,7 +1545,7 @@ func GetPageDiff(w http.ResponseWriter, r *http.Request){
 
 <div class = "buttonarea">
 
-<a href="#" class="button" onclick="window.print(); ">Print</a>
+<a class="button" href="/diff/print?std=`+ std +`&csv=`+ this_csv +`&customer=`+ customer +`&site=`+ site +`&url=`+ url +`&field=`+ field +`">Print</a>
 
 <a href="#" class="button" onclick="history.back();">Cancel</a>
 
@@ -1512,6 +1554,10 @@ func GetPageDiff(w http.ResponseWriter, r *http.Request){
 	</body>
 	</html>
 `
+//to use for pdf print function.
+	//<a class="createlink" href="/diff?std={{.OgUrlStd}}&csv={{.OgUrlCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldOgUrl}}">Show Differences</a>
+
+	//<a href="#" class="button" onclick="window.print(); ">Print</a>
 	fmt.Fprint(w,str)
 return
 }
@@ -1658,3 +1704,183 @@ func InsertUser(u User) (error) {
 	}
 	return nil
 }
+func PageDiffPrint(w http.ResponseWriter, r *http.Request)error{
+	customer := r.FormValue("customer")
+	site := r.FormValue("site")
+	std := r.FormValue("std")
+	this_csv := r.FormValue("csv")
+
+	url := r.FormValue("url")
+	field := r.FormValue("field")
+
+	stdcsv := []string{std,this_csv}
+
+	fmt.Println(customer)
+	fmt.Println(site)
+	fmt.Println(std)
+	fmt.Println(this_csv)
+	fmt.Println(url)
+	fmt.Println(field)
+
+	hdr := []string{customer,site,url}
+
+	//diff will have to be calculated
+	pdf := diffReport()
+	pdf = diffheader(pdf,hdr)
+
+	pdf = diffBody(pdf,stdcsv,field)
+
+	err :=pdf.Output(w)
+	if err != nil {
+		return  errors.New("500. Failed creating PDF report." + err.Error())
+	}
+	return nil
+
+	//if pdf.Err() {
+	//	log.Fatalf("Failed creating PDF report: %s\n", pdf.Error())
+	//}
+
+}
+func diffReport() *gofpdf.Fpdf {
+	pdf := gofpdf.New("P", "mm", "Letter", "")
+	pdf.AddPage()
+	pdf.SetFont("Times", "B", 28)
+	pdf.Cell(140, 10, "Comparison Illustrator")
+	//pdf.Ln(12)
+	pdf.SetFont("Arial", "", 14)
+	pdf.Cell(40, 12, time.Now().Format("Mon Jan 2, 2006"))
+	pdf.Ln(14)
+
+	return pdf
+}
+func diffheader(pdf *gofpdf.Fpdf, hdr []string) *gofpdf.Fpdf {
+	pdf.SetFont("Times", "", 14)
+	pdf.Cell(35,8,"Customer:")
+	pdf.Cell(40,8,hdr[0])
+	pdf.Ln(5)
+	pdf.Cell(35,8,"Site:")
+	pdf.Cell(40,8,hdr[1])
+	pdf.Ln(5)
+	pdf.Cell(35,8,"Url:")
+	pdf.Write(8,hdr[2])
+	pdf.Ln(14)
+
+return  pdf
+}
+
+func diffBody(pdf *gofpdf.Fpdf, hdr []string,field string)*gofpdf.Fpdf{
+	tr := pdf.UnicodeTranslatorFromDescriptor("") // "" defaults to "cp1252"
+	pdf.SetFont("Times", "B", 14)
+	pdf.Write(8,"Standard - " + field)
+	pdf.Ln(8)
+	pdf.SetFont("Times", "", 14)
+	pdf .Write(8,tr(hdr[0]))
+	pdf.Ln(20)
+	pdf.SetFont("Times", "B", 14)
+	pdf.Write(8,"Comparison - " + field)
+	pdf.SetFont("Times", "", 14)
+	pdf.Ln(8)
+	pdf .Write(8,tr(hdr[1]))
+	pdf.Ln(20)
+	pdf.SetFont("Times", "B", 14)
+	pdf.Write(8,"Illustrated Difference - " + field + "       ")
+
+	// red background  pdf.SetFillColor(255,0,0)
+	// rgb for light green is 144,238,144
+	// rgb for light coral red is 240,128,128
+	// rgb for white is 255,255,255
+	pdf.SetFont("Times", "", 10)
+	pdf.SetFillColor(144,238,144)
+	pdf.CellFormat(30,8,"Additions in green.","",0,"C",true,0,"")
+	pdf.Write(8,"      ")
+	pdf.SetFillColor(240,128,128)
+	pdf.CellFormat(30,8,"Deletions in red.","",1,"C",true,0,"")
+	//pdf.Write(8," and deletions in red")
+	pdf.Ln(8)
+	pdf.SetFont("Times", "", 14)
+	//pdf.CellFormat(0,8,"red","",1,"",true,0,"")
+	//pdf.Write(8,FindPdfDiff(hdr[0],hdr[1]))
+	pdf.Ln(8)
+	pdf.SetFillColor(255,255,255)
+
+	strStd := tr(hdr[0])
+	strCsv := tr(hdr[1])
+	str := FindPdfDiff(strStd,strCsv)
+
+	deletionSign := "(-)"
+	additionSign := "(+)"
+	normalSign := "(0)"
+
+	var norm,backColor string
+	var idx int
+
+	for {
+		idxAdd := strings.Index(str, additionSign)
+		fmt.Println("idxAdd-",idxAdd)
+		if idxAdd == -1{idxAdd = 1000}
+		idxDel := strings.Index(str, deletionSign)
+		if idxDel == -1{idxDel = 1000}
+		fmt.Println("idxDel-",idxDel)
+		idxNil := strings.Index(str, normalSign)
+		if idxNil == -1{idxNil = 1000}
+		fmt.Println("idxNil-",idxNil)
+
+		//no sign left
+		if idxAdd+idxDel+idxNil == 3000 {
+			fmt.Println("nothing");
+			//pdf.CellFormat(30,8,str,"",0,"",true,0,"")
+			pdf.Write(8,tr(str))
+			break
+		}
+		//finding the closest sign to get index and type
+
+		if (idxAdd < idxDel && idxAdd < idxNil) {
+			idx = idxAdd;
+			backColor = "green"
+			//pdf.SetFillColor(144,238,144)
+		} else if (idxDel < idxNil && idxDel < idxAdd) {
+			idx = idxDel;
+			backColor = "red"
+			//pdf.SetFillColor(240,128,128)
+		} else {
+			idx = idxNil;
+			backColor = "white"
+			//pdf.SetFillColor(255,255,255)
+		}
+
+		fmt.Println("after if-",idx)
+
+		norm = tr(str[0:idx])
+		pdf.Write(8,norm)
+		//pdf.CellFormat(40,8,norm,"",0,"",true,0,"")
+		fmt.Println(norm)
+		fmt.Println("Change background color-", backColor)
+
+		if backColor == "green"{
+			//pdf.SetFillColor(144,238,144)
+			pdf.SetFont("Times", "B", 16)
+			pdf.SetTextColor(144,238,144)
+		}else if backColor == "red"{
+			//pdf.SetFillColor(240,128,128)
+			pdf.SetFont("Times", "B", 16)
+			pdf.SetTextColor(240,128,128)
+		}else{
+			//pdf.SetFillColor(0,0,0)
+			pdf.SetFont("Times", "", 14)
+			pdf.SetTextColor(0,0,0)
+		}
+
+
+		idx = idx + 3
+		str = tr(str[idx:])
+		fmt.Println("Remaining string-", str)
+
+	}
+
+	return pdf
+}
+
+	//func GetSitePdf(site Site){
+	//
+	//
+	//}
