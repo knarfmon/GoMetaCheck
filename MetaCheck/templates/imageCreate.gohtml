@@ -37,7 +37,7 @@
         }
         input {
 
-            width: 60vw;
+            width: 40vw;
             font-size: 1rem;
             color: blue;
             border: 1px solid black;
@@ -70,14 +70,18 @@
             color: #000;
             background-color: lightgrey;
         }
-
+        .DescArea{
+            font-size: 1.2rem;
+            color: black;
+            width: 40vw;
+        }
     </style>
 </head>
 <body>
 {{template "header"}}<br><br><br><br>
 
 
-<h2>Image Detail Create</h2>
+<h2>Add Image</h2>
 
 <p>Customer: {{.CustomerName}}</p>
 <p>Site: {{.SiteName}}</p>
@@ -87,16 +91,28 @@
 
 
 <form method="post" action="/image/create/process">
-    <label for="name">Name</label>
-    <input type="text" name="name" placeholder="Name" required autofocus>
+
+    <label for="altText">Alt Text:</label>
+    <div>
+        <textarea id="Description" name="altText" rows="4" cols="15" class="DescArea" placeholder="Alt Text" ></textarea>
+    </div>
+
+    {{/*<label for="altText">Alt Text</label>*/}}
+    {{/*<input type="text" name="altText" placeholder="Alt Text" >*/}}
     <br>
 
-    <label for="altText">Alt Text</label>
-    <input type="text" name="altText" placeholder="Alt Text" >
+    <label for="files">Image</label>
+    <input type="file" name="files" id="files"  placeholder="Image" accept="image/*" required >
     <br>
+    <output id="list"></output>
 
-    <label for="imageUrl">Image Url</label>
-    <input type="text" name="imageUrl" placeholder="Image Url" required >
+
+
+
+
+
+
+
     <br>
 
 
@@ -114,6 +130,42 @@
 
 </form>
 <br><br><br>
+<script type="text/javascript">
+    if (window.FileReader) {
+        //then your code goes here
+    } else {
+        alert('This browser does not support FileReader');
+    }
+    document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+    function handleFileSelect(evt) {
+        var files = evt.target.files;
+        var f = files[0];
+        var reader = new FileReader();
+        var image_x = document.getElementById('list');
+
+        if( document.getElementById("files").files.length == 0 ){
+            // image_x.parentNode.removeChild(image_x);}
+            document.getElementById("list").style.visibility="hidden";}else {
+            document.getElementById("list").style.visibility="visible";
+        }
+
+
+        reader.onload = (function(theFile) {
+            return function(e) {
+                document.getElementById('list').innerHTML = ['<img src="', e.target.result,'" title="', theFile.name, '" width="100" />'].join('');
+            };
+        })(f);
+
+        reader.readAsDataURL(f);
+    }
+
+
+
+</script>
+
+
+
 </body>
 
 </html>

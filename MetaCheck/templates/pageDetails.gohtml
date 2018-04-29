@@ -43,12 +43,20 @@
         }
         .buttonarea{
             display: flex;
-            width: 15vw;
+            flex-flow: row nowrap;
+            width: 25vw;
             justify-content: space-between;
+
             border-bottom: 5rem;
             /*margin-left: 4rem;*/
         }
         .cancelarea{
+            display: flex;
+            flex-flow: row nowrap;
+            width: 30vw;
+            justify-content: space-between;
+
+            border-bottom: 5rem;
             margin-left: 5rem;
         }
         .button{
@@ -68,6 +76,25 @@
             cursor: pointer;
             border-radius: 8px;
         }
+        #editbutton{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+
+
+
+
+
+
         .button:hover {
             color: #000;
             background-color: lightgrey;
@@ -142,8 +169,8 @@
         <div class = "titles">Page:</div>
         <div class = "col3">{{.Detail.Name}}</div>
 </div>
-    <br>
-    <p class="createlink"><a href="/image/create?siteId={{.Detail.Site_id}}&pageId={{.Detail.Page_id}}&customerName={{.CustomerName}}&siteName={{.SiteName}}&pageName={{.Detail.Name}}">Create New Image Detail</a></p>
+
+    {{/*<p class="createlink"><a href="/image/create?siteId={{.Detail.Site_id}}&pageId={{.Detail.Page_id}}&customerName={{.CustomerName}}&siteName={{.SiteName}}&pageName={{.Detail.Name}}">Create New Image Detail</a></p>*/}}
 
 
 <br><br>
@@ -207,6 +234,8 @@
         <div class = "buttonarea">
             <a href="/page/update?page_id={{.Detail.Page_id}}&cname={{$cname}}&sname={{$sname}}" class="button">Edit</a>
         </div>
+
+
 </fieldset>
     <br>
     {{if .Images}}
@@ -232,8 +261,10 @@
     </div>
 
     <br> <br>
-    <div class = "buttonarea">
-        <a href="/image/update?image_id={{.Image_id}}&cname={{$cname}}&sname={{$sname}}" class="button">Edit</a>
+    <div>
+      <a class="button" href="/image/update?image_id={{.Image_id}}&cname={{$cname}}&sname={{$sname}}" id="editbutton">Edit</a>
+
+
     </div>
     </fieldset>
     {{end}}
@@ -245,6 +276,7 @@
     <br><br>
 
     <div class = "cancelarea">
+        <a class="button" href="/image/create?siteId={{.Detail.Site_id}}&pageId={{.Detail.Page_id}}&customerName={{.CustomerName}}&siteName={{.SiteName}}&pageName={{.Detail.Name}}" >Add Image</a>
         {{/*<a href="/page/update?page_id={{.Detail.Page_id}}" class="button">Edit</a>*/}}
         {{/*<a href="/page/update?page_id={{.Detail.Page_id}}&cname={{$cname}}&sname={{$sname}}" class="button">Edit</a>*/}}
         {{/*<a href="/customers" class="button">Cancel</a>*/}}
