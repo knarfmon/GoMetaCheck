@@ -1203,7 +1203,19 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 	}
 	return compare,nil
 }
+func PutSingleImage(r *http.Request) error  {
 
+	//_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url) VALUES (?,?,?,?,?,?,?)",
+	//	p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl)
+	//
+	//if err != nil {
+	//	//return pages, errors.New("500. Internal Server Error." + err.Error())
+	//	log.Fatalf("Could not INSERT into image: %v", err)
+	//}
+
+
+	return nil
+}
 
 func PutImage(site Site) (error) { //replaced pages []Page with site Site
 
@@ -1464,6 +1476,14 @@ func UpdateImage(r *http.Request) (error) {
 	}
 	return nil
 }
+func CreateImage() error{
+
+
+	return nil
+}
+
+
+
 func FindDiff(std string, csv string)(string){
 	dmp := diffmatchpatch.New()
 	diffs := dmp.DiffMain(std, csv, false)

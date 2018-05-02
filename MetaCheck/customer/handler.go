@@ -498,7 +498,27 @@ func ImageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 
 	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
 }
+func ImageCreateProcess(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
 
+
+
+	err := PutSingleImage(r)
+
+	if err != nil {
+		http.Error(w, http.StatusText(406), http.StatusBadRequest)
+		return}
+
+	pageDetail,err := GetPageDetails(r)
+	if err != nil {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+}
 func CheckUserName(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)

@@ -43,6 +43,7 @@ func main() { //====web====== init()
 	http.HandleFunc("/page/update", customer.PageUpdate)
 	http.HandleFunc("/image/update", customer.ImageUpdate)
 	http.HandleFunc("/image/create", customer.ImageCreate)
+	http.HandleFunc("/image/create/process", customer.ImageCreateProcess)
 	http.HandleFunc("/page/update/process", customer.PageUpdateProcess)
 	http.HandleFunc("/diff", customer.PageDiff)
 	http.HandleFunc("/diff/print", customer.PageDiffPrint_h)
@@ -51,6 +52,6 @@ func main() { //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8098", nil) //===== not here for web
+	http.ListenAndServe(":8088", nil) //===== not here for web
 
 }

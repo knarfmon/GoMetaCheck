@@ -75,6 +75,12 @@
             color: black;
             width: 40vw;
         }
+        .form-field-err {
+            color: red;
+            width: 25rem;
+            text-align: left;
+
+        }
     </style>
 </head>
 <body>
@@ -90,12 +96,14 @@
 <br>
 
 
-<form method="post" action="/image/create/process">
+<form method="post" action="/image/create/process" id="form-create-user">
 
     <label for="altText">Alt Text:</label>
     <div>
-        <textarea id="Description" name="altText" rows="4" cols="15" class="DescArea" placeholder="Alt Text" ></textarea>
+        <textarea id="altText" name="altText" rows="4" cols="15" class="DescArea" placeholder="Alt Text" ></textarea>
     </div>
+
+    <p class="form-field-err" id="altTextErr"></p>
 
     {{/*<label for="altText">Alt Text</label>*/}}
     {{/*<input type="text" name="altText" placeholder="Alt Text" >*/}}
@@ -104,12 +112,15 @@
     <label for="files">Image</label>
     <input type="file" name="files" id="files"  placeholder="Image" accept="image/*" required >
     <br>
+
+    <p class="form-field-err" id="filesErr"></p>
+
     <output id="list"></output>
 
+    <input type="text" id="fileName" value="" />
 
 
-
-
+    {{/*<input type="hidden" id="fileName" value="" />*/}}
 
 
 
@@ -122,45 +133,129 @@
 
 {{/*<input type="hidden" name="customer_id" value="{{.CustomerId}}">*/}}
 
-    <div class = "buttonarea"><input class="button" type="submit">
+    <div class = "buttonarea"><input class="button" type="submit" id="submitbutton">
     {{/*<a href="/customers" class="button">Cancel</a>*/}}
         <a href="#" class="button" onclick="history.back();">Cancel</a>
     </div>
 
 
 </form>
+
+
 <br><br><br>
 <script type="text/javascript">
     if (window.FileReader) {
+
+
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+        function handleFileSelect(evt) {
+            var files = evt.target.files;
+            var f = files[0];
+            var reader = new FileReader();
+            var image_x = document.getElementById('list');
+
+            if( document.getElementById("files").files.length == 0 ){
+                // image_x.parentNode.removeChild(image_x);}
+                document.getElementById("list").style.visibility="hidden";}else {
+                document.getElementById("list").style.visibility="visible";
+            }
+
+
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    document.getElementById('list').innerHTML = ['<img src="', e.target.result,'" title="', theFile.name, '" width="100" />'].join('');
+                    document.getElementById('fileName').value =theFile.name;
+                };
+            })(f);
+
+            reader.readAsDataURL(f);
+
+        }
+
         //then your code goes here
     } else {
         alert('This browser does not support FileReader');
     }
-    document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
-    function handleFileSelect(evt) {
-        var files = evt.target.files;
-        var f = files[0];
-        var reader = new FileReader();
-        var image_x = document.getElementById('list');
+    var formUser = document.querySelector('#form-create-user');
+    var altText = document.querySelector('#altText');
+    var files = document.querySelector('#files');
+    var altTextErr = document.querySelector('#altTextErr');
+    var filesErr = document.querySelector('#filesErr');
+    var allowedExtension = ['jpeg', 'jpg', 'png', 'gif', 'bmp'];
+    var fileExtension = document.getElementById('files').value.split('.').pop().toLowerCase();
+    var fileName = files.value;
+    var isValidFile = false;
 
-        if( document.getElementById("files").files.length == 0 ){
-            // image_x.parentNode.removeChild(image_x);}
-            document.getElementById("list").style.visibility="hidden";}else {
-            document.getElementById("list").style.visibility="visible";
+
+
+    altText.addEventListener('focus', function () {
+
+        altTextErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    files.addEventListener('focus', function () {
+
+        filesErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    //    Validate
+    //    listen for submit button click
+    formUser.addEventListener('submit', function(e){
+        var ok = validateFields();
+
+        if (!ok) {
+            e.preventDefault();
+            return;
+        }
+    });
+    function validateFields() {
+
+        if (altText.value === "" ) {
+            altTextErr.textContent = 'Must have Alt Text content';
+            document.querySelector('#submitbutton').disabled = true;
+            return false}
+
+        if (validateFields() === false){
+            filesErr.textContent = 'Allowed Extensions are : *.\' + allowedExtension.join(\', *.\')'
+            document.querySelector('#submitbutton').disabled = true;
+            return false
         }
 
+        // if (image.value.indexOf("all_images.csv") === -1 ) {
+        //     imageErr.textContent = 'Incorrect image file name from Frog, must be "all_images.csv"';
+        //     document.querySelector('#submitbutton').disabled = true;
+        //     return false}
 
-        reader.onload = (function(theFile) {
-            return function(e) {
-                document.getElementById('list').innerHTML = ['<img src="', e.target.result,'" title="', theFile.name, '" width="100" />'].join('');
-            };
-        })(f);
+        imageErr.textContent = '';
+        htmlErr.textContent = '';
+        return true
+    };
 
-        reader.readAsDataURL(f);
+    function validateFile()
+    {
+        // var allowedExtension = ['jpeg', 'jpg', 'png', 'gif', 'bmp'];
+        // var fileExtension = document.getElementById('files').value.split('.').pop().toLowerCase();
+        // var isValidFile = false;
+
+        for(var index in allowedExtension) {
+
+            if(fileExtension === allowedExtension[index]) {
+                isValidFile = true;
+
+                break;
+            }
+        }
+
+        // if(!isValidFile) {
+        //     alert('Allowed Extensions are : *.' + allowedExtension.join(', *.'));
+        // }
+
+        return isValidFile;
     }
-
-
 
 </script>
 
