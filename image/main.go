@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// open "test.jpg"
-	file, err := os.Open("fog.jpg")
+	file, err := os.Open("dog.png")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,7 +25,7 @@ func main() {
 	// and preserve aspect ratio
 	m := resize.Resize(150, 0, img, resize.NearestNeighbor)
 
-	out, err := os.Create("fog2.jpg")
+	out, err := os.Create("dog2.png")
 	if err != nil {
 		log.Fatal(err)
 	}

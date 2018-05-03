@@ -1205,6 +1205,21 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 }
 func PutSingleImage(r *http.Request) error  {
 
+	siteId, _ := strconv.Atoi(r.FormValue("siteId"))
+	pageId,_ := strconv.Atoi(r.FormValue("pageId"))
+	altText := r.FormValue("altText")
+	fileName := r.FormValue("fileName")
+	file, _, err := r.FormFile("files")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	fmt.Println(siteId)
+	fmt.Println(pageId)
+	fmt.Println(altText)
+	fmt.Println(fileName)
+
 	//_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url) VALUES (?,?,?,?,?,?,?)",
 	//	p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl)
 	//

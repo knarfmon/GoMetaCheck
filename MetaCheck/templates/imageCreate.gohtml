@@ -96,7 +96,7 @@
 <br>
 
 
-<form method="post" action="/image/create/process" id="form-create-user">
+<form method="post" enctype="multipart/form-data" action="/image/create/process" id="form-create-user">
 
     <label for="altText">Alt Text:</label>
     <div>
@@ -117,21 +117,14 @@
 
     <output id="list"></output>
 
-    <input type="text" id="fileName" value="" />
-
-
-    {{/*<input type="hidden" id="fileName" value="" />*/}}
-
+    <input type="hidden" id="fileName" name="fileName" value="" />
+    <input type="hidden" id="siteId" name="siteId" value="{{.SiteId}}" />
+    <input type="hidden" id="pageId" name="pageId" value="{{.PageId}}" />
 
 
     <br>
 
 
-
-
-
-
-{{/*<input type="hidden" name="customer_id" value="{{.CustomerId}}">*/}}
 
     <div class = "buttonarea"><input class="button" type="submit" id="submitbutton">
     {{/*<a href="/customers" class="button">Cancel</a>*/}}

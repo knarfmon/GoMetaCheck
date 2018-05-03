@@ -506,11 +506,13 @@ func ImageCreateProcess(w http.ResponseWriter, r *http.Request) {
 
 
 
+
 	err := PutSingleImage(r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return}
+	return
 
 	pageDetail,err := GetPageDetails(r)
 	if err != nil {
