@@ -110,7 +110,7 @@
     <br>
 
     <label for="files">Image</label>
-    <input type="file" name="files" id="files"  placeholder="Image" accept="image/*" required >
+    <input type="file" name="files" id="files"  placeholder="Image" accept=".jpg" required >
     <br>
 
     <p class="form-field-err" id="filesErr"></p>
@@ -173,11 +173,11 @@
 
     var formUser = document.querySelector('#form-create-user');
     var altText = document.querySelector('#altText');
-    var files = document.querySelector('#files');
+    var jsFile = document.querySelector('#files');
     var altTextErr = document.querySelector('#altTextErr');
     var filesErr = document.querySelector('#filesErr');
-    var allowedExtension = ['jpeg', 'jpg', 'png', 'gif', 'bmp'];
-    var fileExtension = document.getElementById('files').value.split('.').pop().toLowerCase();
+    var allowedExtension = 'jpg';
+    //var fileExtension = document.getElementById('files').value.split('.').pop().toLowerCase();
     var fileName = files.value;
     var isValidFile = false;
 
@@ -211,17 +211,13 @@
             altTextErr.textContent = 'Must have Alt Text content';
             document.querySelector('#submitbutton').disabled = true;
             return false}
-
-        if (validateFields() === false){
-            filesErr.textContent = 'Allowed Extensions are : *.\' + allowedExtension.join(\', *.\')'
+alert("validating file");
+        if (validateFile() === false){
+            filesErr.textContent = 'Please select only jpg images.';
             document.querySelector('#submitbutton').disabled = true;
             return false
         }
 
-        // if (image.value.indexOf("all_images.csv") === -1 ) {
-        //     imageErr.textContent = 'Incorrect image file name from Frog, must be "all_images.csv"';
-        //     document.querySelector('#submitbutton').disabled = true;
-        //     return false}
 
         imageErr.textContent = '';
         htmlErr.textContent = '';
@@ -230,24 +226,23 @@
 
     function validateFile()
     {
-        // var allowedExtension = ['jpeg', 'jpg', 'png', 'gif', 'bmp'];
-        // var fileExtension = document.getElementById('files').value.split('.').pop().toLowerCase();
-        // var isValidFile = false;
+alert("validate file ext");
 
-        for(var index in allowedExtension) {
 
-            if(fileExtension === allowedExtension[index]) {
-                isValidFile = true;
+        exten = jsFile.value.slice((jsFile.value.lastIndexOf(".") - 1 >>> 0) + 2);
 
-                break;
+        alert(exten);
+
+
+            if(exten === allowedExtension){
+
+
+         }else {
+                isValidFile = false;
             }
-        }
 
-        // if(!isValidFile) {
-        //     alert('Allowed Extensions are : *.' + allowedExtension.join(', *.'));
-        // }
 
-        return isValidFile;
+            return isValidFile;
     }
 
 </script>

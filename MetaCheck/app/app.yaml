@@ -1,7 +1,6 @@
-#Commented out just below is for cloud deployment
-
 runtime: go
 api_version: go1
+
 
 handlers:
 - url: /.*
@@ -15,5 +14,3 @@ env_variables:
   # Replace username and password if you aren't using the root user.
   CLOUDSQL_USER: knarfmon
   CLOUDSQL_PASSWORD: Great4me
-
-

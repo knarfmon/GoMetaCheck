@@ -1,19 +1,18 @@
-package main //====web======  metacheck
+package app //====web======  metacheck
 
 import (
 	"github.com/knarfmon/GoMetaCheck/MetaCheck/customer"
+
 	"net/http"
+	"html/template"
+	"google.golang.org/appengine"
 )
 
-/*func (s site) SiteName(n string) string {
-	if n == "" {
-		return "Site Name"
-	}
-	return n
-
-}*/
+var tpl *template.Template
 
 func main() { //====web====== init()
+
+	appengine.Main()
 
 	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
 	http.HandleFunc("/", customer.Index)
@@ -42,8 +41,8 @@ func main() { //====web====== init()
 	http.HandleFunc("/page/details", customer.PageDetails)
 	http.HandleFunc("/page/update", customer.PageUpdate)
 	http.HandleFunc("/image/update", customer.ImageUpdate)
-	http.HandleFunc("/image/create", customer.ImageCreate)
-	http.HandleFunc("/image/create/process", customer.ImageCreateProcess)
+	http.HandleFunc("/image/create", customer.ImageGetUi)
+	http.HandleFunc("/image/create/process", customer.ImageProcess)
 	http.HandleFunc("/page/update/process", customer.PageUpdateProcess)
 	http.HandleFunc("/diff", customer.PageDiff)
 	http.HandleFunc("/diff/print", customer.PageDiffPrint_h)
@@ -52,6 +51,6 @@ func main() { //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8083", nil) //===== not here for web
+	//http.ListenAndServe(":8105", nil) //===== not here for web
 
 }

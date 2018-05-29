@@ -9,7 +9,7 @@ import (
 
 func main() {
 	// open "test.jpg"
-	file, err := os.Open("dog.png")
+	file, err := os.Open("surf.jpg")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,13 +19,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	file.Close()
 
 	// resize to width 1000 using Lanczos resampling
 	// and preserve aspect ratio
 	m := resize.Resize(150, 0, img, resize.NearestNeighbor)
 
-	out, err := os.Create("dog2.png")
+	out, err := os.Create("surf3.jpg")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -33,4 +34,6 @@ func main() {
 
 	// write new image to file
 	jpeg.Encode(out, m, nil)
+
+
 }

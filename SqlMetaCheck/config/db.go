@@ -17,7 +17,7 @@ func init(){
 
 	var err error
 	DB, err = sql.Open("mysql","knarfmon:Great4me@/getmetacheck")
-	//db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@cloudsql(%s)/getmetacheck", user, password, connectionName)) ===web
+	//DB, err = sql.Open("mysql", fmt.Sprintf("%s:%s@cloudsql(%s)/getmetacheck", user, password, connectionName)) ===web
 	if err != nil {
 		log.Fatalf("Could not open db: %v", err)
 	}

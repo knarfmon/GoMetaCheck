@@ -1,7 +1,7 @@
 package customer
 
 import (
-			"../config"
+			"github.com/knarfmon/GoMetaCheck/SqlMetaCheck/config"
 			"net/http"
 
 	"database/sql"
@@ -418,13 +418,13 @@ func PageUpdate(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "pageUpdate.gohtml", pageDetail)
 }
 
-func ImageUpdate(w http.ResponseWriter, r *http.Request) {
+func ImageUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
 
-	pageDetail, err := GetImageDetails(r)
+	pageDetail, err := ImageGetDetails(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -437,12 +437,12 @@ func ImageUpdate(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "imageUpdate.gohtml", pageDetail)
 }
 
-func ImageGetUi(w http.ResponseWriter, r *http.Request)  {
+func ImageGetUiHandler(w http.ResponseWriter, r *http.Request)  {
 	if r.Method != "GET" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	custSitePage := GetCustSitePage(r)
+	custSitePage := ImageGetUi(r)
 
 	config.TPL.ExecuteTemplate(w, "imageGetUi.gohtml",custSitePage)
 }
@@ -480,12 +480,12 @@ func PageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 //	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
 }
 
-func ImageUpdateProcess(w http.ResponseWriter, r *http.Request) {
+func ImageUpdateProcessHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	err := UpdateImage(r)
+	err := ImageUpdate(r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
@@ -498,45 +498,28 @@ func ImageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 
 	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
 }
-func ImageProcess(w http.ResponseWriter, r *http.Request) {
+
+func ImageProcessHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
 	//Upload image data from Ui, validate, and package
-	imageFromUi,err := UploadImageFromUi(w,r)
+	imageStructFromUi,err := ImageUploadFromUi(w,r)
 	if err != nil {
 		http.Error(w, "Unable to upload image file", http.StatusBadRequest)
 		return}
 
-		file := JpgToThumbJpg(imageFromUi.Mpf, &imageFromUi.Hdr)
-fmt.Println("This is fucked",file)  //---------------------------------------------------------
+	//Convert image to Thumbnail jpg
+	imageStructFromUi = ImageToThumbJpg(imageStructFromUi)
 
-
-		//err = PutImageDataToSql(file)
-	if err != nil {
-		http.Error(w, "Unable to create sql", http.StatusBadRequest)
+	if ImageSinglePutToSql(imageStructFromUi) != nil {
+		http.Error(w, "Unable to upload image file to database", http.StatusBadRequest)
 		return}
 
-	////Attempt to put image file into bucket
-	////ctx := context.Background()
-	//ctx := appengine.NewContext(r)
-	//
-	//PutImageFile(ctx,imageFromUi.FileName,imageFromUi.Mpf)
-	//
-	//if err != nil {
-	//	http.Error(w, "Unable to put image file in bucket", http.StatusBadRequest)
-	//	return}
 
-	fmt.Println("success")
-	fmt.Println(imageFromUi.AltText)
 	return
-
-
-
-
-
-
+//todo =============
 	//pageDetail,err := GetPageDetails(r)
 	//if err != nil {
 	//	http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)

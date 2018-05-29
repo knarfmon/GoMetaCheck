@@ -176,7 +176,7 @@ func AllCustomers(r *http.Request) ([]Customer, error) {
 	}
 
 	rows, err := config.DB.Query(query)
-	//rows, err := config.DB.Query("SELECT id,name,archive FROM customer ORDER BY name")
+	//rows, err := config.sqlDB.Query("SELECT id,name,archive FROM customer ORDER BY name")
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +311,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	}
 
 	rows, err := config.DB.Query(query, customer.Id)
-	//rows, err := config.DB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
+	//rows, err := config.sqlDB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
 	if err != nil {
 		return
 	}
@@ -429,7 +429,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 	if checked == "check" {
 		site.Archive = true
 
-		//_,err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;",newId)
+		//_,err = config.sqlDB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;",newId)
 		//if err != nil {
 		//	return cs, errors.New("406. Not Acceptable. Id not of correct type")
 		//}
@@ -1255,7 +1255,7 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 		log.Fatalf("Could not select from customer: %v", err)
 	}
 
-	//rows, err := config.DB.Query("SELECT id,site_id,name,url FROM page where site_id = ? and name LIKE ?", intId,search)
+	//rows, err := config.sqlDB.Query("SELECT id,site_id,name,url FROM page where site_id = ? and name LIKE ?", intId,search)
 
 	query := "SELECT id,site_id,name,url FROM page where site_id = " + siteId + " and name LIKE '%" + search + "%';"
 

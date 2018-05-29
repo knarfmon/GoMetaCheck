@@ -2,8 +2,7 @@ package customer
 
 import (
 	"errors"
-	//"github.com/knarfmon/GoMetaCheck/MetaCheck/config"
-	"../config"
+	"github.com/knarfmon/GoMetaCheck/SqlMetaCheck/config"
 	"log"
 	"net/http"
 	"strconv"
@@ -31,6 +30,8 @@ import (
 	"github.com/jung-kurt/gofpdf"
 	//"google.golang.org/appengine/log"
 	"mime/multipart"
+	"encoding/base64"
+	"html/template"
 )
 
 type Customer struct {
@@ -82,13 +83,15 @@ type CustSitePage struct {
 	PageId          int
 	PageName        string
 }
-type ImageFromUi struct {
+type ImageStructFromUi struct {
 	SiteId          int
 	PageId          int
 	AltText  		string
 	FileName		string
 	Mpf				multipart.File
 	Hdr				multipart.FileHeader
+	ByteFile		[]byte
+	Notes    		string
 }
 
 type Diff struct {
@@ -170,6 +173,8 @@ type Image struct {
 	Notes    string
 	PageUrl  string
 	Match	bool
+	ByteFile		[]byte
+	EncodedImg	template.HTML
 }
 
 type PageDetail struct {
@@ -225,7 +230,7 @@ func AllCustomers(r *http.Request) ([]Customer, error) {
 
 	}
 
-	rows, err := config.SQLdb.Query(query)
+	rows, err := config.DB.Query(query)
 	//rows, err := config.sqlDB.Query("SELECT id,name,archive FROM customer ORDER BY name")
 	if err != nil {
 		return nil, err
@@ -271,7 +276,7 @@ func PutCustomer(r *http.Request) (Customer, error) {
 	}
 
 	// insert values
-	_, err := config.SQLdb.Exec("INSERT INTO customer (name) VALUES (?)", cs.Name)
+	_, err := config.DB.Exec("INSERT INTO customer (name) VALUES (?)", cs.Name)
 	if err != nil {
 		return cs, errors.New("500. Internal Server Error." + err.Error())
 	}
@@ -286,7 +291,7 @@ func OneCustomer(r *http.Request) (Customer, error) {
 		return cs, errors.New("400. Bad Request.")
 	}
 
-	row := config.SQLdb.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", id)
+	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", id)
 
 	err := row.Scan(&cs.Id, &cs.Name, &archive)
 
@@ -314,24 +319,24 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 		cs.Archive = true
 
 		//Archive site
-		_, err = config.SQLdb.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;", newId)
+		_, err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;", newId)
 		if err != nil {
 			return cs, errors.New("406. Not Acceptable. Archiving site failed")
 		}
 		//Archive page
-		_, err = config.SQLdb.Exec("UPDATE page SET archive = 1 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
 		if err != nil {
 			return cs, errors.New("406. Not Acceptable. Archiving page failed")
 		}
 
 	} else {
 		cs.Archive = false
-		_, err = config.SQLdb.Exec("UPDATE site Set archive = 0 WHERE customer_id = ?;", newId)
+		_, err = config.DB.Exec("UPDATE site Set archive = 0 WHERE customer_id = ?;", newId)
 		if err != nil {
 			return cs, errors.New("406. Not Acceptable. Archiving site failed")
 		}
 		//Archive page
-		_, err = config.SQLdb.Exec("UPDATE page SET archive = 0 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
 		if err != nil {
 			return cs, errors.New("406. Not Acceptable. Archiving page failed")
 		}
@@ -347,7 +352,7 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 	cs.Id = newId
 
 	// insert values
-	_, err = config.SQLdb.Exec("UPDATE customer SET name = ?, archive = ? WHERE id=?;", cs.Name, cs.Archive, cs.Id)
+	_, err = config.DB.Exec("UPDATE customer SET name = ?, archive = ? WHERE id=?;", cs.Name, cs.Archive, cs.Id)
 	if err != nil {
 		return cs, err
 	}
@@ -365,7 +370,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 	}
 	customer.Id = newId
 
-	row := config.SQLdb.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", customer.Id)
+	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", customer.Id)
 
 	err = row.Scan(&customer.Id, &customer.Name, &customer.Archive)
 
@@ -375,7 +380,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0 ORDER BY name ASC"
 	}
 
-	rows, err := config.SQLdb.Query(query, customer.Id)
+	rows, err := config.DB.Query(query, customer.Id)
 	//rows, err := config.sqlDB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
 	if err != nil {
 		return
@@ -387,7 +392,7 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 			return
 		}
 
-		row := config.SQLdb.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
+		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
 		err = row.Scan(&site.PageCount)
 
 		customer.Sites = append(customer.Sites, site)
@@ -429,7 +434,7 @@ func PutSite(r *http.Request) (Site, error) {
 	}
 
 	// insert values
-	_, err = config.SQLdb.Exec("INSERT INTO site (name,url,customer_id) VALUES (?,?,?)", site.Name, site.Url, site.CustomerId)
+	_, err = config.DB.Exec("INSERT INTO site (name,url,customer_id) VALUES (?,?,?)", site.Name, site.Url, site.CustomerId)
 	if err != nil {
 		return site, errors.New("500. Internal Server Error." + err.Error())
 	}
@@ -450,7 +455,7 @@ func OneSite(r *http.Request) (Site, error) {
 
 	site.Id = intId
 
-	row := config.SQLdb.QueryRow("SELECT id,name,url,customer_id,archive FROM site WHERE id = ?", site.Id)
+	row := config.DB.QueryRow("SELECT id,name,url,customer_id,archive FROM site WHERE id = ?", site.Id)
 
 	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.CustomerId, &archive)
 	if err != nil {
@@ -496,7 +501,7 @@ func UpdateSite(r *http.Request) (Site, error) {
 	if checked == "check" {
 		site.Archive = true
 
-		_, err = config.SQLdb.Exec("UPDATE page SET archive = 1 WHERE site_id = ?;", intId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id = ?;", intId)
 		if err != nil {
 			return site, errors.New("406. Not Acceptable. Archiving page failed")
 		}
@@ -504,14 +509,14 @@ func UpdateSite(r *http.Request) (Site, error) {
 	} else {
 		site.Archive = false
 
-		_, err = config.SQLdb.Exec("UPDATE page SET archive = 0 WHERE site_id = ?;",intId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id = ?;",intId)
 		if err != nil {
 			return site, errors.New("406. Not Acceptable. Archiving page failed")
 		}
 	}
 
 	// insert values
-	_, err = config.SQLdb.Exec("UPDATE site SET name=?,url=?,archive=? WHERE id=?;", site.Name, site.Url, site.Archive, site.Id)
+	_, err = config.DB.Exec("UPDATE site SET name=?,url=?,archive=? WHERE id=?;", site.Name, site.Url, site.Archive, site.Id)
 
 	if err != nil {
 		return site, err
@@ -632,7 +637,7 @@ func PutPage(site Site) (error) { //replaced pages []Page with site Site
 
 	for _, p := range site.Pages {
 
-		res, err := config.SQLdb.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		res, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 			p.Site_id, p.Name, p.UxNumber, p.Url, p.Status, p.Title, p.Description, p.Canonical, p.MetaRobot, p.OgTitle, p.OgDesc, p.OgImage, p.OgUrl, p.Archive)
 
 		if err != nil {
@@ -786,7 +791,7 @@ func GetImages(r *http.Request) ([]Image){
 	checkErr(err)
 
 
-	rows, err := config.SQLdb.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where site_id = ?", site_id)
+	rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where site_id = ?", site_id)
 
 	if err != nil {
 		log.Fatalf("Could not get image records: %v", err)
@@ -825,7 +830,7 @@ func GetPages(r *http.Request) (Site, error) {
 	}else{
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
 	}
-	rows, err := config.SQLdb.Query(query, strId)
+	rows, err := config.DB.Query(query, strId)
 
 	if err != nil {
 		log.Fatalf("Could not get records: %v", err)
@@ -1215,66 +1220,7 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 	return compare,nil
 }
 
-func UploadImageFromUi(w http.ResponseWriter,r *http.Request) (ImageFromUi, error)  {
 
-	//ctx := appengine.NewContext(r)
-
-	//Get associated info with image file
-	siteId, _ := strconv.Atoi(r.FormValue("siteId"))
-	pageId,_ := strconv.Atoi(r.FormValue("pageId"))
-	altText := r.FormValue("altText")
-	fileName := r.FormValue("fileName")
-	imageFromUi := ImageFromUi{}
-
-	//Validate altText
-	if altText == "" {
-		return imageFromUi,errors.New("400. Bad request. Alt Text field must be complete.")
-	}
-
-
-
-	//r.ParseMultipartForm(32 << 20)
-
-	//Get image file from ui
-	mpf, hdr, err := r.FormFile("files")
-
-	if err != nil {
-		log.Fatalf("ERROR handler req.FormFile: ", err)
-		http.Error(w, "We were unable to upload your file\n", http.StatusInternalServerError)
-		return imageFromUi,err
-	}
-
-	defer mpf.Close()
-
-	//Validate jpg extension only.
-	err =ValidateImageFile(r,hdr)
-	if err != nil {
-		log.Fatalf("Error in validation: ", err)
-		http.Error(w, "We were unable to validate your file\n", http.StatusInternalServerError)
-		return imageFromUi,err
-	}
-	fmt.Println(siteId)
-	fmt.Println(pageId)
-	fmt.Println(altText)
-	fmt.Println(fileName)
-
-	//Package up content for storage in mysql and bucket
-	imageFromUi = ImageFromUi{
-		SiteId:		siteId,
-		PageId: 	pageId,
-		AltText: 	altText,
-		FileName: 	fileName,
-		Mpf: 		mpf,
-		Hdr: 		*hdr,
-	}
-
-
-	return imageFromUi, nil
-//
-//
-//
-
-}
 
 //func PutJpgToSql(file os.File) error {
 //		//_, err = config.sqlDB.Exec("INSERT INTO image (site_id,page_id,alt_text,name,LOAD_FILE(thumbnail)) VALUES (?,?,?,?,?)",
@@ -1294,11 +1240,11 @@ func UploadImageFromUi(w http.ResponseWriter,r *http.Request) (ImageFromUi, erro
 //
 //}
 
-func PutImage(site Site) (error) { //replaced pages []Page with site Site
+func PutImage(site Site) error { //replaced pages []Page with site Site
 
 	for _, p := range site.Images {
-
-		_, err := config.SQLdb.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url) VALUES (?,?,?,?,?,?,?)",
+//todo some of these fields not needed like image_url,name,page_url
+		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url) VALUES (?,?,?,?,?,?,?)",
 			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl)
 
 		if err != nil {
@@ -1317,14 +1263,14 @@ func GetSiteCustomerName(siteId int) (string, string) {
 	var cname, sname string
 	var customer_id int
 
-	row := config.SQLdb.QueryRow("SELECT customer_id,name FROM site WHERE id = ?", siteId)
+	row := config.DB.QueryRow("SELECT customer_id,name FROM site WHERE id = ?", siteId)
 	err := row.Scan(&customer_id, &sname)
 
 	if err != nil {
 		log.Fatalf("Could not select from site: %v", err)
 	}
 
-	row = config.SQLdb.QueryRow("SELECT name FROM customer WHERE id = ?", customer_id)
+	row = config.DB.QueryRow("SELECT name FROM customer WHERE id = ?", customer_id)
 	err = row.Scan(&cname)
 
 	if err != nil {
@@ -1343,14 +1289,14 @@ func GetPagesIndex(r *http.Request) (Customer, error) {
 	intId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
-	row := config.SQLdb.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
+	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
 	err = row.Scan(&site.CustomerId)
 
 	if err != nil {
 		log.Fatalf("Could not select from site: %v", err)
 	}
 
-	row = config.SQLdb.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
+	row = config.DB.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
 	err = row.Scan(&customer.Id, &customer.Name)
 
 	if err != nil {
@@ -1367,7 +1313,7 @@ func GetPagesIndex(r *http.Request) (Customer, error) {
 	}else{
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
 	}
-	rows, err := config.SQLdb.Query(query, intId)
+	rows, err := config.DB.Query(query, intId)
 
 	if err != nil {
 		log.Fatalf("Could not get page records: %v", err)
@@ -1385,7 +1331,7 @@ func GetPagesIndex(r *http.Request) (Customer, error) {
 		site.Pages = append(site.Pages, page)
 	}
 
-	row = config.SQLdb.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
+	row = config.DB.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
 
 	site = Site{Pages: site.Pages}
 	err = row.Scan(&site.Id, &site.CustomerId, &site.Name, &site.Url, &site.Archive)
@@ -1404,7 +1350,7 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	cname := r.FormValue("cname")
 	sname := r.FormValue("sname")
 
-	row := config.SQLdb.QueryRow("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where id = ?", intId)
+	row := config.DB.QueryRow("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where id = ?", intId)
 
 	if err != nil {
 		log.Fatalf("Could not get page details: %v", err)
@@ -1426,7 +1372,7 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	//+++++++++++++++++++++++++  Image records per page  ++++++++++++++++++++++++++++++++++++
 	images := []Image{}
 
-	rows, err := config.SQLdb.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where page_id = ?", intId)
+	rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,notes,thumbnail FROM image where page_id = ?", intId)
 
 	if err != nil {
 		log.Fatalf("Could not get image records: %v", err)
@@ -1435,15 +1381,20 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-
+//todo
 		image := Image{}
-		err := rows.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.ImageUrl, &image.Name, &image.Notes, &image.PageUrl)
+		err := rows.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.Notes, &image.ByteFile)
 
 		checkErr(err)
 
+		data := []byte(image.ByteFile)
+		encodedImg := base64.StdEncoding.EncodeToString(data)
+		encodedImg = "<img src=\"data:image/jpg;base64," + encodedImg + "\" />"
+		image.EncodedImg = template.HTML(encodedImg)
 		images = append(images, image)
-	}
 
+
+}
 	pageDetail := PageDetail{
 		CustomerName: cname,
 		SiteName:     sname,
@@ -1453,58 +1404,11 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-	return pageDetail, nil
-}
-
-func GetCustSitePage(r *http.Request)(CustSitePage){
-
-	customerName := r.FormValue("customerName")
-	siteId, _ := strconv.Atoi(r.FormValue("siteId"))
-	siteName := r.FormValue("siteName")
-	pageId,_ := strconv.Atoi(r.FormValue("pageId"))
-	pageName := r.FormValue("pageName")
-
-	return CustSitePage{
-		CustomerName: 	customerName,
-		SiteId: 		siteId,
-		SiteName:		siteName,
-		PageId: 		pageId,
-		PageName: 		pageName,
-
-
-	}
-
-
-
-}
-
-func GetImageDetails(r *http.Request) (PageDetail, error) {
-
-	intId, err := strconv.Atoi(r.FormValue("image_id"))
-	checkErr(err)
-	cname := r.FormValue("cname")
-	sname := r.FormValue("sname")
-
-	row := config.SQLdb.QueryRow("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where id = ?", intId)
-
-	if err != nil {
-		log.Fatalf("Could not get image details: %v", err)
-	}
-
-	image := Image{}
-	err = row.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.ImageUrl, &image.Name, &image.Notes, &image.PageUrl)
-
-	if err != nil {
-		log.Fatalf("Could not scan image details: %v", err)
-	}
-	pageDetail := PageDetail{
-		CustomerName: cname,
-		SiteName:     sname,
-		Image:        image,
-	}
 
 	return pageDetail, nil
 }
+
+
 
 func UpdatePage(r *http.Request) (error) {
 
@@ -1529,33 +1433,10 @@ func UpdatePage(r *http.Request) (error) {
 	if checked == "check" {intArchived = 1}
 
 
-	_, err := config.SQLdb.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=?,archive=? WHERE id=?;", page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl,intArchived, page.Page_id)
+	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=?,archive=? WHERE id=?;", page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl,intArchived, page.Page_id)
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func UpdateImage(r *http.Request) (error) {
-
-	image := Image{}
-
-	image.Image_id, _ = strconv.Atoi(r.FormValue("image_id"))
-	image.AltText = r.FormValue("AltText")
-	image.ImageUrl = r.FormValue("ImageUrl")
-	image.Name = r.FormValue("Name")
-
-	//alt_text,image_url,name,notes,page_url
-
-	_, err := config.SQLdb.Exec("UPDATE image SET alt_text=?,image_url=?,name=? WHERE id=?;", image.AltText, image.ImageUrl, image.Name, image.Image_id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func CreateImage() error{
-
-
 	return nil
 }
 
@@ -1669,14 +1550,14 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 	checkErr(err)
 	siteId := r.FormValue("site_id")
 
-	row := config.SQLdb.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
+	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
 	err = row.Scan(&site.CustomerId)
 
 	if err != nil {
 		log.Fatalf("Could not select from site: %v", err)
 	}
 
-	row = config.SQLdb.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
+	row = config.DB.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
 	err = row.Scan(&customer.Id, &customer.Name)
 
 	if err != nil {
@@ -1687,7 +1568,7 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 
 	query := "SELECT id,site_id,name,url FROM page where site_id = " + siteId + " and name LIKE '%" + search + "%';"
 
-	rows, err := config.SQLdb.Query(query)
+	rows, err := config.DB.Query(query)
 
 	if err != nil {
 		log.Fatalf("Could not get page records: %v", err)
@@ -1705,7 +1586,7 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 		site.Pages = append(site.Pages, page)
 	}
 
-	row = config.SQLdb.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
+	row = config.DB.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
 
 	site = Site{Pages: site.Pages}
 	err = row.Scan(&site.Id, &site.CustomerId, &site.Name, &site.Url, &site.Archive)
@@ -1780,7 +1661,7 @@ func IsUserNameOk(name string) string{
 
 	//if strings.Index(name, "@intouchsol.com") == -1 {return "intouchsol"}
 
-	row := config.SQLdb.QueryRow("select count(*) from user where userid = ?",name)
+	row := config.DB.QueryRow("select count(*) from user where userid = ?",name)
 	err := row.Scan(&mycount)
 
 	if err != nil {
@@ -1794,7 +1675,7 @@ return "true"
 func InsertUser(u User) (error) {
 
 	// insert values
-	_, err := config.SQLdb.Exec("INSERT INTO user (userid,password,fname,lname,role) VALUES (?,?,?,?,?)", u.UserName,u.Password,u.First,u.Last,"guest")
+	_, err := config.DB.Exec("INSERT INTO user (userid,password,fname,lname,role) VALUES (?,?,?,?,?)", u.UserName,u.Password,u.First,u.Last,"guest")
 
 	if err != nil {
 		return  errors.New("500. Unable to create new user." + err.Error())

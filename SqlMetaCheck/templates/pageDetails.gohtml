@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body, form {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            /*height: 100vh;*/
+            /*padding-left: 40px;*/
+            margin-left: 4rem;
+
+        }
+        /*p {*/
+            /*margin-left: 4rem;*/
+            /*font-size: 1rem;*/
+            /*color: black;*/
+        /*}*/
+
+        h2,h3 {
+            margin-left: 4rem;
+        }
+        hr{
+            width: 86vw;
+            margin-left: 4rem;
+            size: 1px;
+
+        }
+        input {
+
+            width: 60vw;
+            font-size: 1rem;
+            color: blue;
+            border: 1px solid black;
+        }
+        .buttonarea{
+            display: flex;
+            flex-flow: row nowrap;
+            width: 25vw;
+            justify-content: space-between;
+
+            border-bottom: 5rem;
+            /*margin-left: 4rem;*/
+        }
+        .cancelarea{
+            display: flex;
+            flex-flow: row nowrap;
+            width: 30vw;
+            justify-content: space-between;
+
+            border-bottom: 5rem;
+            margin-left: 5rem;
+        }
+        .button{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            padding: 10px 30px;
+            margin-right: 15px;
+            width: 8vw;
+
+
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        #editbutton{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+
+
+
+
+
+
+        .button:hover {
+            color: #000;
+            background-color: lightgrey;
+        }
+        .sectionTitle{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        fieldset{
+            margin-left: 4rem;
+            width: 60vw;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 8rem;
+        }
+        .titlesDetail{
+            font-weight: bold;
+            /*margin-left: 4rem;*/
+            font-size: 1.2rem;
+            width: 8rem;
+        }
+
+        .DescArea{
+            font-size: 1.2rem;
+            /*color: blue;*/
+            width: 60vw;
+
+        }
+        textarea{
+            border: transparent;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        .createlink {
+            font-size: 1rem;
+            color: dodgerblue;
+            margin-left: 4rem;
+        }
+
+    </style>
+
+</head>
+<body>
+    {{template "header"}}<br><br><br>
+<br>
+{{if .Detail.Archive}}
+<h2 style="color: red">Page Details Archived</h2>
+{{else}}
+<h2>Page Details</h2>
+{{end}}
+
+<div class = "sectionTitle">
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.CustomerName}}</div>
+</div>
+    {{$cname := .CustomerName}}
+
+<div class = "sectionTitle">
+    <div class = "titles">Site:</div>
+    <div class = "col3">{{.SiteName}}</div>
+</div>
+    {{$sname :=.SiteName}}
+
+<div class = "sectionTitle">
+        <div class = "titles">Page:</div>
+        <div class = "col3">{{.Detail.Name}}</div>
+</div>
+
+    {{/*<p class="createlink"><a href="/image/create?siteId={{.Detail.Site_id}}&pageId={{.Detail.Page_id}}&customerName={{.CustomerName}}&siteName={{.SiteName}}&pageName={{.Detail.Name}}">Create New Image Detail</a></p>*/}}
+
+
+<br><br>
+    <fieldset>
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">UxNumber:</div>
+        <div class = "col3">{{.Detail.UxNumber}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">Url:</div>
+        <div class = "col3">{{.Detail.Url}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">Status:</div>
+        <div class = "col3">{{.Detail.Status}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">Title:</div>
+        <div class = "col3">{{.Detail.Title}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">Description:</div>
+        {{/*<div class = "col3">{{.Detail.Description}}</div>*/}}
+        <textarea id="Description" name="Description" rows="4" cols="15" class="DescArea" >{{.Detail.Description}}</textarea>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">Canonical:</div>
+        <div class = "col3">{{.Detail.Canonical}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">MetaRobot:</div>
+        <div class = "col3">{{.Detail.MetaRobot}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">OgTitle:</div>
+        <div class = "col3">{{.Detail.OgTitle}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">OgDesc:</div>
+        <div class = "col3">{{.Detail.OgDesc}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">OgImage:</div>
+        <div class = "col3">{{.Detail.OgImage}}</div>
+    </div>
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">OgUrl:</div>
+        <div class = "col3">{{.Detail.OgUrl}}</div>
+    </div>
+        <br> <br>
+        <div class = "buttonarea">
+            <a href="/page/update?page_id={{.Detail.Page_id}}&cname={{$cname}}&sname={{$sname}}" class="button">Edit</a>
+        </div>
+
+
+</fieldset>
+    <br>
+    {{if .Images}}
+    <h2>Image Details</h2>
+    {{end}}
+
+    {{range .Images}}
+    <fieldset>
+
+
+    <div class = "sectionTitle">
+        <div class = "titlesDetail">Alt Text:</div>
+        <textarea class ="DescArea" id="Description" name="Description" rows="4" cols="12" >
+        {{.AltText}}
+        </textarea>
+    </div>
+
+
+        <div class = "sectionTitle">
+            <div class = "titlesDetail">Notes:</div>
+            <textarea class="DescArea" id="Notes" name="Notes" rows="4" cols="17">
+            {{.Notes}}
+            </textarea>
+        </div>
+
+
+
+
+
+
+    <div class = "sectionTitle">
+    <div class = "titlesDetail">Image:</div>
+    <div class = "col3">{{.EncodedImg}}</div>
+    </div>
+
+
+
+
+    <br> <br>
+    <div>
+      <a class="button" href="/image/update?image_id={{.Image_id}}&cname={{$cname}}&sname={{$sname}}" id="editbutton">Edit</a>
+
+
+    </div>
+    </fieldset>
+    {{end}}
+
+
+
+
+
+    <br><br>
+
+    <div class = "cancelarea">
+        <a class="button" href="/image/create?siteId={{.Detail.Site_id}}&pageId={{.Detail.Page_id}}&customerName={{.CustomerName}}&siteName={{.SiteName}}&pageName={{.Detail.Name}}" >Add Image</a>
+        {{/*<a href="/page/update?page_id={{.Detail.Page_id}}" class="button">Edit</a>*/}}
+        {{/*<a href="/page/update?page_id={{.Detail.Page_id}}&cname={{$cname}}&sname={{$sname}}" class="button">Edit</a>*/}}
+        {{/*<a href="/customers" class="button">Cancel</a>*/}}
+        <a href="#" class="button" onclick="history.back();">Cancel</a>
+    </div>
+<br>
+
+
+
+
+   <br><br><br>
+
+
+</body>
+
+</html>

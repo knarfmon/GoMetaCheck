@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+
+        }
+        body, form {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            /*height: 100vh;*/
+            /*padding-left: 40px;*/
+            margin-left: 4rem;
+
+        }
+        p {
+            margin-left: 4rem;
+            font-size: 1rem;
+            color: black;
+        }
+
+        h2,h3 {
+            margin-left: 4rem;
+        }
+        hr{
+            width: 86vw;
+            margin-left: 4rem;
+            size: 1px;
+
+        }
+        input {
+
+            width: 40vw;
+            font-size: 1rem;
+            color: blue;
+            border: 1px solid black;
+        }
+        .buttonarea{
+            display: flex;
+            width: 15vw;
+            justify-content: space-between;
+            border-bottom: 5rem;
+        }
+
+        .button{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            padding: 10px 30px;
+            margin-right: 15px;
+            width: 8vw;
+
+
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .button:hover {
+            color: #000;
+            background-color: lightgrey;
+        }
+        .DescArea{
+            font-size: 1.2rem;
+            color: black;
+            width: 40vw;
+        }
+        .form-field-err {
+            color: red;
+            width: 25rem;
+            text-align: left;
+
+        }
+    </style>
+</head>
+<body>
+{{template "header"}}<br><br><br><br>
+
+
+<h2>Add Image</h2>
+
+<p>Customer: {{.CustomerName}}</p>
+<p>Site: {{.SiteName}}</p>
+<p>Page: {{.PageName}}</p>
+
+<br>
+
+
+<form method="post" enctype="multipart/form-data" action="/image/create/process" id="form-create-user">
+
+    <label for="altText">Alt Text:</label>
+    <div>
+        <textarea id="altText" name="altText" rows="4" cols="15" class="DescArea" placeholder="Alt Text" ></textarea>
+    </div>
+
+    <p class="form-field-err" id="altTextErr"></p>
+
+    <label for="notes">Notes:</label>
+    <div>
+        <textarea id="notes" name="notes" rows="4" cols="15" class="DescArea" placeholder="Notes" ></textarea>
+    </div>
+
+    {{/*<label for="altText">Alt Text</label>*/}}
+    {{/*<input type="text" name="altText" placeholder="Alt Text" >*/}}
+    <br>
+
+    <label for="files">Image</label>
+    <input type="file" name="files" id="files"  placeholder="Image" accept=".jpg" required >
+    <br>
+
+    <p class="form-field-err" id="filesErr"></p>
+
+    <output id="list"></output>
+
+    <input type="hidden" id="fileName" name="fileName" value="" />
+    <input type="hidden" id="siteId" name="siteId" value="{{.SiteId}}" />
+    <input type="hidden" id="pageId" name="pageId" value="{{.PageId}}" />
+
+
+    <br>
+
+
+
+    <div class = "buttonarea"><input class="button" type="submit" id="submitbutton">
+    {{/*<a href="/customers" class="button">Cancel</a>*/}}
+        <a href="#" class="button" onclick="history.back();">Cancel</a>
+    </div>
+
+
+</form>
+
+
+<br><br><br>
+<script type="text/javascript">
+    if (window.FileReader) {
+
+
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+        function handleFileSelect(evt) {
+            var files = evt.target.files;
+            var f = files[0];
+            var reader = new FileReader();
+            var image_x = document.getElementById('list');
+
+            if( document.getElementById("files").files.length == 0 ){
+                // image_x.parentNode.removeChild(image_x);}
+                document.getElementById("list").style.visibility="hidden";}else {
+                document.getElementById("list").style.visibility="visible";
+            }
+
+
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    document.getElementById('list').innerHTML = ['<img src="', e.target.result,'" title="', theFile.name, '" width="100" />'].join('');
+                    document.getElementById('fileName').value =theFile.name;
+                };
+            })(f);
+
+            reader.readAsDataURL(f);
+
+        }
+
+        //then your code goes here
+    } else {
+        alert('This browser does not support FileReader');
+    }
+
+    var formUser = document.querySelector('#form-create-user');
+    var altText = document.querySelector('#altText');
+    var jsFile = document.querySelector('#files');
+    var altTextErr = document.querySelector('#altTextErr');
+    var filesErr = document.querySelector('#filesErr');
+    var allowedExtension = 'jpg';
+    //var fileExtension = document.getElementById('files').value.split('.').pop().toLowerCase();
+    var fileName = files.value;
+    var isValidFile = false;
+
+
+
+    altText.addEventListener('focus', function () {
+
+        altTextErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    files.addEventListener('focus', function () {
+
+        filesErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    //    Validate
+    //    listen for submit button click
+    formUser.addEventListener('submit', function(e){
+        var ok = validateFields();
+
+        if (!ok) {
+            e.preventDefault();
+            return;
+        }
+    });
+    function validateFields() {
+
+        if (altText.value === "" ) {
+            altTextErr.textContent = 'Must have Alt Text content';
+            document.querySelector('#submitbutton').disabled = true;
+            return false}
+
+        if (validateFile() === false){
+            filesErr.textContent = 'Please select only jpg images.';
+            document.querySelector('#submitbutton').disabled = true;
+            return false
+        }
+
+
+        imageErr.textContent = '';
+        htmlErr.textContent = '';
+        return true
+    };
+
+    function validateFile()
+    {
+
+        exten = jsFile.value.slice((jsFile.value.lastIndexOf(".") - 1 >>> 0) + 2);
+
+
+            if(exten === allowedExtension){
+                isValidFile = true;
+
+         }else {
+                isValidFile = false;
+            }
+
+
+            return isValidFile;
+    }
+
+</script>
+
+
+
+</body>
+
+</html>
