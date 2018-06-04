@@ -12,6 +12,8 @@ import (
 	"errors"
 	"github.com/knarfmon/GoMetaCheck/SqlMetaCheck/config"
 	"bytes"
+	"image"
+	_ "image/png"
 )
 
 
@@ -22,23 +24,27 @@ func ImageGetDetails(r *http.Request) (PageDetail, error) {
 	checkErr(err)
 	cname := r.FormValue("cname")
 	sname := r.FormValue("sname")
+	pname := r.FormValue("pname")
 
-	row := config.DB.QueryRow("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where id = ?", intId)
+	row := config.DB.QueryRow("SELECT id,site_id,page_id,alt_text,notes,thumbnail FROM image where id = ?", intId)
 
 	if err != nil {
 		log.Fatalf("Could not get image details: %v", err)
 	}
 
 	image := Image{}
-	err = row.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.ImageUrl, &image.Name, &image.Notes, &image.PageUrl)
+	err = row.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.Notes, &image.ByteFile)
 
 	if err != nil {
 		log.Fatalf("Could not scan image details: %v", err)
 	}
+	image.EncodedImg = ConvertByteToHtml(image.ByteFile)
+
 	pageDetail := PageDetail{
 		CustomerName: cname,
 		SiteName:     sname,
 		Image:        image,
+		PageName: 		pname,
 	}
 
 	return pageDetail, nil
@@ -64,27 +70,66 @@ func ImageGetUi(r *http.Request)(CustSitePage){
 
 }
 
-func ImageUpdate(r *http.Request) (error) {
+func ImageUpdate(w http.ResponseWriter,r *http.Request) (error) {
 
-	image := Image{}
+	imageStructFromUi := ImageStructFromUi{}
 
-	image.Image_id, _ = strconv.Atoi(r.FormValue("image_id"))
-	image.AltText = r.FormValue("AltText")
-	image.ImageUrl = r.FormValue("ImageUrl")
-	image.Name = r.FormValue("Name")
+	imageStructFromUi.ImageId, _ = strconv.Atoi(r.FormValue("image_id"))
+	imageStructFromUi.AltText = r.FormValue("AltText")
+	imageStructFromUi.Notes = r.FormValue("Notes")
+	//image.ImageUrl = r.FormValue("ImageUrl")
+	//image.Name = r.FormValue("Name")
+	newFile := r.FormValue("newFile")
+fmt.Println(newFile)
 
-	//alt_text,image_url,name,notes,page_url
 
-	_, err := config.DB.Exec("UPDATE image SET alt_text=?,image_url=?,name=? WHERE id=?;", image.AltText, image.ImageUrl, image.Name, image.Image_id)
 
-	if err != nil {
-		return err
+	if newFile =="false"{
+		fmt.Println("not updating image")
+		//a new image was not selected, only update altext and notes
+		_, err := config.DB.Exec("UPDATE image SET alt_text=?,notes=? WHERE id=?;", imageStructFromUi.AltText, imageStructFromUi.Notes, imageStructFromUi.ImageId)
+		if err != nil {return err}
+
+	}else{
+fmt.Println("updating image")
+		mpf, _, err := r.FormFile("files")
+		if err != nil {
+			log.Fatalf("ERROR handler req.FormFile: ", err)
+			http.Error(w, "We were unable to upload your file\n", http.StatusInternalServerError)
+			return err
+			defer mpf.Close()
+		}
+
+			imageStructFromUi.Mpf = mpf
+			imageStructFromUi = ImageToThumbJpg(imageStructFromUi)
+fmt.Println(imageStructFromUi)
+
+			_, err = config.DB.Exec("UPDATE image SET alt_text=?,notes=?,thumbnail=? WHERE id=?;", imageStructFromUi.AltText, imageStructFromUi.Notes, imageStructFromUi.ByteFile ,imageStructFromUi.ImageId)
+			if err != nil {return err}
+
+
+
 	}
+
+
+	//fmt.Println("newFile = ",newFile)
+
+
+
+
+
+
+
+
+
+
+
+
 	return nil
 }
 
 
-func ImageValidate(r *http.Request, hdr *multipart.FileHeader) error {
+func ImageValidate(hdr *multipart.FileHeader) error {
 
 	ext := hdr.Filename[strings.LastIndex(hdr.Filename, ".")+1:]
 
@@ -118,10 +163,10 @@ func ImageToThumbJpg(imageStructFromUi ImageStructFromUi) ImageStructFromUi{
 
 	imageStructFromUi.ByteFile = byteFile
 
-
-
 	return imageStructFromUi
 }
+
+
 
 
 
@@ -146,6 +191,82 @@ func ImageToThumbJpg(imageStructFromUi ImageStructFromUi) ImageStructFromUi{
 	//
 	//return out
 
+//todo keep this for test purposes
+func Test(){
+	response, err := http.Get("http://drfrankyoung.com/wp-content/uploads/2017/11/black-text-600-100.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer response.Body.Close()
+	img, str, err := image.Decode(response.Body)
+	//img, str, err := image.DecodeConfig(response.Body)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("str = ",str)
+	fmt.Println("++++++++++++++++++++++++++++++")
+	//fmt.Println(img.Height," x ",img.Width)
+
+
+
+	m := resize.Resize(150, 0, img, resize.NearestNeighbor)
+
+
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, m, nil)
+	if err != nil {log.Fatal(err)}
+
+	byteFile := buf.Bytes()
+	fmt.Println(len(byteFile))
+
+	image := Image{	}
+	image.Site_id=100000
+	image.Page_id=100000
+	image.AltText="Peep"
+	image.Notes="Peep Note"
+	image.ByteFile=byteFile
+
+
+	_, err = config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,notes,thumbnail) VALUES (?,?,?,?,?)",	image.Site_id, image.Page_id, image.AltText, image.Notes,image.ByteFile)
+
+	if err != nil {
+		//return pages, errors.New("500. Internal Server Error." + err.Error())
+		log.Fatalf("Could not INSERT into image: %v", err)
+	}
+
+	}
+
+
+
+func UrlToXofByte(url string) []byte{
+
+	// png or jpg image to decode > image
+	response, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer response.Body.Close()
+	img, str, err := image.Decode(response.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	// resize to width 1000 using Lanczos resampling
+	// and preserve aspect ratio
+	m := resize.Resize(150, 0, img, resize.NearestNeighbor)
+
+	//creates byte file for mysql upload
+	buf := new(bytes.Buffer)
+	err = jpeg.Encode(buf, m, nil)
+	if err != nil {log.Fatal(err)}
+
+	byteFile := buf.Bytes()
+
+	return byteFile
+}
 
 func ImageSinglePutToSql(image ImageStructFromUi) error{
 
@@ -168,7 +289,7 @@ func ImageUploadFromUi(w http.ResponseWriter,r *http.Request) (ImageStructFromUi
 
 	//Get associated info with image file
 	siteId, _ := strconv.Atoi(r.FormValue("siteId"))
-	pageId,_ := strconv.Atoi(r.FormValue("pageId"))
+	pageId,_ := strconv.Atoi(r.FormValue("page_id"))
 	altText := r.FormValue("altText")
 	fileName := r.FormValue("fileName")
 	notes := r.FormValue("notes")
@@ -196,7 +317,7 @@ func ImageUploadFromUi(w http.ResponseWriter,r *http.Request) (ImageStructFromUi
 	defer mpf.Close()
 
 	//Validate jpg extension only.
-	err = ImageValidate(r,hdr)
+	err = ImageValidate(hdr)
 	if err != nil {
 		log.Fatalf("Error in validation: ", err)
 		http.Error(w, "We were unable to validate your file\n", http.StatusInternalServerError)

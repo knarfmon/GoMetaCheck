@@ -485,7 +485,7 @@ func ImageUpdateProcessHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	err := ImageUpdate(r)
+	err := ImageUpdate(w,r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
@@ -504,8 +504,10 @@ func ImageProcessHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
+
 	//Upload image data from Ui, validate, and package
 	imageStructFromUi,err := ImageUploadFromUi(w,r)
+
 	if err != nil {
 		http.Error(w, "Unable to upload image file", http.StatusBadRequest)
 		return}
@@ -518,14 +520,13 @@ func ImageProcessHandler(w http.ResponseWriter, r *http.Request) {
 		return}
 
 
-	return
-//todo =============
-	//pageDetail,err := GetPageDetails(r)
-	//if err != nil {
-	//	http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
-	//}
-	//
-	//config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+	pageDetail,err := GetPageDetails(r)
+	if err != nil {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+
 }
 func CheckUserName(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -543,4 +544,8 @@ func CheckUserName(w http.ResponseWriter, r *http.Request) {
 	sbs = IsUserNameOk(sbs)
 
 	fmt.Fprint(w, sbs)
+}
+
+func TestHandler(w http.ResponseWriter, r *http.Request){
+	Test()
 }

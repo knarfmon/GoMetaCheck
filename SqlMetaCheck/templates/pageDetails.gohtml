@@ -130,6 +130,7 @@
             /*color: blue;*/
             width: 60vw;
 
+
         }
         textarea{
             border: transparent;
@@ -170,7 +171,7 @@
         <div class = "titles">Page:</div>
         <div class = "col3">{{.Detail.Name}}</div>
 </div>
-
+    {{$pname :=.Detail.Name}}
     {{/*<p class="createlink"><a href="/image/create?siteId={{.Detail.Site_id}}&pageId={{.Detail.Page_id}}&customerName={{.CustomerName}}&siteName={{.SiteName}}&pageName={{.Detail.Name}}">Create New Image Detail</a></p>*/}}
 
 
@@ -249,17 +250,13 @@
 
     <div class = "sectionTitle">
         <div class = "titlesDetail">Alt Text:</div>
-        <textarea class ="DescArea" id="Description" name="Description" rows="4" cols="12" >
-        {{.AltText}}
-        </textarea>
+        <textarea class ="DescArea" id="Description" name="Description" rows="4" cols="15" >{{.AltText}}</textarea>
     </div>
 
 
         <div class = "sectionTitle">
             <div class = "titlesDetail">Notes:</div>
-            <textarea class="DescArea" id="Notes" name="Notes" rows="4" cols="17">
-            {{.Notes}}
-            </textarea>
+            <textarea class="DescArea" id="Notes" name="Notes" rows="4" cols="15">{{.Notes}}</textarea>
         </div>
 
 
@@ -277,7 +274,7 @@
 
     <br> <br>
     <div>
-      <a class="button" href="/image/update?image_id={{.Image_id}}&cname={{$cname}}&sname={{$sname}}" id="editbutton">Edit</a>
+      <a class="button" href="/image/update?image_id={{.Image_id}}&cname={{$cname}}&sname={{$sname}}&pname={{$pname}}" id="editbutton">Edit</a>
 
 
     </div>

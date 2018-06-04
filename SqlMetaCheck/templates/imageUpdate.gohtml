@@ -94,6 +94,12 @@
         #PageDetails{
             margin-left: 4rem;
         }
+        .form-field-err{
+            color: red;
+            width: 25rem;
+            margin-left: 0;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -113,31 +119,48 @@
 </div>
 {{$sname :=.SiteName}}
 
+
+<div class = "sectionTitle">
+    <div class = "titles">Page:</div>
+    <div class = "col3">{{.PageName}}</div>
+</div>
+{{/*{{$pname :=.PageName}}*/}}
+
 <br>
 
-
-
-<form method="post" action="/image/update/process">
+<form method="post" enctype="multipart/form-data"  action="/image/update/process" id="formImageUpdate">
     {{/*<h2>Image Details</h2>*/}}
 
 
 <fieldset>
-
-    <label for="Name">Name</label>
-    <div>
-        <input type="text" name="Name" placeholder="Name"  value="{{.Image.Name}}">
-    </div>
-    <br>
     <label for="AltText">Alt Text:</label>
     <div>
-        <textarea name="AltText" rows="4" cols="12" class="DescArea" >{{.Image.AltText}}</textarea>
+        <textarea name="AltText" id="AltText" rows="4" cols="12" class="DescArea" required>{{.Image.AltText}} </textarea>
     </div>
     <br>
-    <label for="ImageUrl">Image Url</label>
+
+    <p class="form-field-err" id="altTextErr"></p>
+
+    <label for="Notes">Notes</label>
     <div>
-        <input type="text" name="ImageUrl" placeholder="Image Url"  value="{{.Image.ImageUrl}}">
+        <textarea name="Notes" rows="4" cols="12" class="DescArea" >{{.Image.Notes}}</textarea>
     </div>
-        <br>
+    <br>
+
+    <output id="list" name="list" >{{.Image.EncodedImg}}</output>
+
+
+    <br><br>
+    <div>
+    <label for="files">Image</label>
+    <input type="file" name="files" id="files"  placeholder="Image" accept=".jpg" >
+    </div>
+    <br>
+
+    <p class="form-field-err" id="filesErr"></p>
+
+
+    <input type="hidden" name="newFile" id="newFile">
     <input type="hidden" name="page_id" value="{{.Image.Page_id}}">
     <input type="hidden" name="image_id" value="{{.Image.Image_id}}">
     <input type="hidden" name="cname" value="{{$cname}}">
@@ -145,7 +168,7 @@
 </fieldset>
     <br> <br>
     <div class = "buttonarea">
-        <input class="button" type="submit">
+        <input class="button" type="submit" id="submitbutton">
         <a href="#" class="button" onclick="history.back();">Cancel</a>
     </div>
 
@@ -159,6 +182,114 @@
 
 </form>
 <br><br>
+<script type="text/javascript">
+    if (window.FileReader) {
 
+
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+        function handleFileSelect(evt) {
+            var files = evt.target.files;
+            var f = files[0];
+            var reader = new FileReader();
+            var image_x = document.getElementById('list');
+
+
+
+
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    document.getElementById('list').innerHTML = ['<img src="', e.target.result,'" title="', theFile.name, '" width="150" />'].join('');
+
+                };
+            })(f);
+
+            reader.readAsDataURL(f);
+
+
+        }
+
+        //then your code goes here
+    } else {
+        alert('This browser does not support FileReader');
+    }
+
+    var formUser = document.querySelector('#formImageUpdate');
+    var altText = document.querySelector('#AltText');
+    var jsFile = document.querySelector('#files');
+    var altTextErr = document.querySelector('#altTextErr');
+    var filesErr = document.querySelector('#filesErr');
+    var allowedExtension = 'jpg';
+    var jsNewFile = document.querySelector('#newFile');
+
+    jsNewFile.value = "false";
+    var isValidFile = false;
+
+
+
+    altText.addEventListener('focus', function () {
+
+        altTextErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    files.addEventListener('focus', function () {
+
+        filesErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    //    Validate
+    //    listen for submit button click
+    formUser.addEventListener('submit', function(e){
+        var ok = validateFields();
+        jsNewFile.value = "true";
+        if (!ok) {
+            e.preventDefault();
+            return;
+        }
+    });
+    function validateFields() {
+
+        if (altText.value === "" ) {
+            altTextErr.textContent = 'Must have Alt Text content';
+            document.querySelector('#submitbutton').disabled = true;
+            return false}
+
+        if (validateFile() === false){
+            filesErr.textContent = 'Please only select image files with a ".jpg" extension.';
+            document.querySelector('#submitbutton').disabled = true;
+            return false
+        }
+
+
+        imageErr.textContent = '';
+        htmlErr.textContent = '';
+        return true
+    };
+
+    function validateFile()
+    {
+
+
+        if(jsFile.value === ""){isValidFile = true;return isValidFile}
+
+        exten = jsFile.value.slice((jsFile.value.lastIndexOf(".") - 1 >>> 0) + 2);
+
+
+        if(exten === allowedExtension){
+            isValidFile = true;
+            jsNewFile.value = "true";
+
+        }else {
+            isValidFile = false;
+        }
+        return isValidFile;
+    }
+
+
+
+
+</script>
 </body>
 </html>

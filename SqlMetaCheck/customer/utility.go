@@ -5,6 +5,8 @@ import (
 	"github.com/satori/go.uuid"
 
 	"net/http"
+	"encoding/base64"
+	"html/template"
 )
 
 // get unique id for example name in google cloud bucket
@@ -29,3 +31,13 @@ func setSessionCookie(w http.ResponseWriter, req *http.Request) {
 		}
 		http.SetCookie(w, cookie)
 	}}
+
+	func ConvertByteToHtml(image []byte)template.HTML{
+
+		data := []byte(image)
+		encodedImg := base64.StdEncoding.EncodeToString(data)
+		encodedImg = "<img src=\"data:image/jpg;base64," + encodedImg + "\" />"
+		htmlTemplate := template.HTML(encodedImg)
+
+		return htmlTemplate
+	}

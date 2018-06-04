@@ -30,7 +30,6 @@ import (
 	"github.com/jung-kurt/gofpdf"
 	//"google.golang.org/appengine/log"
 	"mime/multipart"
-	"encoding/base64"
 	"html/template"
 )
 
@@ -84,6 +83,7 @@ type CustSitePage struct {
 	PageName        string
 }
 type ImageStructFromUi struct {
+	ImageId			int
 	SiteId          int
 	PageId          int
 	AltText  		string
@@ -180,6 +180,7 @@ type Image struct {
 type PageDetail struct {
 	CustomerName string
 	SiteName     string
+	PageName	string
 	Detail       Page
 	Image        Image
 	Images       []Image
@@ -637,7 +638,7 @@ func PutPage(site Site) (error) { //replaced pages []Page with site Site
 
 	for _, p := range site.Pages {
 
-		res, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		res, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 			p.Site_id, p.Name, p.UxNumber, p.Url, p.Status, p.Title, p.Description, p.Canonical, p.MetaRobot, p.OgTitle, p.OgDesc, p.OgImage, p.OgUrl, p.Archive)
 
 		if err != nil {
@@ -698,7 +699,7 @@ func Upload(r *http.Request) (Site, error) { //changed [] Page with Site
 
 	site, err = UploadImage(r, site)
 
-	//site, err = addPageIdToImage(site)
+
 
 	err = PutImage(site)
 	// push image data to mysql
@@ -890,12 +891,17 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 			Name := fixPageName(record[columns["Source"]])
 			PageUrl := record[columns["Source"]]
 
+
+
 			// adding page id here, cant add without major change with pointers since passing site around
 			for _, outer := range site.Pages {
 				if outer.Url == PageUrl {
 					pageid = outer.Page_id
 				}
 			}
+			//convert url ImageUrl to xbyte here, while loop
+
+			var xByte = UrlToXofByte(ImageUrl)
 
 			site.Images = append(site.Images, Image{
 				Site_id:  strId,
@@ -904,6 +910,8 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 				Name:     Name,
 				PageUrl:  PageUrl,
 				Page_id:  pageid,
+				ByteFile: 	xByte,
+
 			})
 
 		}
@@ -1244,8 +1252,8 @@ func PutImage(site Site) error { //replaced pages []Page with site Site
 
 	for _, p := range site.Images {
 //todo some of these fields not needed like image_url,name,page_url
-		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url) VALUES (?,?,?,?,?,?,?)",
-			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl)
+		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url,thumbnail) VALUES (?,?,?,?,?,?,?,?)",
+			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl,p.ByteFile)
 
 		if err != nil {
 			//return pages, errors.New("500. Internal Server Error." + err.Error())
@@ -1349,6 +1357,7 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	checkErr(err)
 	cname := r.FormValue("cname")
 	sname := r.FormValue("sname")
+	pname := r.FormValue("pname")
 
 	row := config.DB.QueryRow("SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where id = ?", intId)
 
@@ -1381,16 +1390,18 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-//todo
+
 		image := Image{}
 		err := rows.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.Notes, &image.ByteFile)
 
 		checkErr(err)
 
-		data := []byte(image.ByteFile)
-		encodedImg := base64.StdEncoding.EncodeToString(data)
-		encodedImg = "<img src=\"data:image/jpg;base64," + encodedImg + "\" />"
-		image.EncodedImg = template.HTML(encodedImg)
+		image.EncodedImg = ConvertByteToHtml(image.ByteFile)
+
+		//data := []byte(image.ByteFile)
+		//encodedImg := base64.StdEncoding.EncodeToString(data)
+		//encodedImg = "<img src=\"data:image/jpg;base64," + encodedImg + "\" />"
+		//image.EncodedImg = template.HTML(encodedImg)
 		images = append(images, image)
 
 
@@ -1398,6 +1409,7 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	pageDetail := PageDetail{
 		CustomerName: cname,
 		SiteName:     sname,
+		PageName: 		pname,
 		Detail:       page,
 		Images:       images,
 	}

@@ -50,8 +50,10 @@ func main() { //====web====== init()
 	http.HandleFunc("/image/update/process", customer.ImageUpdateProcessHandler)
 	http.HandleFunc("/search/pages/index", customer.SearchPagesIndex)
 
+	http.HandleFunc("/test", customer.TestHandler)
+
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8109", nil) //===== not here for web
+	http.ListenAndServe(":8096", nil) //===== not here for web
 
 }
