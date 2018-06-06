@@ -26,7 +26,9 @@ func ImageGetDetails(r *http.Request) (PageDetail, error) {
 	sname := r.FormValue("sname")
 	pname := r.FormValue("pname")
 
-	row := config.DB.QueryRow("SELECT id,site_id,page_id,alt_text,notes,thumbnail FROM image where id = ?", intId)
+	//row := config.DB.QueryRow("SELECT id,site_id,page_id,alt_text,notes,thumbnail FROM image where id = ?", intId)
+
+	row := config.DB.QueryRow("SELECT i.id,i.site_id,i.page_id,i.alt_text,i.notes,j.image FROM image i,jpg j where i.jpg_id=j.id and i.id = ?", intId)
 
 	if err != nil {
 		log.Fatalf("Could not get image details: %v", err)
@@ -80,18 +82,17 @@ func ImageUpdate(w http.ResponseWriter,r *http.Request) (error) {
 	//image.ImageUrl = r.FormValue("ImageUrl")
 	//image.Name = r.FormValue("Name")
 	newFile := r.FormValue("newFile")
-fmt.Println(newFile)
 
 
-
+	//not updating image
 	if newFile =="false"{
-		fmt.Println("not updating image")
 		//a new image was not selected, only update altext and notes
+
 		_, err := config.DB.Exec("UPDATE image SET alt_text=?,notes=? WHERE id=?;", imageStructFromUi.AltText, imageStructFromUi.Notes, imageStructFromUi.ImageId)
 		if err != nil {return err}
 
 	}else{
-fmt.Println("updating image")
+	//updating image
 		mpf, _, err := r.FormFile("files")
 		if err != nil {
 			log.Fatalf("ERROR handler req.FormFile: ", err)
@@ -102,28 +103,22 @@ fmt.Println("updating image")
 
 			imageStructFromUi.Mpf = mpf
 			imageStructFromUi = ImageToThumbJpg(imageStructFromUi)
-fmt.Println(imageStructFromUi)
 
-			_, err = config.DB.Exec("UPDATE image SET alt_text=?,notes=?,thumbnail=? WHERE id=?;", imageStructFromUi.AltText, imageStructFromUi.Notes, imageStructFromUi.ByteFile ,imageStructFromUi.ImageId)
-			if err != nil {return err}
+		//insert new image into jpg table, return id
+		res , err := config.DB.Exec("INSERT INTO jpg (image) VALUES (?)",	imageStructFromUi.ByteFile)
+		if err != nil {
+			log.Fatalf("Could not INSERT into jpg: %v", err)
+		}
 
+		//get the auto generated primary key
+		id, err := res.LastInsertId()
+		checkErr(err)
 
+			//updage image table using the id
+		_, err = config.DB.Exec("UPDATE image SET alt_text=?,notes=?,jpg_id=? WHERE id=?;", 		imageStructFromUi.AltText, imageStructFromUi.Notes, id ,imageStructFromUi.ImageId)
+		if err != nil {return err}
 
 	}
-
-
-	//fmt.Println("newFile = ",newFile)
-
-
-
-
-
-
-
-
-
-
-
 
 	return nil
 }
@@ -205,11 +200,6 @@ func Test(){
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("str = ",str)
-	fmt.Println("++++++++++++++++++++++++++++++")
-	//fmt.Println(img.Height," x ",img.Width)
-
-
 
 	m := resize.Resize(150, 0, img, resize.NearestNeighbor)
 
@@ -249,11 +239,11 @@ func UrlToXofByte(url string) []byte{
 	}
 
 	defer response.Body.Close()
-	img, str, err := image.Decode(response.Body)
+	img, _, err := image.Decode(response.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	// resize to width 1000 using Lanczos resampling
 	// and preserve aspect ratio
 	m := resize.Resize(150, 0, img, resize.NearestNeighbor)
@@ -268,17 +258,22 @@ func UrlToXofByte(url string) []byte{
 	return byteFile
 }
 
+
 func ImageSinglePutToSql(image ImageStructFromUi) error{
 
-	//byteFile := imageFromUi.ByteFile
-	//_, err := config.DB.Exec("INSERT INTO pic (img) VALUES (?)",	byteFile)
-
-	_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,notes,thumbnail) VALUES (?,?,?,?,?)",	image.SiteId, image.PageId, image.AltText, image.Notes,image.ByteFile)
-
+	//insert new image into jpg table, return id
+	res , err := config.DB.Exec("INSERT INTO jpg (image) VALUES (?)",	image.ByteFile)
 	if err != nil {
-		//return pages, errors.New("500. Internal Server Error." + err.Error())
-		log.Fatalf("Could not INSERT into image: %v", err)
+		log.Fatalf("Could not INSERT into jpg: %v", err)
 	}
+
+	//get the auto generated primary key
+	id, err := res.LastInsertId()
+	checkErr(err)
+
+	//insert into image table using the id
+	_, err = config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,notes,jpg_id) VALUES (?,?,?,?,?)",	image.SiteId, image.PageId, image.AltText, image.Notes,id)
+	if err != nil {return err}
 
 	return nil
 }

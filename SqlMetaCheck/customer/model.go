@@ -175,6 +175,7 @@ type Image struct {
 	Match	bool
 	ByteFile		[]byte
 	EncodedImg	template.HTML
+	JpgId	int
 }
 
 type PageDetail struct {
@@ -654,8 +655,7 @@ func PutPage(site Site) (error) { //replaced pages []Page with site Site
 	return nil // 2/10 removed pages from return
 }
 
-//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+//todo examine Compare func > PDF, for change in image tables
 func UploadForCompare(r *http.Request) (Compare, error) {
 	site_id, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
@@ -855,7 +855,9 @@ func GetPages(r *http.Request) (Site, error) {
 
 func UploadImage(r *http.Request, site Site) (Site, error) {
 
-	//site.Name = r.FormValue("name")
+	//Map used for check if already stored []byte of image by looking at imageUrl
+	mapImageUrl := make(map[string]int)
+	var jpgId int
 
 	strId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
@@ -869,6 +871,7 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 	rdr := csv.NewReader(file)
 	rdr.FieldsPerRecord = -1
 	columns := make(map[string]int)
+
 	//images := []Image{}
 	for row := 0; ; row++ {
 		record, err := rdr.Read()
@@ -892,16 +895,44 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 			PageUrl := record[columns["Source"]]
 
 
-
 			// adding page id here, cant add without major change with pointers since passing site around
 			for _, outer := range site.Pages {
 				if outer.Url == PageUrl {
 					pageid = outer.Page_id
 				}
 			}
-			//convert url ImageUrl to xbyte here, while loop
 
-			var xByte = UrlToXofByte(ImageUrl)
+			//if imageUrl not in map then get xByte and insert into jpg table, return id,add to map
+			//check for presence if ImageUrl in map
+			if id, ok := mapImageUrl[ImageUrl]; ok {
+				//use id to store in image table, image already stored in jpg table
+				jpgId = int(id)
+
+
+			}else {
+				// imageUrl not found
+
+				// create slice of byte of image
+				xByte := UrlToXofByte(ImageUrl)
+
+				//insert image into table, return id
+				res , err := config.DB.Exec("INSERT INTO jpg (image) VALUES (?)",	xByte)
+				if err != nil {
+					log.Fatalf("Could not INSERT into jpg: %v", err)
+				}
+
+				//get the auto generated primary key
+				id, err := res.LastInsertId()
+				checkErr(err)
+
+				//insert ImageUrl and id into map
+				mapImageUrl[ImageUrl] = int(id)
+				jpgId = int(id)
+			}
+
+
+			//convert url ImageUrl to xbyte here, while loop
+			//var xByte = UrlToXofByte(ImageUrl)
 
 			site.Images = append(site.Images, Image{
 				Site_id:  strId,
@@ -910,7 +941,8 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 				Name:     Name,
 				PageUrl:  PageUrl,
 				Page_id:  pageid,
-				ByteFile: 	xByte,
+				JpgId: 		jpgId,
+				//ByteFile: 	xByte,
 
 			})
 
@@ -1248,12 +1280,12 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 //
 //}
 
-func PutImage(site Site) error { //replaced pages []Page with site Site
+func PutImage(site Site) error {
 
 	for _, p := range site.Images {
 //todo some of these fields not needed like image_url,name,page_url
-		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url,thumbnail) VALUES (?,?,?,?,?,?,?,?)",
-			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl,p.ByteFile)
+		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url,jpg_id) VALUES (?,?,?,?,?,?,?,?)",
+			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl,p.JpgId)
 
 		if err != nil {
 			//return pages, errors.New("500. Internal Server Error." + err.Error())
@@ -1265,7 +1297,7 @@ func PutImage(site Site) error { //replaced pages []Page with site Site
 
 	}
 
-	return nil // 2/10 removed pages from return
+	return nil
 }
 func GetSiteCustomerName(siteId int) (string, string) {
 	var cname, sname string
@@ -1381,7 +1413,11 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 	//+++++++++++++++++++++++++  Image records per page  ++++++++++++++++++++++++++++++++++++
 	images := []Image{}
 
-	rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,notes,thumbnail FROM image where page_id = ?", intId)
+	//todo take out this comment when all is running
+	//rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,notes,thumbnail FROM image where page_id = ?", intId)
+
+	rows, err := config.DB.Query("SELECT i.id,i.site_id,i.page_id,i.alt_text,i.notes,j.image FROM image i,jpg j where i.jpg_id=j.id and page_id = ?", intId)
+
 
 	if err != nil {
 		log.Fatalf("Could not get image records: %v", err)
@@ -1870,7 +1906,4 @@ func diffBody(pdf *gofpdf.Fpdf, hdr []string,field string)*gofpdf.Fpdf{
 	return pdf
 }
 
-	//func GetSitePdf(site Site){
-	//
-	//
-	//}
+
