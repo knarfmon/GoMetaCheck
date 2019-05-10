@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"encoding/base64"
 	"html/template"
+	"database/sql"
 )
 
 // get unique id for example name in google cloud bucket
@@ -41,3 +42,8 @@ func setSessionCookie(w http.ResponseWriter, req *http.Request) {
 
 		return htmlTemplate
 	}
+
+//ToNullString invalidates a sql.NullString if empty, validates if not empty
+func ToNullString(s string) sql.NullString {
+	return sql.NullString{String : s, Valid : s != ""}
+}

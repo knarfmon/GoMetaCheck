@@ -81,6 +81,21 @@
             text-align: left;
 
         }
+        .sectionTitle{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 8rem;
+        }
     </style>
 </head>
 <body>
@@ -89,9 +104,27 @@
 
 <h2>Add Image</h2>
 
-<p>Customer: {{.CustomerName}}</p>
-<p>Site: {{.SiteName}}</p>
-<p>Page: {{.PageName}}</p>
+<div class = "sectionTitle">
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.CustomerName}}</div>
+</div>
+{{$cname := .CustomerName}}
+
+<div class = "sectionTitle">
+    <div class = "titles">Site:</div>
+    <div class = "col3">{{.SiteName}}</div>
+</div>
+{{$sname :=.SiteName}}
+
+
+<div class = "sectionTitle">
+    <div class = "titles">Page:</div>
+    <div class = "col3">{{.PageName}}</div>
+</div>
+
+{{/*<p>Customer: {{.CustomerName}}</p>*/}}
+{{/*<p>Site: {{.SiteName}}</p>*/}}
+{{/*<p>Page: {{.PageName}}</p>*/}}
 
 <br>
 

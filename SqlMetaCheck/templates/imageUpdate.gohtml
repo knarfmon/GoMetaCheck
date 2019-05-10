@@ -26,20 +26,20 @@
 
 
 
-        div.hr{
-            margin: 0;
-            width: 60vw;
-            /*margin-left: 4rem;*/
-            /*size: 50px;*/
-            /*border-top: 1px solid #8c8b8b;*/
-            color: #000000;
-            /*background-color: #000000;*/
-            height: 15px;
-        }
+        /*div.hr{*/
+            /*margin: 0;*/
+            /*width: 60vw;*/
+            /*!*margin-left: 4rem;*!*/
+            /*!*size: 50px;*!*/
+            /*!*border-top: 1px solid #8c8b8b;*!*/
+            /*color: #000000;*/
+            /*!*background-color: #000000;*!*/
+            /*height: 15px;*/
+        /*}*/
 
         input {
 
-            width: 60vw;
+            /*width: 60vw;*/
             font-size: 1rem;
             color: blue;
             /*border: 1px solid black;*/
@@ -75,37 +75,49 @@
             display: flex;
             flex-flow: row;
             padding-bottom: 8px;
+
+            width: 50rem;
         }
         .col3{
             font-size: 1.2rem;
             justify-content: left;
+
         }
         .titles{
 
             margin-left: 4rem;
             font-size: 1.2rem;
             width: 8rem;
+
         }
         .DescArea{
             font-size: 1.2rem;
             color: blue;
             width: 60vw;
+
         }
         #PageDetails{
             margin-left: 4rem;
+            width: 30rem;
         }
         .form-field-err{
             color: red;
             width: 25rem;
             margin-left: 0;
             text-align: left;
+
         }
+        fieldset{
+
+            width: 60vw;
+        }
+
     </style>
 </head>
 <body>
 {{template "header"}}<br><br><br><br>
 
-<h2 id="PageDetails">Image Details</h2>
+<h2 id="PageDetails">Image Edit</h2>
 
 <div class = "sectionTitle">
     <div class = "titles">Customer:</div>
@@ -135,7 +147,7 @@
 <fieldset>
     <label for="AltText">Alt Text:</label>
     <div>
-        <textarea name="AltText" id="AltText" rows="4" cols="12" class="DescArea" required>{{.Image.AltText}} </textarea>
+        <textarea name="AltText" id="AltText" rows="4" cols="12" class="DescArea" >{{.Image.AltText.Value}}</textarea>
     </div>
     <br>
 
@@ -143,7 +155,7 @@
 
     <label for="Notes">Notes</label>
     <div>
-        <textarea name="Notes" rows="4" cols="12" class="DescArea" >{{.Image.Notes}}</textarea>
+        <textarea name="Notes" rows="4" cols="12" class="DescArea" >{{.Image.Notes.Value}}</textarea>
     </div>
     <br>
 
@@ -251,10 +263,10 @@
     });
     function validateFields() {
 
-        if (altText.value === "" ) {
-            altTextErr.textContent = 'Must have Alt Text content';
-            document.querySelector('#submitbutton').disabled = true;
-            return false}
+        // if (altText.value === "" ) {
+        //     altTextErr.textContent = 'Must have Alt Text content';
+        //     document.querySelector('#submitbutton').disabled = true;
+        //     return false}
 
         if (validateFile() === false){
             filesErr.textContent = 'Please only select image files with a ".jpg" extension.';

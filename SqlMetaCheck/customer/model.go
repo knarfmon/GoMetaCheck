@@ -31,6 +31,7 @@ import (
 	//"google.golang.org/appengine/log"
 	"mime/multipart"
 	"html/template"
+	"database/sql"
 )
 
 type Customer struct {
@@ -86,12 +87,12 @@ type ImageStructFromUi struct {
 	ImageId			int
 	SiteId          int
 	PageId          int
-	AltText  		string
+	AltText  		sql.NullString
 	FileName		string
 	Mpf				multipart.File
 	Hdr				multipart.FileHeader
 	ByteFile		[]byte
-	Notes    		string
+	Notes    		sql.NullString
 }
 
 type Diff struct {
@@ -100,8 +101,8 @@ type Diff struct {
 	Name     string
 	UxNumber int
 
-	UrlStd   string
-	UrlCsv   string
+	UrlStd   sql.NullString
+	UrlCsv   sql.NullString
 	UrlMatch bool
 
 	StatusStd   int
@@ -146,19 +147,19 @@ type Diff struct {
 }
 
 type DiffImage struct{
-	AltTextStd		string
-	AltTextCsv		string
+	AltTextStd		sql.NullString
+	AltTextCsv		sql.NullString
 	//xAltTextMatch	string		// remove ones with x in front, not using
 
-	ImageUrlStd		string
-	ImageUrlCsv		string
+	ImageUrlStd		sql.NullString
+	ImageUrlCsv		sql.NullString
 	//xImageUrlMatch	string
 
-	PageUrlStd		string
-	PageUrlCsv		string
+	PageUrlStd		sql.NullString
+	PageUrlCsv		sql.NullString
 	//xPageUrlMatch	string
 
-	NameStd			string
+	NameStd			sql.NullString
 	Match			bool
 }
 
@@ -167,11 +168,11 @@ type Image struct {
 	Image_id int
 	Site_id  int
 	Page_id  int
-	AltText  string
-	ImageUrl string
-	Name     string
-	Notes    string
-	PageUrl  string
+	AltText  sql.NullString
+	ImageUrl sql.NullString
+	Name     sql.NullString
+	Notes    sql.NullString
+	PageUrl  sql.NullString
 	Match	bool
 	ByteFile		[]byte
 	EncodedImg	template.HTML
@@ -652,7 +653,7 @@ func PutPage(site Site) (error) { //replaced pages []Page with site Site
 
 	}
 
-	return nil // 2/10 removed pages from return
+	return nil
 }
 
 //todo examine Compare func > PDF, for change in image tables
@@ -668,14 +669,20 @@ func UploadForCompare(r *http.Request) (Compare, error) {
 	site := Site{}
 	//Create site, uploads pages and images into Site.-----------------
 	csvSite, err := UploadHtml(r, site)   //from csv
+	//todo needs work, need altText for compare & imageUrl for jpg
 	csvSite, err = UploadImage(r, csvSite) //from csv
 	checkErr(err)
+	fmt.Println("func UploadImage -csv completed without error")
 	//-----------------------------------------------------------
 	csvSite.Name = sname
 
-
+	//gets page fields from page table
 	stdSite, err := GetPages(r)
+
+	//gets image fields from image table
+	//todo needs work
 	stdSite.Images = GetImages(r)
+	fmt.Println("func GetImages completed without error")
 
 	compare.CsvSite = csvSite
 	compare.StdSite = stdSite
@@ -785,14 +792,20 @@ func checkErr(err error) {
 	}
 }
 func GetImages(r *http.Request) ([]Image){
-
+fmt.Println("Starting GetImages")
 	images := []Image{}
 
 	site_id, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
+//todo add jpg
 
-	rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where site_id = ?", site_id)
+	//row := config.DB.QueryRow("SELECT i.id,i.site_id,i.page_id,i.alt_text,i.notes,j.image FROM image i,jpg j where i.jpg_id=j.id and i.id = ?", intId)
+
+	//rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where site_id = ?", site_id)
+
+	rows, err := config.DB.Query("SELECT i.id,i.site_id,i.page_id,i.alt_text,i.notes,j.image FROM image i,jpg j where i.jpg_id=j.id and i.site_id = ?", site_id)
+
 
 	if err != nil {
 		log.Fatalf("Could not get image records: %v", err)
@@ -803,14 +816,16 @@ func GetImages(r *http.Request) ([]Image){
 	for rows.Next() {
 
 		image := Image{}
-		err := rows.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.ImageUrl, &image.Name, &image.Notes, &image.PageUrl)
+		err := rows.Scan(&image.Image_id, &image.Site_id, &image.Page_id, &image.AltText, &image.Notes, &image.ByteFile)
 
-		checkErr(err)
+		if err != nil {
+			log.Fatalf("Could not place image records into Image struct: %v", err)
+		}
 
 		images = append(images, image)
 	}
 
-
+fmt.Println("Completed GetImage, 794")
 	return images
 }
 
@@ -853,6 +868,7 @@ func GetPages(r *http.Request) (Site, error) {
 	return site, nil
 }
 
+//Gets image fields from uploaded image csv file, inserts new jpg into table
 func UploadImage(r *http.Request, site Site) (Site, error) {
 
 	//Map used for check if already stored []byte of image by looking at imageUrl
@@ -933,22 +949,23 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 
 			//convert url ImageUrl to xbyte here, while loop
 			//var xByte = UrlToXofByte(ImageUrl)
-
+//todo change these to ToNullString
 			site.Images = append(site.Images, Image{
 				Site_id:  strId,
-				AltText:  AltText,
-				ImageUrl: ImageUrl,
-				Name:     Name,
-				PageUrl:  PageUrl,
+				AltText: 	ToNullString(AltText),
+				//AltText:  AltText,
+				ImageUrl: ToNullString(ImageUrl),
+				Name:     ToNullString(Name),
+				PageUrl:  ToNullString(PageUrl),
 				Page_id:  pageid,
 				JpgId: 		jpgId,
-				//ByteFile: 	xByte,
+				//ByteFile: 	xByte,   //not storing byteFile here any more, just the FK id
 
 			})
 
 		}
 	}
-
+fmt.Println("Inserted all images into jpg table")
 	return site, nil
 }
 
@@ -969,24 +986,23 @@ func MatchPerPage(compare Compare) (Compare, error) {
 	return compare,nil
 }
 
-
+//todo Match images
 func MatchImages(compare Compare) (Compare, error) {
 	//takes csv and std images and tries to match them, places them all in compare.DiffImages
 
 	//range over page - out loop
 	csvSite := compare.CsvSite //outer
 	stdSite := compare.StdSite //inner
-
+fmt.Println(csvSite)
 	compare.DiffImages = []DiffImage{}
 
 	var mismatchImage int
 
-
 	for outer := 0; outer < len(csvSite.Images); outer++ {
-		var noMatch string
+		var noMatch sql.NullString
 		diffImage := DiffImage{
 			PageUrlCsv:  csvSite.Images[outer].PageUrl,
-			ImageUrlCsv: csvSite.Images[outer].ImageUrl,
+			//ImageUrlCsv: csvSite.Images[outer].ImageUrl,
 			AltTextCsv:  csvSite.Images[outer].AltText,
 		}
 		for inner := 0; inner < len(stdSite.Images); inner++ {
@@ -995,8 +1011,8 @@ func MatchImages(compare Compare) (Compare, error) {
 			diffImage.PageUrlStd = stdSite.Images[inner].PageUrl
 
 			//will probably have to take this out, not comparable
-			if stdSite.Images[inner].ImageUrl != csvSite.Images[outer].ImageUrl{continue}
-			diffImage.ImageUrlStd = stdSite.Images[inner].ImageUrl
+			//if stdSite.Images[inner].ImageUrl != csvSite.Images[outer].ImageUrl{continue}
+			//diffImage.ImageUrlStd = stdSite.Images[inner].ImageUrl
 
 			noMatch = stdSite.Images[inner].AltText
 			if stdSite.Images[inner].AltText != csvSite.Images[outer].AltText {continue}//next inner loop
@@ -1010,6 +1026,8 @@ func MatchImages(compare Compare) (Compare, error) {
 
 			if diffImage.Match == false{
 				diffImage.AltTextStd = noMatch
+				fmt.Println("AltTextStd = ",diffImage.AltTextStd)
+				fmt.Println("AltTextCsv = ",diffImage.AltTextCsv)
 				mismatchImage++
 			}
 
@@ -1018,6 +1036,12 @@ func MatchImages(compare Compare) (Compare, error) {
 		}
 	compare.MismatchImage = mismatchImage
 	return compare, nil
+
+	//New methodology to matching images
+	//Problem: many images per page,many with no alt text, so difficult to match
+
+
+
 }
 
 
@@ -1046,8 +1070,8 @@ func MatchSites(compare Compare) (Compare, error) {
 				stdSite.Pages[inner].Match = true
 				diff := Diff{}
 
-				diff.UrlCsv = csvSite.Pages[outer].Url
-				diff.UrlStd = stdSite.Pages[inner].Url
+				diff.UrlCsv = ToNullString(csvSite.Pages[outer].Url)
+				diff.UrlStd = ToNullString(stdSite.Pages[inner].Url)
 				diff.UrlMatch = true
 
 				diff.StatusCsv = csvSite.Pages[outer].Status
@@ -1194,8 +1218,8 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 	for _,value := range misCompares{
 		diff := Diff{}
 
-		diff.UrlCsv = value.CsvPage.Url
-		diff.UrlStd = value.StdPage.Url
+		diff.UrlCsv = ToNullString(value.CsvPage.Url)
+		diff.UrlStd = ToNullString(value.StdPage.Url)
 		diff.UrlMatch = false
 
 		diff.StatusCsv = value.CsvPage.Status

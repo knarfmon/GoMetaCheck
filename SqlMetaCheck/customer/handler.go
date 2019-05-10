@@ -289,6 +289,7 @@ func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
+	//todo check out
 	compare, err := UploadForCompare(r)
 
 	if err != nil {

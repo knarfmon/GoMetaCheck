@@ -239,9 +239,9 @@
 
 <div class="sectionRow">
     <div class="col1">Page Url</div>
-    <div class="col2">{{.UrlStd}}</div>
+    <div class="col2">{{.UrlStd.Value}}</div>
     {{if.UrlMatch}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
-    <div class="col4">{{.UrlCsv}}</div>
+    <div class="col4">{{.UrlCsv.Value}}</div>
     {{if .UrlMatch}}{{else}}<a class="createlink" href="/diff?std={{.UrlStd}}&csv={{.UrlCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldUrl}}">Show Differences</a>{{end}}
 </div>
 
@@ -313,22 +313,22 @@
 <div class="sectionRow">
     <div class="col1">Image Url</div>
     <div class="col2">
-    <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.ImageUrlStd}}</textarea>
+    <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.ImageUrlStd.Value}}</textarea>
     </div>
     <div class="col3Match">Match</div>
     <div class="col4">
-    <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.ImageUrlCsv}}</textarea>
+    <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.ImageUrlCsv.Value}}</textarea>
     </div>
 </div>
 
 <div class="sectionRow">
     <div class="col1">Alt Text</div>
     <div class="col2">
-        <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.AltTextStd}}</textarea>
+        <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.AltTextStd.Value}}</textarea>
     </div>
 {{if.Match}}<div class="col3Match">Match</div>{{else}}<div class="col3NoMatch">No Match</div>{{end}}
     <div class="col4">
-        <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.AltTextCsv}}</textarea>
+        <textarea id="Description" name="Description" rows="3" cols="15" class="DescArea" >{{.AltTextCsv.Value}}</textarea>
     </div>
 </div>
 
