@@ -363,8 +363,8 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 }
 
 func GetCustomerSite(r *http.Request) (customer Customer, err error) {
-	customer = Customer{}
-	customer.Sites = []Site{}
+	customer = Customer{}  //dont really need since its declared in the return type
+	customer.Sites = []Site{}  //dont think i need this as part of type already
 	var query string
 	newId, err := strconv.Atoi(r.FormValue("customer_id"))
 
