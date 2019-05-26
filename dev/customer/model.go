@@ -1,26 +1,30 @@
 package customer
 
 import (
+	"errors"
 	"github.com/knarfmon/GoMetaCheck/dev/config"
 	"net/http"
+	"strconv"
+
 	//"github.com/satori/go.uuid"
 	//"golang.org/x/crypto/bcrypt"
 
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
-	"database/sql"
-	"html/template"
+	//"database/sql"
 	//"google.golang.org/appengine/log"
-	"mime/multipart"
+	//"mime/multipart"
 )
 
 type Customer struct {
 	Id      int
 	Name    string
 	Archive bool
-	Sites   *[]Site
+	Sites   []Site
 	Date    string
+
+
 }
 
 type Site struct {
@@ -30,186 +34,57 @@ type Site struct {
 	Url        string
 	Archive    bool
 	Customer   *Customer
-	Pages      *[]Page
+	Pages      []Page
 	//Images     []Image
-	PageCount  int
-	Date       string
+	PageCount int
+	Date      string
 }
 
 type Page struct {
-	Page_id          int
-	Site_id          int
-	Name             string
-	UxNumber         int
-	Url              string
-	Status           int
-	Title            string //4
-	Description      string
-	Canonical        string
-	MetaRobot        string
-	OgTitle          string
-	OgDesc           string
-	OgImage          string
-	OgUrl            string
-	Archive          bool
-	Site             *Site
-	Match            bool
-	Images 			*[]Image
+	Page_id     int
+	Site_id     int
+	Name        string
+	UxNumber    int
+	Url         string
+	Status      int
+	Title       string //4
+	Description string
+	Canonical   string
+	MetaRobot   string
+	OgTitle     string
+	OgDesc      string
+	OgImage     string
+	OgUrl       string
+	Archive     bool
+	Site        *Site
+	Match       bool
+//Images      []Image
 }
 
 type CustSitePage struct {
-	CustomerId		int
-	CustomerName    string
-	SiteId          int
-	SiteName        string
-	PageId          int
-	PageName        string
-}
-type ImageStructFromUi struct {
-	ImageId			int
-	SiteId          int
-	PageId          int
-	AltText  		sql.NullString
-	FileName		string
-	Mpf				multipart.File
-	Hdr				multipart.FileHeader
-	ByteFile		[]byte
-	Notes    		sql.NullString
-}
-
-type Diff struct {
-	Page_id  int
-	Site_id  int
-	Name     string
-	UxNumber int
-
-	UrlStd   sql.NullString
-	UrlCsv   sql.NullString
-	UrlMatch bool
-
-	StatusStd   int
-	StatusCsv   int
-	StatusMatch bool
-
-	TitleStd   string //4
-	TitleCsv   string //4
-	TitleMatch bool
-
-	DescriptionStd   string
-	DescriptionCsv   string
-	DescriptionMatch bool
-
-	CanonicalStd   string
-	CanonicalCsv   string
-	CanonicalMatch bool
-
-	MetaRobotStd   string
-	MetaRobotCsv   string
-	MetaRobotMatch bool
-
-	OgTitleStd   string
-	OgTitleCsv   string
-	OgTitleMatch bool
-
-	OgDescStd   string
-	OgDescCsv   string
-	OgDescMatch bool
-
-	OgImageStd   string
-	OgImageCsv   string
-	OgImageMatch bool
-
-	OgUrlStd   string
-	OgUrlCsv   string
-	OgUrlMatch bool
-
-	Match bool
-
-	DiffImages		[]DiffImage		//contains only the ones for the page
-}
-
-type DiffImage struct{
-	AltTextStd		sql.NullString
-	AltTextCsv		sql.NullString
-	//xAltTextMatch	string		// remove ones with x in front, not using
-
-	ImageUrlStd		sql.NullString
-	ImageUrlCsv		sql.NullString
-	//xImageUrlMatch	string
-
-	PageUrlStd		sql.NullString
-	PageUrlCsv		sql.NullString
-	//xPageUrlMatch	string
-
-	NameStd			sql.NullString
-	Match			bool
-}
-
-
-type Image struct {
-	Image_id int
-	Site_id  int
-	Page_id  int
-	AltText  sql.NullString
-	ImageUrl sql.NullString
-	Name     sql.NullString
-	Notes    sql.NullString
-	PageUrl  sql.NullString
-	Match	bool
-	ByteFile		[]byte
-	EncodedImg	template.HTML
-	JpgId	int
-}
-
-type PageDetail struct {
+	CustomerId   int
 	CustomerName string
+	SiteId       int
 	SiteName     string
-	PageName	string
-	Detail       Page
-	Image        Image
-	Images       []Image
+	PageId       int
+	PageName     string
 }
 
-type Compare struct {
 
-	CustomerName string
-	CsvSite      Site
-	StdSite      Site
-	Diffs        []Diff
-	//DiffImage		DiffImage
-	DiffImages		[]DiffImage  //moved this under diff
-	Mismatch		int
-	MismatchImage	int
-	CsvPageCount	int
-	StdPageCount	int
-	MatchPageCount	int
-	BlankAltText	int
-	UrlMisMatch		int
-}
 
-type MisCompare struct {
-	StdPage		Page
-	CsvPage		Page
-	MetricMatch	int
-}
 
-type User struct {
-	UserName string
-	Password []byte
-	First    string
-	Last     string
-	Role     string
-}
 
-func AllCustomers(r *http.Request) ([]Customer, error) {
+
+
+
+
+
+func (c Customer)AllCustomers() ([]Customer, error) {
 
 	var archive int
 	var query string
 
-
 	query = "SELECT id,name,archive,date FROM customer WHERE archive=0 ORDER BY name"
-
-
 
 	rows, err := config.DB.Query(query)
 
@@ -223,14 +98,13 @@ func AllCustomers(r *http.Request) ([]Customer, error) {
 
 	for rows.Next() {
 
-		cs := Customer{}
-		err := rows.Scan(&cs.Id, &cs.Name, &archive, &cs.Date) // order matters, everything in select statement
-
+		//cs := Customer{}
+		err := rows.Scan(&c.Id, &c.Name, &archive, &c.Date) // order matters, everything in select statement
 
 		if err != nil {
 			return nil, err
 		}
-		css = append(css, cs)
+		css = append(css, c)
 
 	}
 	if err = rows.Err(); err != nil {
@@ -239,4 +113,69 @@ func AllCustomers(r *http.Request) ([]Customer, error) {
 
 	return css, nil
 
+}
+
+func (c Customer)PutCustomer(r *http.Request) (Customer, error) {
+	// get form values
+	//cs := Customer{}
+	c.Name = r.FormValue("name")
+
+	// validate form values
+	if c.Name == "" {
+		return c, errors.New("400. Bad request. All fields must be complete.")
+	}
+
+	// insert values
+	_, err := config.DB.Exec("INSERT INTO customer (name) VALUES (?)", c.Name)
+	if err != nil {
+		return c, errors.New("500. Internal Server Error." + err.Error())
+	}
+	return c, nil
+}
+
+
+
+func GetCustomerSite(r *http.Request) (customer Customer, err error) {
+	//customer = Customer{}  //dont really need since its declared in the return type
+	//customer.Sites = []Site{}  //dont think i need this as part of type already
+	var query string
+	customer.Id, err = strconv.Atoi(r.FormValue("customer_id"))
+
+	if err != nil {
+		return customer, errors.New("406. Not Acceptable. Id not of correct type")
+	}
+	//customer.Id = newId
+
+	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", customer.Id)
+
+	err = row.Scan(&customer.Id, &customer.Name, &customer.Archive)
+
+	if r.FormValue("archived") == "yes" {
+		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
+	} else {
+		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0 ORDER BY name ASC"
+	}
+
+	rows, err := config.DB.Query(query, customer.Id)
+	//rows, err := config.sqlDB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
+	if err != nil {
+		return
+	}
+	for rows.Next() {
+		site := Site{Customer: &customer}
+		err = rows.Scan(&site.Id, &site.Name, &site.Url, &site.Archive, &site.Date)
+		if err != nil {
+			return
+		}
+
+		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
+		err = row.Scan(&site.PageCount)
+
+
+
+		customer.Sites = append(customer.Sites, site)
+
+	}
+	rows.Close()
+	return
 }
