@@ -21,7 +21,7 @@ func main() { //====web====== init()
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8082", nil) //===== not here for web
+	http.ListenAndServe(":8088", nil) //===== not here for web
 	//Type into browser "http://localhost:8080"
 
 }

@@ -23,8 +23,6 @@ type Customer struct {
 	Archive bool
 	Sites   []Site
 	Date    string
-
-
 }
 
 type Site struct {
@@ -58,7 +56,7 @@ type Page struct {
 	Archive     bool
 	Site        *Site
 	Match       bool
-//Images      []Image
+	//Images      []Image
 }
 
 type CustSitePage struct {
@@ -70,16 +68,7 @@ type CustSitePage struct {
 	PageName     string
 }
 
-
-
-
-
-
-
-
-
-
-func (c Customer)AllCustomers() ([]Customer, error) {
+func (c Customer) AllCustomers() ([]Customer, error) {
 
 	var archive int
 	var query string
@@ -98,7 +87,6 @@ func (c Customer)AllCustomers() ([]Customer, error) {
 
 	for rows.Next() {
 
-		//cs := Customer{}
 		err := rows.Scan(&c.Id, &c.Name, &archive, &c.Date) // order matters, everything in select statement
 
 		if err != nil {
@@ -115,40 +103,36 @@ func (c Customer)AllCustomers() ([]Customer, error) {
 
 }
 
-func (c Customer)PutCustomer(r *http.Request) (Customer, error) {
+func (c *Customer) PutCustomer(r *http.Request) error {
 	// get form values
 	//cs := Customer{}
 	c.Name = r.FormValue("name")
 
 	// validate form values
 	if c.Name == "" {
-		return c, errors.New("400. Bad request. All fields must be complete.")
+		return errors.New("Name must have at least one character.")
 	}
 
 	// insert values
 	_, err := config.DB.Exec("INSERT INTO customer (name) VALUES (?)", c.Name)
 	if err != nil {
-		return c, errors.New("500. Internal Server Error." + err.Error())
+		return errors.New("Unable to store customer name.")
 	}
-	return c, nil
+	return nil
 }
 
+func (c *Customer) GetCustomerSite(r *http.Request) (err error) {
 
-
-func GetCustomerSite(r *http.Request) (customer Customer, err error) {
-	//customer = Customer{}  //dont really need since its declared in the return type
-	//customer.Sites = []Site{}  //dont think i need this as part of type already
 	var query string
-	customer.Id, err = strconv.Atoi(r.FormValue("customer_id"))
+	c.Id, err = strconv.Atoi(r.FormValue("customer_id"))
 
 	if err != nil {
-		return customer, errors.New("406. Not Acceptable. Id not of correct type")
+		return errors.New("Id is not of correct type")
 	}
-	//customer.Id = newId
 
-	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", customer.Id)
+	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", c.Id)
 
-	err = row.Scan(&customer.Id, &customer.Name, &customer.Archive)
+	err = row.Scan(&c.Id, &c.Name, &c.Archive)
 
 	if r.FormValue("archived") == "yes" {
 		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
@@ -156,13 +140,13 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0 ORDER BY name ASC"
 	}
 
-	rows, err := config.DB.Query(query, customer.Id)
-	//rows, err := config.sqlDB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
+	rows, err := config.DB.Query(query, c.Id)
+
 	if err != nil {
 		return
 	}
 	for rows.Next() {
-		site := Site{Customer: &customer}
+		site := Site{Customer: c}
 		err = rows.Scan(&site.Id, &site.Name, &site.Url, &site.Archive, &site.Date)
 		if err != nil {
 			return
@@ -171,11 +155,9 @@ func GetCustomerSite(r *http.Request) (customer Customer, err error) {
 		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
 		err = row.Scan(&site.PageCount)
 
-
-
-		customer.Sites = append(customer.Sites, site)
-
+		c.Sites = append(c.Sites, site)
 	}
 	rows.Close()
-	return
+
+	return nil
 }

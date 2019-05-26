@@ -1,10 +1,10 @@
 package customer
 
-import(
+import (
 	"database/sql"
-	"net/http"
+	"fmt"
 	"github.com/knarfmon/GoMetaCheck/dev/config"
-
+	"net/http"
 )
 
 func CustomerIndex(w http.ResponseWriter, r *http.Request) {
@@ -48,8 +48,8 @@ func CustomerCreateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-
-	_, err := Customer{}.PutCustomer(r)
+	c := &Customer{}
+	err := c.PutCustomer(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
 		return
@@ -64,7 +64,9 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	css, err := GetCustomerSite(r)
+	xc := &Customer{}
+	err := xc.GetCustomerSite(r)
+	fmt.Println("returned call... ", xc)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -73,12 +75,13 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-
+fmt.Println("ready for template", xc)
 	if r.FormValue("archived") == "yes" {
-		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", css)
+		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", xc)
 
 	}else{
-		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
+		//fmt.Println(xc)
+		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
 
 	}
 
