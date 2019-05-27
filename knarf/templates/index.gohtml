@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meta Check</title>
+    <style>
+
+        html, body, header, nav, button, main, h1 {
+            padding: 0;
+            border: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            color: black;
+            font-size: 1vw;
+        }
+
+        .icon {
+            width: 1em;
+            height: 1em;
+            fill: currentColor;
+        }
+
+        .icon-sm-in {
+            font-size: 1.4rem;
+        }
+
+        .icon-big-in {
+            font-size: 20rem;
+        }
+
+        .loginTitle{
+            /*display: flex;*/
+            /*flex-flow: column wrap;*/
+            position: fixed;
+            top: 15%;
+            left: 70%;
+            font-size: medium;
+            color: black;
+            width: 30rem;
+
+        }
+        .loginMain{
+            display: flex;
+            flex-flow: column;
+            width: 20rem;
+
+        }
+
+        .loginSubmit{
+            width: 7rem;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        button:hover {
+            color: blue;
+            background-color: lightgrey;
+        }
+
+        .inputLogin{
+            background-color: lightcyan;
+
+        }
+        .signup{
+            color: dodgerblue;
+
+        }
+
+        a:hover{
+            color: blue;}
+
+        #atf {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* format */
+            color: dodgerblue;
+        }
+
+        h1 {
+            color: rgba(169, 169, 169, 0.87);
+            font-size: 8rem;
+            letter-spacing: .7rem;
+            text-transform: uppercase;
+        }
+        #success{
+            color: lime;
+        }
+    </style>
+
+
+</head>
+<body>
+{{template "header"}}
+
+{{/*<div class="loginTitle">Log in to Meta Check*/}}
+    {{/*<br><br>*/}}
+    {{/*<form class="loginMain" method="post">*/}}
+        {{/*<input class="inputLogin" type="text" name="username" placeholder="Email"><br>*/}}
+        {{/*<input class="inputLogin" type="password" name="password" placeholder="Password">*/}}
+        {{/*<br>*/}}
+        {{/*<input class="loginSubmit" type="submit">*/}}
+    {{/*</form>*/}}
+    {{/*<br>*/}}
+    {{/*<a class="signup" href="/index/signup">Not signed up. Register now.</a>*/}}
+
+    {{/*<h3 id="success">{{.}}</h3>*/}}
+{{/*</div>*/}}
+
+{{template "svgs"}}
+
+
+
+
+<div id="atf">
+    <main>
+        <svg class="icon icon-big-in">
+            <use xlink:href="#inbox"></use>
+        </svg>
+        <h1>Meta Check</h1>
+    </main>
+</div>
+
+
+</body>
+
+<footer>
+
+
+</footer>
+
+
+</html>

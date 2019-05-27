@@ -1,68 +1,27 @@
-package main
+package main //====web======  metacheck
 
 import (
-	"bytes"
-	"database/sql"
-	"fmt"
-	"log"
+	"github.com/knarfmon/GoMetaCheck/dev/customer"
 	"net/http"
-	"os"
-
-	"google.golang.org/appengine"
-
-	_ "github.com/go-sql-driver/mysql"
 )
 
-var db *sql.DB
 
-func main() {
-	var (
-		connectionName = mustGetenv("CLOUDSQL_CONNECTION_NAME")
-		user           = mustGetenv("CLOUDSQL_USER")
-		password       = os.Getenv("CLOUDSQL_PASSWORD") // NOTE: password may be empty
-	)
+func main() { //====web====== init()
 
-	var err error
-	db, err = sql.Open("mysql", fmt.Sprintf("%s:%s@cloudsql(%s)/getmetacheck", user, password, connectionName))
-	if err != nil {
-		log.Fatalf("Could not open db: %v", err)
-	}
+	//tpl = template.Must(template.ParseGlob("templates/*"))  //====web====== this was here
+	http.HandleFunc("/", customer.Index)
+	http.HandleFunc("/index", customer.Index)
 
-	http.HandleFunc("/", handler)
-	appengine.Main()
-}
+	http.HandleFunc("/customers", customer.CustomerIndex)
+	http.HandleFunc("/customer/create", customer.CustomerCreate)
+	http.HandleFunc("/customer/create/process", customer.CustomerCreateProcess)
+	http.HandleFunc("/customer/site", customer.CustomerSiteIndex)
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
-		http.NotFound(w, r)
-		return
-	}
+	//http.HandleFunc("/test", customer.TestHandler)
 
-	w.Header().Set("Content-Type", "text/plain")
+	http.Handle("/favicon.ico", http.NotFoundHandler())
+	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
+	http.ListenAndServe(":8088", nil) //===== not here for web
+	//Type into browser "http://localhost:8080"
 
-	rows, err := db.Query("select name from customer")
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Could not query db: %v", err), 500)
-		return
-	}
-	defer rows.Close()
-
-	buf := bytes.NewBufferString("Tables:\n")
-	for rows.Next() {
-		var dbName string
-		if err := rows.Scan(&dbName); err != nil {
-			http.Error(w, fmt.Sprintf("Could not scan result: %v", err), 500)
-			return
-		}
-		fmt.Fprintf(buf, "- %s\n", dbName)
-	}
-	w.Write(buf.Bytes())
-}
-
-func mustGetenv(k string) string {
-	v := os.Getenv(k)
-	if v == "" {
-		log.Panicf("%s environment variable not set.", k)
-	}
-	return v
 }
