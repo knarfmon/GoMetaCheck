@@ -2,7 +2,6 @@ package customer
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/knarfmon/GoMetaCheck/dev/config"
 	"net/http"
 )
@@ -66,7 +65,7 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 	}
 	xc := &Customer{}
 	err := xc.GetCustomerSite(r)
-	fmt.Println("returned call... ", xc)
+
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -75,7 +74,7 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-fmt.Println("ready for template", xc)
+
 	if r.FormValue("archived") == "yes" {
 		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", xc)
 
@@ -83,6 +82,27 @@ fmt.Println("ready for template", xc)
 		//fmt.Println(xc)
 		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
 
+	}
+
+}
+
+func PagesIndex(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	}
+
+	c := &Customer{}
+	err := c.GetPagesIndex(r)
+	if err != nil {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	if r.FormValue("archived") == "yes" {
+		config.TPL.ExecuteTemplate(w, "PagesIndexArchive.gohtml", c)
+
+	}else{
+		config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", c)
 	}
 
 

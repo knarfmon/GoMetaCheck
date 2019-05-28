@@ -1,36 +1,37 @@
 package customer
 
 import (
-	"encoding/csv"
 	"errors"
-	"github.com/arbovm/levenshtein"
 	"github.com/knarfmon/GoMetaCheck/SqlMetaCheck/config"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
+	"encoding/csv"
 	"strings"
+	"io"
+	"github.com/arbovm/levenshtein"
 	//"github.com/satori/go.uuid"
 	//"golang.org/x/crypto/bcrypt"
+
 
 	//"github.com/jinzhu/copier"
 	//"fmt"
 
-	"fmt"
 	//"github.com/satori/go.uuid"
 	//"golang.org/x/crypto/bcrypt"
 	//"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+	"fmt"
 	"sort"
-	"github.com/jung-kurt/gofpdf"
-	"github.com/knarfmon/go-diff/diffmatchpatch"
 	//"github.com/sergi/go-diff/diffmatchpatch"
 	//"github.com/jung-kurt/gofpdf"
 	"time"
-	"database/sql"
-	"html/template"
+	"github.com/knarfmon/go-diff/diffmatchpatch"
+	"github.com/jung-kurt/gofpdf"
 	//"google.golang.org/appengine/log"
 	"mime/multipart"
+	"html/template"
+	"database/sql"
 )
 
 type Customer struct {
@@ -218,7 +219,7 @@ type User struct {
 	Role     string
 }
 
-func (c Customer)AllCustomers(r *http.Request) ([]Customer, error) {
+func AllCustomers(r *http.Request) ([]Customer, error) {
 
 	var archive int
 	var query string
@@ -267,22 +268,22 @@ func (c Customer)AllCustomers(r *http.Request) ([]Customer, error) {
 
 }
 
-func (c *Customer)PutCustomer(r *http.Request) error {
+func PutCustomer(r *http.Request) (Customer, error) {
 	// get form values
-
-	c.Name = r.FormValue("name")
+	cs := Customer{}
+	cs.Name = r.FormValue("name")
 
 	// validate form values
-	if c.Name == "" {
-		return errors.New("Name must have at least one character.")
+	if cs.Name == "" {
+		return cs, errors.New("400. Bad request. All fields must be complete.")
 	}
 
 	// insert values
-	_, err := config.DB.Exec("INSERT INTO customer (name) VALUES (?)", c.Name)
+	_, err := config.DB.Exec("INSERT INTO customer (name) VALUES (?)", cs.Name)
 	if err != nil {
-		return errors.New("Unable to store customer name.")
+		return cs, errors.New("500. Internal Server Error." + err.Error())
 	}
-	return nil
+	return cs, nil
 }
 
 func OneCustomer(r *http.Request) (Customer, error) {
@@ -361,17 +362,20 @@ func UpdateCustomer(r *http.Request) (Customer, error) {
 	return cs, nil
 }
 
-func (c *Customer)GetCustomerSite(r *http.Request) (err error) {
+func GetCustomerSite(r *http.Request) (customer Customer, err error) {
+	customer = Customer{}  //dont really need since its declared in the return type
+	customer.Sites = []Site{}  //dont think i need this as part of type already
 	var query string
-	c.Id, err = strconv.Atoi(r.FormValue("customer_id"))
+	newId, err := strconv.Atoi(r.FormValue("customer_id"))
 
 	if err != nil {
-		return errors.New("Id is not of correct type")
+		return customer, errors.New("406. Not Acceptable. Id not of correct type")
 	}
+	customer.Id = newId
 
-	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", c.Id)
+	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", customer.Id)
 
-	err = row.Scan(&c.Id, &c.Name, &c.Archive)
+	err = row.Scan(&customer.Id, &customer.Name, &customer.Archive)
 
 	if r.FormValue("archived") == "yes" {
 		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=1 ORDER BY name,date DESC"
@@ -379,14 +383,13 @@ func (c *Customer)GetCustomerSite(r *http.Request) (err error) {
 		query = "select id,name,url,archive,date from site WHERE customer_id = ? AND archive=0 ORDER BY name ASC"
 	}
 
-	rows, err := config.DB.Query(query, c.Id)
-
+	rows, err := config.DB.Query(query, customer.Id)
+	//rows, err := config.sqlDB.Query("select id,name,url,archive from site where customer_id = ?", customer.Id)
 	if err != nil {
 		return
 	}
 	for rows.Next() {
-
-		site := Site{}
+		site := Site{Customer: &customer}
 		err = rows.Scan(&site.Id, &site.Name, &site.Url, &site.Archive, &site.Date)
 		if err != nil {
 			return
@@ -395,11 +398,10 @@ func (c *Customer)GetCustomerSite(r *http.Request) (err error) {
 		row := config.DB.QueryRow("SELECT count(*) FROM page where site_id = ?", site.Id)
 		err = row.Scan(&site.PageCount)
 
-		c.Sites = append(c.Sites, site)
+		customer.Sites = append(customer.Sites, site)
 	}
 	rows.Close()
-
-	return nil
+	return
 }
 
 func PrePutSite(r *http.Request) (Site, error) {
@@ -1342,34 +1344,40 @@ func GetSiteCustomerName(siteId int) (string, string) {
 	return cname, sname
 }
 
-func (c *Customer)GetPagesIndex(r *http.Request) (err error) {
-
+func GetPagesIndex(r *http.Request) (Customer, error) {
+	customer := Customer{}
+	customer.Sites = []Site{}
 	site := Site{}
 	var query string
 
-	site.Id, err = strconv.Atoi(r.FormValue("site_id"))
+	intId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
-	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", site.Id)
-	err = row.Scan(&c.Id)
+	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", intId)
+	err = row.Scan(&site.CustomerId)
 
 	if err != nil {
 		log.Fatalf("Could not select from site: %v", err)
 	}
 
-	row = config.DB.QueryRow("SELECT name FROM customer WHERE id = ?", c.Id)
-	err = row.Scan(&c.Name)
+	row = config.DB.QueryRow("SELECT id,name FROM customer WHERE id = ?", site.CustomerId)
+	err = row.Scan(&customer.Id, &customer.Name)
 
 	if err != nil {
 		log.Fatalf("Could not select from customer: %v", err)
 	}
+	//if r.FormValue("archived") == "yes"{
+	//	query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
+	//}else{
+	//	query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,		canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0"
+	//}
 
 	if r.FormValue("archived") == "yes"{
-		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,	ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
 	}else{
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
 	}
-	rows, err := config.DB.Query(query, site.Id)
+	rows, err := config.DB.Query(query, intId)
 
 	if err != nil {
 		log.Fatalf("Could not get page records: %v", err)
@@ -1387,16 +1395,16 @@ func (c *Customer)GetPagesIndex(r *http.Request) (err error) {
 		site.Pages = append(site.Pages, page)
 	}
 
-	row = config.DB.QueryRow("select id,name,url,archive from site where id = ?", site.Id)
+	row = config.DB.QueryRow("select id,customer_id,name,url,archive from site where id = ?", intId)
 
-	//site = Site{Pages: site.Pages}
-	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.Archive)
+	site = Site{Pages: site.Pages}
+	err = row.Scan(&site.Id, &site.CustomerId, &site.Name, &site.Url, &site.Archive)
 	if err != nil {
 		log.Fatalf("Could not scan into site: %v", err)
 	}
-	c.Sites = append(c.Sites, site)
+	customer.Sites = append(customer.Sites, site)
 
-	return nil
+	return customer, nil
 }
 
 func GetPageDetails(r *http.Request) (PageDetail, error) {

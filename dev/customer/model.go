@@ -3,6 +3,7 @@ package customer
 import (
 	"errors"
 	"github.com/knarfmon/GoMetaCheck/dev/config"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -27,11 +28,9 @@ type Customer struct {
 
 type Site struct {
 	Id         int
-	CustomerId int
 	Name       string
 	Url        string
 	Archive    bool
-	Customer   *Customer
 	Pages      []Page
 	//Images     []Image
 	PageCount int
@@ -146,7 +145,8 @@ func (c *Customer) GetCustomerSite(r *http.Request) (err error) {
 		return
 	}
 	for rows.Next() {
-		site := Site{Customer: c}
+		//site := Site{Customer: c} no need for this
+		site := Site{}
 		err = rows.Scan(&site.Id, &site.Name, &site.Url, &site.Archive, &site.Date)
 		if err != nil {
 			return
@@ -160,4 +160,67 @@ func (c *Customer) GetCustomerSite(r *http.Request) (err error) {
 	rows.Close()
 
 	return nil
+}
+
+func (c *Customer)GetPagesIndex(r *http.Request) (err error) {
+
+	site := Site{}
+	var query string
+
+	site.Id, err = strconv.Atoi(r.FormValue("site_id"))
+	checkErr(err)
+
+	row := config.DB.QueryRow("SELECT customer_id FROM site WHERE id = ?", site.Id)
+	err = row.Scan(&c.Id)
+
+	if err != nil {
+		log.Fatalf("Could not select from site: %v", err)
+	}
+
+	row = config.DB.QueryRow("SELECT name FROM customer WHERE id = ?", c.Id)
+	err = row.Scan(&c.Name)
+
+	if err != nil {
+		log.Fatalf("Could not select from customer: %v", err)
+	}
+
+	if r.FormValue("archived") == "yes"{
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,	ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
+	}else{
+		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
+	}
+	rows, err := config.DB.Query(query, site.Id)
+
+	if err != nil {
+		log.Fatalf("Could not get page records: %v", err)
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+
+		page := Page{}
+		err := rows.Scan(&page.Page_id, &page.Site_id, &page.Name, &page.UxNumber, &page.Url, &page.Status, &page.Title, &page.Description, &page.Canonical, &page.MetaRobot, &page.OgTitle, &page.OgDesc, &page.OgImage, &page.OgUrl, &page.Archive) // order matters, everything in select statement
+
+		checkErr(err)
+
+		site.Pages = append(site.Pages, page)
+	}
+
+	row = config.DB.QueryRow("select id,name,url,archive from site where id = ?", site.Id)
+
+	//site = Site{Pages: site.Pages}
+	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.Archive)
+	if err != nil {
+		log.Fatalf("Could not scan into site: %v", err)
+	}
+	c.Sites = append(c.Sites, site)
+
+	return nil
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

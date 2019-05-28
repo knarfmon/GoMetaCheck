@@ -16,12 +16,13 @@ func main() { //====web====== init()
 	http.HandleFunc("/customer/create", customer.CustomerCreate)
 	http.HandleFunc("/customer/create/process", customer.CustomerCreateProcess)
 	http.HandleFunc("/customer/site", customer.CustomerSiteIndex)
+	http.HandleFunc("/pages/index", customer.PagesIndex)
 
 	//http.HandleFunc("/test", customer.TestHandler)
 
 	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/public/", http.StripPrefix("/public/", http.FileServer(http.Dir("public"))))
-	http.ListenAndServe(":8088", nil) //===== not here for web
+	http.ListenAndServe(":8086", nil) //===== not here for web
 	//Type into browser "http://localhost:8080"
 
 }

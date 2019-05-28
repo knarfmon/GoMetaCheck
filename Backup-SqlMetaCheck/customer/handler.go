@@ -18,7 +18,7 @@ func CustomerIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	css, err := Customer{}.AllCustomers(r)
+	css, err := AllCustomers(r)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -85,8 +85,8 @@ func CustomerCreateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	c := &Customer{}
-	err := c.PutCustomer(r)
+
+	_, err := PutCustomer(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
 		return
@@ -139,8 +139,7 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	xc := &Customer{}
-	err := xc.GetCustomerSite(r)
+	css, err := GetCustomerSite(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -151,10 +150,10 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.FormValue("archived") == "yes" {
-		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", xc)
+		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", css)
 
 	}else{
-		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
+		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
 
 	}
 
@@ -189,9 +188,8 @@ func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
 		return
 	}
-	xc := &Customer{}
-	err = xc.GetCustomerSite(r)
 
+	css, err := GetCustomerSite(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -203,7 +201,7 @@ func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
 
 
 
-	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
 }
 
 func SiteUpdate(w http.ResponseWriter, r *http.Request) {
@@ -236,9 +234,8 @@ func SiteUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-	xc := &Customer{}
-	err = xc.GetCustomerSite(r)
 
+	css, err := GetCustomerSite(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -248,7 +245,7 @@ func SiteUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", css)
 }
 
 func SiteUpload(w http.ResponseWriter, r *http.Request) {
@@ -319,15 +316,13 @@ func SiteUploadProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	_, err := Upload(r)
-
-	c := &Customer{}
-	err = c.GetPagesIndex(r)
+	_, err := Upload(r)			//2/10  replaced pages with site
+	customer, err := GetPagesIndex(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", c)
+	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
 
 }
 
@@ -336,17 +331,16 @@ func PagesIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	c := &Customer{}
-	err := c.GetPagesIndex(r)
+	customer, err := GetPagesIndex(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
 	if r.FormValue("archived") == "yes" {
-		config.TPL.ExecuteTemplate(w, "PagesIndexArchive.gohtml", c)
+		config.TPL.ExecuteTemplate(w, "PagesIndexArchive.gohtml", customer)
 
 	}else{
-		config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", c)
+		config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
 	}
 
 

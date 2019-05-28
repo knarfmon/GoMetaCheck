@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Page</title>
+    <style>
+        html, body, p,h1,h2,h3 {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            /*height: 100vh;*/
+            /*width: 100vw;*/
+            padding-left: 40px;
+        }
+        p {
+            /*margin-left: 4rem;*/
+            font-size: 1rem;
+            color: black;
+        }
+
+        h2{
+            margin-left: 4rem;
+        }
+
+
+        hr{
+            width:100%;
+            /*margin-left: 4rem;*/
+            size: 1px;
+
+        }
+        .createlink {
+            font-size: 1rem;
+            color: dodgerblue;
+            margin-left: 4rem;
+        }
+        .link {
+            font-size: 1rem;
+            color: dodgerblue;
+            /*margin-left: 65vw;*/
+            justify-items: flex-end;
+
+        }
+        .sectionTitle1{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+        }
+
+        section{
+            display: flex;
+            flex-flow: wrap;
+            /*justify-content: space-between;*/
+            /* formatting */
+
+            margin-left: 4rem;
+            margin-right: 4vw;
+        }
+        .col1{
+            justify-content: left;
+
+            width: 35vw;
+        }
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 7rem;
+        }
+
+        .left{
+            justify-content: left;
+            /*float: left;*/
+            /*margin-right:50px;*/
+            width: 35vw;
+            color: dodgerblue;
+        }
+        a:hover{
+            color: red;
+        }
+        .col2 {
+            width: 35vw;
+            margin-right: 50px;
+        }
+        .col1Row{
+            justify-content: left;
+            /*float: left;*/
+            /*margin-right:50px;*/
+            width: 35vw;
+            color: #ff6f6f;
+        }
+        .col2Row{
+            width: 35vw;
+            margin-right: 50px;
+            color: #ff6f6f;
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 7rem;
+        }
+        #getall{
+            color: dodgerblue;
+        }
+
+        .button{
+
+            /*display: flex;*/
+            justify-content: center;
+            /*align-items: center;*/
+
+            color: white;
+            background-color: gray;
+            font-size: 1.2vw;
+            padding: 1px 8px;
+            margin-right: 5px;
+            width: 5vw;
+            border: none;
+
+            cursor: pointer;
+            /*border-radius: 8px;*/
+        }
+        .button:hover{
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+
+{{template "header"}}<br><br><br><br>
+<br>
+<h2>Pages Archived</h2>
+<br>
+<div class = "sectionTitle1">
+<div class = "titles">Customer:</div>
+<div class = "col3">{{.Name}}</div>
+</div>
+{{$cname := .Name}}
+
+
+{{/*<br>*/}}
+{{range .Sites}}
+<div class = "sectionTitle1">
+<div class = "titles">Site:</div>
+<div class = "col3">{{.Name}}</div>
+</div>
+<br>
+{{/*<p class="createlink"><a href="/page/create?SiteId={{.Id}}">Create New Page</a></p>*/}}
+<p class="createlink"><a class="link" href="/pages/index?site_id={{.Id}}&archived=no">Show Standard</a></p>
+{{$sname :=.Name}}
+<br>
+
+<section>
+<form method="get" action="/search/pages/index">
+    <label for="search">Find By Name:</label>
+    <input type="text" name="search" placeholder="Search For..." >
+    <input type="hidden" name="site_id" value="{{.Id}}">
+    <input class="button" value="Search" type="submit">
+    <a class="button" href="/pages/index?site_id={{.Id}}&archived=yes">Get All</a></div>
+</form>
+
+
+</section>
+
+<br><br>
+
+
+{{if .Pages}}
+<section>
+    <h3 class="col1">Name</h3>
+    <h3 class="col2">Url</h3>
+{{else}}
+    <section><h3>No existing pages.</h3></section>
+{{end}}
+    <br> <br>
+
+
+
+
+{{range .Pages}}
+    <p><div class="col1Row">
+    <a href="/page/details?page_id={{.Page_id}}&cname={{$cname}}&sname={{$sname}}">{{.Name}}</a></div>
+    <div class="col2Row">{{.Url}}</div>
+
+    {{/*<div class="link">*/}}
+
+        {{/*<a href="/site/update?site_id={{.Id}}">Edit</a> |*/}}
+        {{/*<a href="/site/upload?site_id={{.Id}}&name={{.Name}}">Upload CSV</a>*/}}
+
+    {{/*</div></p>*/}}
+
+    <hr>
+{{end}}
+
+</section>
+
+{{end}}
+</body>
+</html>
+

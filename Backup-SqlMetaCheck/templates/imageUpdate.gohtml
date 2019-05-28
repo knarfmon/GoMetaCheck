@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customer</title>
+    <style>
+        html, body, p {
+            padding: 0;
+            border: 0;
+            margin: 0;
+        }
+        body, form {
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: flex-start;
+            align-items: left;
+            /*height: 100vh;*/
+            /*padding-left: 40px;*/
+            margin-left: 4rem;
+        }
+        p {
+            margin-left: 4rem;
+            font-size: 1rem;
+            color: black;
+        }
+
+
+
+        /*div.hr{*/
+            /*margin: 0;*/
+            /*width: 60vw;*/
+            /*!*margin-left: 4rem;*!*/
+            /*!*size: 50px;*!*/
+            /*!*border-top: 1px solid #8c8b8b;*!*/
+            /*color: #000000;*/
+            /*!*background-color: #000000;*!*/
+            /*height: 15px;*/
+        /*}*/
+
+        input {
+
+            /*width: 60vw;*/
+            font-size: 1rem;
+            color: blue;
+            /*border: 1px solid black;*/
+        }
+
+        .buttonarea{
+            display: flex;
+            width: 15vw;
+            justify-content: space-between;
+        }
+        .button{
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            color: white;
+            background-color: gray;
+            font-size: 1.5vw;
+            padding: 10px 30px;
+            margin-right: 15px;
+            width: 8vw;
+
+
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .button:hover {
+            color: #000;
+            background-color: lightgrey;
+        }
+        .sectionTitle{
+            display: flex;
+            flex-flow: row;
+            padding-bottom: 8px;
+
+            width: 50rem;
+        }
+        .col3{
+            font-size: 1.2rem;
+            justify-content: left;
+
+        }
+        .titles{
+
+            margin-left: 4rem;
+            font-size: 1.2rem;
+            width: 8rem;
+
+        }
+        .DescArea{
+            font-size: 1.2rem;
+            color: blue;
+            width: 60vw;
+
+        }
+        #PageDetails{
+            margin-left: 4rem;
+            width: 30rem;
+        }
+        .form-field-err{
+            color: red;
+            width: 25rem;
+            margin-left: 0;
+            text-align: left;
+
+        }
+        fieldset{
+
+            width: 60vw;
+        }
+
+    </style>
+</head>
+<body>
+{{template "header"}}<br><br><br><br>
+
+<h2 id="PageDetails">Image Edit</h2>
+
+<div class = "sectionTitle">
+    <div class = "titles">Customer:</div>
+    <div class = "col3">{{.CustomerName}}</div>
+</div>
+{{$cname := .CustomerName}}
+
+<div class = "sectionTitle">
+    <div class = "titles">Site:</div>
+    <div class = "col3">{{.SiteName}}</div>
+</div>
+{{$sname :=.SiteName}}
+
+
+<div class = "sectionTitle">
+    <div class = "titles">Page:</div>
+    <div class = "col3">{{.PageName}}</div>
+</div>
+{{/*{{$pname :=.PageName}}*/}}
+
+<br>
+
+<form method="post" enctype="multipart/form-data"  action="/image/update/process" id="formImageUpdate">
+    {{/*<h2>Image Details</h2>*/}}
+
+
+<fieldset>
+    <label for="AltText">Alt Text:</label>
+    <div>
+        <textarea name="AltText" id="AltText" rows="4" cols="12" class="DescArea" >{{.Image.AltText.Value}}</textarea>
+    </div>
+    <br>
+
+    <p class="form-field-err" id="altTextErr"></p>
+
+    <label for="Notes">Notes</label>
+    <div>
+        <textarea name="Notes" rows="4" cols="12" class="DescArea" >{{.Image.Notes.Value}}</textarea>
+    </div>
+    <br>
+
+    <output id="list" name="list" >{{.Image.EncodedImg}}</output>
+
+
+    <br><br>
+    <div>
+    <label for="files">Image</label>
+    <input type="file" name="files" id="files"  placeholder="Image" accept=".jpg" >
+    </div>
+    <br>
+
+    <p class="form-field-err" id="filesErr"></p>
+
+
+    <input type="hidden" name="newFile" id="newFile">
+    <input type="hidden" name="page_id" value="{{.Image.Page_id}}">
+    <input type="hidden" name="image_id" value="{{.Image.Image_id}}">
+    <input type="hidden" name="cname" value="{{$cname}}">
+    <input type="hidden" name="sname" value="{{$sname}}">
+</fieldset>
+    <br> <br>
+    <div class = "buttonarea">
+        <input class="button" type="submit" id="submitbutton">
+        <a href="#" class="button" onclick="history.back();">Cancel</a>
+    </div>
+
+
+
+    {{/*<input type="hidden" name="site_id" value="{{.Id}}">*/}}
+    {{/*<input type="hidden" name="customer_id" value="{{.CustomerId}}">*/}}
+    <br>
+
+
+
+</form>
+<br><br>
+<script type="text/javascript">
+    if (window.FileReader) {
+
+
+        document.getElementById('files').addEventListener('change', handleFileSelect, false);
+
+        function handleFileSelect(evt) {
+            var files = evt.target.files;
+            var f = files[0];
+            var reader = new FileReader();
+            var image_x = document.getElementById('list');
+
+
+
+
+            reader.onload = (function(theFile) {
+                return function(e) {
+                    document.getElementById('list').innerHTML = ['<img src="', e.target.result,'" title="', theFile.name, '" width="150" />'].join('');
+
+                };
+            })(f);
+
+            reader.readAsDataURL(f);
+
+
+        }
+
+        //then your code goes here
+    } else {
+        alert('This browser does not support FileReader');
+    }
+
+    var formUser = document.querySelector('#formImageUpdate');
+    var altText = document.querySelector('#AltText');
+    var jsFile = document.querySelector('#files');
+    var altTextErr = document.querySelector('#altTextErr');
+    var filesErr = document.querySelector('#filesErr');
+    var allowedExtension = 'jpg';
+    var jsNewFile = document.querySelector('#newFile');
+
+    jsNewFile.value = "false";
+    var isValidFile = false;
+
+
+
+    altText.addEventListener('focus', function () {
+
+        altTextErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    files.addEventListener('focus', function () {
+
+        filesErr.textContent = '';
+        document.querySelector('#submitbutton').disabled = false;
+
+    });
+    //    Validate
+    //    listen for submit button click
+    formUser.addEventListener('submit', function(e){
+        var ok = validateFields();
+        jsNewFile.value = "true";
+        if (!ok) {
+            e.preventDefault();
+            return;
+        }
+    });
+    function validateFields() {
+
+        // if (altText.value === "" ) {
+        //     altTextErr.textContent = 'Must have Alt Text content';
+        //     document.querySelector('#submitbutton').disabled = true;
+        //     return false}
+
+        if (validateFile() === false){
+            filesErr.textContent = 'Please only select image files with a ".jpg" extension.';
+            document.querySelector('#submitbutton').disabled = true;
+            return false
+        }
+
+
+        imageErr.textContent = '';
+        htmlErr.textContent = '';
+        return true
+    };
+
+    function validateFile()
+    {
+
+
+        if(jsFile.value === ""){isValidFile = true;return isValidFile}
+
+        exten = jsFile.value.slice((jsFile.value.lastIndexOf(".") - 1 >>> 0) + 2);
+
+
+        if(exten === allowedExtension){
+            isValidFile = true;
+            jsNewFile.value = "true";
+
+        }else {
+            isValidFile = false;
+        }
+        return isValidFile;
+    }
+
+
+
+
+</script>
+</body>
+</html>
