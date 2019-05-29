@@ -47,7 +47,7 @@ type Site struct {
 	Name       string
 	Url        string
 	Archive    bool
-	Customer   *Customer
+	//Customer   Customer
 	Pages      []Page
 	Images     []Image
 	PageCount  int
@@ -285,80 +285,81 @@ func (c *Customer)PutCustomer(r *http.Request) error {
 	return nil
 }
 
-func OneCustomer(r *http.Request) (Customer, error) {
-	cs := Customer{}
-	id := r.FormValue("id")
+func (c *Customer)OneCustomer(r *http.Request) (err error) {
+
 	var archive int
-	if id == "" {
-		return cs, errors.New("400. Bad Request.")
+	c.Id, err = strconv.Atoi(r.FormValue("id"))
+
+	if c.Id == 0 {
+		return errors.New("400. Bad Request.")
 	}
 
-	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", id)
+	row := config.DB.QueryRow("SELECT id,name,archive FROM customer WHERE id = ?", c.Id)
 
-	err := row.Scan(&cs.Id, &cs.Name, &archive)
+	err = row.Scan(&c.Id, &c.Name, &archive)
 
 	if archive == 0 {
-		cs.Archive = false
+		c.Archive = false
 	} else {
-		cs.Archive = true
+		c.Archive = true
 	}
 
 	if err != nil {
-		return cs, err
+		return err
 	}
 
-	return cs, nil
+	return nil
 }
 
-func UpdateCustomer(r *http.Request) (Customer, error) {
+func (c *Customer)UpdateCustomer(r *http.Request) (err error) {
 	// get form values
-	cs := Customer{}
-	cs.Name = r.FormValue("name")
-	newId, err := strconv.Atoi(r.FormValue("id"))
+
+	c.Name = r.FormValue("name")
+	c.Id, err = strconv.Atoi(r.FormValue("id"))
 	checked := r.FormValue("archive") //will show "check" if box is checked
 
 	if checked == "check" {
-		cs.Archive = true
+		c.Archive = true
 
 		//Archive site
-		_, err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;", newId)
+		_, err = config.DB.Exec("UPDATE site Set archive = 1 WHERE customer_id = ?;", c.Id)
 		if err != nil {
-			return cs, errors.New("406. Not Acceptable. Archiving site failed")
+			return errors.New("406. Not Acceptable. Archiving site failed")
 		}
 		//Archive page
-		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", c.Id)
 		if err != nil {
-			return cs, errors.New("406. Not Acceptable. Archiving page failed")
+			return errors.New("406. Not Acceptable. Archiving page failed")
 		}
 
 	} else {
-		cs.Archive = false
-		_, err = config.DB.Exec("UPDATE site Set archive = 0 WHERE customer_id = ?;", newId)
+		c.Archive = false
+		_, err = config.DB.Exec("UPDATE site Set archive = 0 WHERE customer_id = ?;", c.Id)
 		if err != nil {
-			return cs, errors.New("406. Not Acceptable. Archiving site failed")
+			return errors.New("406. Not Acceptable. Archiving site failed")
 		}
 		//Archive page
-		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", newId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id IN (SELECT id FROM site 		WHERE customer_id = ?);", c.Id)
 		if err != nil {
-			return cs, errors.New("406. Not Acceptable. Archiving page failed")
+			return errors.New("406. Not Acceptable. Archiving page failed")
 		}
 	}
 
-	if cs.Name == "" {
-		return cs, errors.New("400. Bad Request. Fields can't be empty.")
+	if c.Name == "" {
+		return errors.New("400. Bad Request. Name can't be empty.")
 	}
 
 	if err != nil {
-		return cs, errors.New("406. Not Acceptable. Id not of correct type")
+		return errors.New("406. Not Acceptable. Id not of correct type")
 	}
-	cs.Id = newId
+	//cs.Id = newId
 
 	// insert values
-	_, err = config.DB.Exec("UPDATE customer SET name = ?, archive = ? WHERE id=?;", cs.Name, cs.Archive, cs.Id)
+	_, err = config.DB.Exec("UPDATE customer SET name = ?, archive = ? WHERE id=?;", c.Name, c.Archive, c.Id)
 	if err != nil {
-		return cs, err
+		return err
 	}
-	return cs, nil
+	return nil
 }
 
 func (c *Customer)GetCustomerSite(r *http.Request) (err error) {

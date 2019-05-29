@@ -1,8 +1,8 @@
 package customer
 
 import (
-			"github.com/knarfmon/GoMetaCheck/SqlMetaCheck/config"
-			"net/http"
+	"github.com/knarfmon/GoMetaCheck/SqlMetaCheck/config"
+	"net/http"
 
 	"database/sql"
 	//"fmt"
@@ -26,7 +26,7 @@ func CustomerIndex(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("archived") == "yes" {
 		config.TPL.ExecuteTemplate(w, "customerIndexArchive.gohtml", css)
 
-	}else{
+	} else {
 		config.TPL.ExecuteTemplate(w, "customerIndex.gohtml", css)
 
 	}
@@ -45,7 +45,7 @@ func IndexSignupProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := ProcessNewUser(w,r)
+	_, err := ProcessNewUser(w, r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
@@ -54,7 +54,6 @@ func IndexSignupProcess(w http.ResponseWriter, r *http.Request) {
 
 	config.TPL.ExecuteTemplate(w, "index.gohtml", "Sucessful Registration")
 }
-
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -100,8 +99,8 @@ func CustomerUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-
-	cs, err := OneCustomer(r)
+	c := &Customer{}
+	err := c.OneCustomer(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -111,27 +110,26 @@ func CustomerUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "customerUpdate.gohtml", cs)
+	config.TPL.ExecuteTemplate(w, "customerUpdate.gohtml", c)
 }
-
 
 func CustomerUpdateProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-
-	cs, err := UpdateCustomer(r)
+	c := &Customer{}
+	err := c.UpdateCustomer(r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-if cs.Archive == true {
-	http.Redirect(w, r, "/customers?archived=yes", http.StatusSeeOther)
-}else{
-	http.Redirect(w, r, "/customers", http.StatusSeeOther)
-}
+	if c.Archive == true {
+		http.Redirect(w, r, "/customers?archived=yes", http.StatusSeeOther)
+	} else {
+		http.Redirect(w, r, "/customers", http.StatusSeeOther)
+	}
 }
 
 func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
@@ -153,12 +151,10 @@ func CustomerSiteIndex(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("archived") == "yes" {
 		config.TPL.ExecuteTemplate(w, "customerSiteIndexArchive.gohtml", xc)
 
-	}else{
+	} else {
 		config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
 
 	}
-
-
 
 }
 
@@ -175,8 +171,6 @@ func SiteCreate(w http.ResponseWriter, r *http.Request) {
 
 	config.TPL.ExecuteTemplate(w, "siteCreate.gohtml", site)
 }
-
-
 
 func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -200,8 +194,6 @@ func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-
-
 
 	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
 }
@@ -286,7 +278,6 @@ func SitePdf(w http.ResponseWriter, r *http.Request) {
 	//GetSitePdf(w,r)
 }
 
-
 func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
@@ -308,7 +299,6 @@ func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-
 
 	config.TPL.ExecuteTemplate(w, "CompareIndex.gohtml", compare)
 
@@ -345,11 +335,9 @@ func PagesIndex(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("archived") == "yes" {
 		config.TPL.ExecuteTemplate(w, "PagesIndexArchive.gohtml", c)
 
-	}else{
+	} else {
 		config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", c)
 	}
-
-
 
 }
 
@@ -366,8 +354,6 @@ func SearchPagesIndex(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "PagesIndex.gohtml", customer)
 }
 
-
-
 func PageCreate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
@@ -381,7 +367,7 @@ func PageDetails(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	pageDetail,err := GetPageDetails(r)
+	pageDetail, err := GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
@@ -394,7 +380,7 @@ func PageDiff(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	GetPageDiff(w,r)
+	GetPageDiff(w, r)
 }
 
 func PageDiffPrint_h(w http.ResponseWriter, r *http.Request) {
@@ -402,9 +388,8 @@ func PageDiffPrint_h(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	PageDiffPrint(w,r)
+	PageDiffPrint(w, r)
 }
-
 
 func PageUpdate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -444,47 +429,46 @@ func ImageUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	config.TPL.ExecuteTemplate(w, "imageUpdate.gohtml", pageDetail)
 }
 
-func ImageGetUiHandler(w http.ResponseWriter, r *http.Request)  {
+func ImageGetUiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
 	custSitePage := ImageGetUi(r)
 
-	config.TPL.ExecuteTemplate(w, "imageGetUi.gohtml",custSitePage)
+	config.TPL.ExecuteTemplate(w, "imageGetUi.gohtml", custSitePage)
 }
-
 
 func PageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	 err := UpdatePage(r)
+	err := UpdatePage(r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
 
-	pageDetail,err := GetPageDetails(r)
+	pageDetail, err := GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
 	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
-//
-//	css, err := GetCustomerSite(r)
-//	switch {
-//	case err == sql.ErrNoRows:
-//		http.NotFound(w, r)
-//		return
-//	case err != nil:
-//		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-//		return
-//	}
-//
-//	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
+	//
+	//	css, err := GetCustomerSite(r)
+	//	switch {
+	//	case err == sql.ErrNoRows:
+	//		http.NotFound(w, r)
+	//		return
+	//	case err != nil:
+	//		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+	//		return
+	//	}
+	//
+	//	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", nil)
 }
 
 func ImageUpdateProcessHandler(w http.ResponseWriter, r *http.Request) {
@@ -492,13 +476,14 @@ func ImageUpdateProcessHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	err := ImageUpdate(w,r)
+	err := ImageUpdate(w, r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
-		return}
+		return
+	}
 
-	pageDetail,err := GetPageDetails(r)
+	pageDetail, err := GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
@@ -513,21 +498,22 @@ func ImageProcessHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Upload image data from Ui, validate, and package
-	imageStructFromUi,err := ImageUploadFromUi(w,r)
+	imageStructFromUi, err := ImageUploadFromUi(w, r)
 
 	if err != nil {
 		http.Error(w, "Unable to upload image file", http.StatusBadRequest)
-		return}
+		return
+	}
 
 	//Convert image to Thumbnail jpg
 	imageStructFromUi = ImageToThumbJpg(imageStructFromUi)
 
 	if ImageSinglePutToSql(imageStructFromUi) != nil {
 		http.Error(w, "Unable to upload image file to database", http.StatusBadRequest)
-		return}
+		return
+	}
 
-
-	pageDetail,err := GetPageDetails(r)
+	pageDetail, err := GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
@@ -553,6 +539,6 @@ func CheckUserName(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, sbs)
 }
 
-func TestHandler(w http.ResponseWriter, r *http.Request){
+func TestHandler(w http.ResponseWriter, r *http.Request) {
 	Test()
 }
