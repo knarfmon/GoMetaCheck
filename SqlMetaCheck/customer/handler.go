@@ -163,13 +163,10 @@ func SiteCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	site, err := PrePutSite(r)
-	if err != nil {
-		http.Error(w, http.StatusText(406), http.StatusMethodNotAllowed)
-		return
-	}
+	CustomerId := r.FormValue("customer_id")
 
-	config.TPL.ExecuteTemplate(w, "siteCreate.gohtml", site)
+	config.TPL.ExecuteTemplate(w, "siteCreate.gohtml", CustomerId)
+
 }
 
 func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
@@ -177,14 +174,14 @@ func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-
-	_, err := PutSite(r)
+	s := &Site{}
+	err := s.PutSite(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
 		return
 	}
-	xc := &Customer{}
-	err = xc.GetCustomerSite(r)
+	c := &Customer{}
+	err = c.GetCustomerSite(r)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -195,7 +192,7 @@ func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", c)
 }
 
 func SiteUpdate(w http.ResponseWriter, r *http.Request) {
@@ -203,8 +200,8 @@ func SiteUpdate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-
-	oneSite, err := OneSite(r)
+	s := &Site{}
+	err := s.OneSite(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -214,7 +211,7 @@ func SiteUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "siteUpdate.gohtml", oneSite)
+	config.TPL.ExecuteTemplate(w, "siteUpdate.gohtml", s)
 }
 
 func SiteUpdateProcess(w http.ResponseWriter, r *http.Request) {
@@ -222,14 +219,14 @@ func SiteUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-
-	_, err := UpdateSite(r)
+	s := &Site{}
+	err := s.UpdateSite(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-	xc := &Customer{}
-	err = xc.GetCustomerSite(r)
+	c := &Customer{}
+	err = c.GetCustomerSite(r)
 
 	switch {
 	case err == sql.ErrNoRows:
@@ -240,7 +237,7 @@ func SiteUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", xc)
+	config.TPL.ExecuteTemplate(w, "customerSiteIndex.gohtml", c)
 }
 
 func SiteUpload(w http.ResponseWriter, r *http.Request) {

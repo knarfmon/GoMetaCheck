@@ -17,18 +17,18 @@ import (
 	//"fmt"
 
 	"fmt"
+	"github.com/jung-kurt/gofpdf"
+	"github.com/knarfmon/go-diff/diffmatchpatch"
 	//"github.com/satori/go.uuid"
 	//"golang.org/x/crypto/bcrypt"
 	//"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	"sort"
-	"github.com/jung-kurt/gofpdf"
-	"github.com/knarfmon/go-diff/diffmatchpatch"
+	"database/sql"
+	"html/template"
 	//"github.com/sergi/go-diff/diffmatchpatch"
 	//"github.com/jung-kurt/gofpdf"
 	"time"
-	"database/sql"
-	"html/template"
 	//"google.golang.org/appengine/log"
 	"mime/multipart"
 )
@@ -48,50 +48,50 @@ type Site struct {
 	Url        string
 	Archive    bool
 	//Customer   Customer
-	Pages      []Page
-	Images     []Image
-	PageCount  int
-	Date       string
+	Pages     []Page
+	Images    []Image
+	PageCount int
+	Date      string
 }
 
 type Page struct {
-	Page_id          int
-	Site_id          int
-	Name             string
-	UxNumber         int
-	Url              string
-	Status           int
-	Title            string //4
-	Description      string
-	Canonical        string
-	MetaRobot        string
-	OgTitle          string
-	OgDesc           string
-	OgImage          string
-	OgUrl            string
-	Archive          bool
-	Site             *Site
-	Match            bool
+	Page_id     int
+	Site_id     int
+	Name        string
+	UxNumber    int
+	Url         string
+	Status      int
+	Title       string //4
+	Description string
+	Canonical   string
+	MetaRobot   string
+	OgTitle     string
+	OgDesc      string
+	OgImage     string
+	OgUrl       string
+	Archive     bool
+	Site        *Site
+	Match       bool
 }
 
 type CustSitePage struct {
-	CustomerId		int
-	CustomerName    string
-	SiteId          int
-	SiteName        string
-	PageId          int
-	PageName        string
+	CustomerId   int
+	CustomerName string
+	SiteId       int
+	SiteName     string
+	PageId       int
+	PageName     string
 }
 type ImageStructFromUi struct {
-	ImageId			int
-	SiteId          int
-	PageId          int
-	AltText  		sql.NullString
-	FileName		string
-	Mpf				multipart.File
-	Hdr				multipart.FileHeader
-	ByteFile		[]byte
-	Notes    		sql.NullString
+	ImageId  int
+	SiteId   int
+	PageId   int
+	AltText  sql.NullString
+	FileName string
+	Mpf      multipart.File
+	Hdr      multipart.FileHeader
+	ByteFile []byte
+	Notes    sql.NullString
 }
 
 type Diff struct {
@@ -142,72 +142,70 @@ type Diff struct {
 
 	Match bool
 
-	DiffImages		[]DiffImage		//contains only the ones for the page
+	DiffImages []DiffImage //contains only the ones for the page
 }
 
-type DiffImage struct{
-	AltTextStd		sql.NullString
-	AltTextCsv		sql.NullString
+type DiffImage struct {
+	AltTextStd sql.NullString
+	AltTextCsv sql.NullString
 	//xAltTextMatch	string		// remove ones with x in front, not using
 
-	ImageUrlStd		sql.NullString
-	ImageUrlCsv		sql.NullString
+	ImageUrlStd sql.NullString
+	ImageUrlCsv sql.NullString
 	//xImageUrlMatch	string
 
-	PageUrlStd		sql.NullString
-	PageUrlCsv		sql.NullString
+	PageUrlStd sql.NullString
+	PageUrlCsv sql.NullString
 	//xPageUrlMatch	string
 
-	NameStd			sql.NullString
-	Match			bool
+	NameStd sql.NullString
+	Match   bool
 }
 
-
 type Image struct {
-	Image_id int
-	Site_id  int
-	Page_id  int
-	AltText  sql.NullString
-	ImageUrl sql.NullString
-	Name     sql.NullString
-	Notes    sql.NullString
-	PageUrl  sql.NullString
-	Match	bool
-	ByteFile		[]byte
-	EncodedImg	template.HTML
-	JpgId	int
+	Image_id   int
+	Site_id    int
+	Page_id    int
+	AltText    sql.NullString
+	ImageUrl   sql.NullString
+	Name       sql.NullString
+	Notes      sql.NullString
+	PageUrl    sql.NullString
+	Match      bool
+	ByteFile   []byte
+	EncodedImg template.HTML
+	JpgId      int
 }
 
 type PageDetail struct {
 	CustomerName string
 	SiteName     string
-	PageName	string
+	PageName     string
 	Detail       Page
 	Image        Image
 	Images       []Image
 }
 
 type Compare struct {
-
 	CustomerName string
 	CsvSite      Site
 	StdSite      Site
 	Diffs        []Diff
 	//DiffImage		DiffImage
-	DiffImages		[]DiffImage  //moved this under diff
-	Mismatch		int
-	MismatchImage	int
-	CsvPageCount	int
-	StdPageCount	int
-	MatchPageCount	int
-	BlankAltText	int
-	UrlMisMatch		int
+	DiffImages     []DiffImage //moved this under diff
+	Mismatch       int
+	MismatchImage  int
+	CsvPageCount   int
+	StdPageCount   int
+	MatchPageCount int
+	BlankAltText   int
+	UrlMisMatch    int
 }
 
 type MisCompare struct {
-	StdPage		Page
-	CsvPage		Page
-	MetricMatch	int
+	StdPage     Page
+	CsvPage     Page
+	MetricMatch int
 }
 
 type User struct {
@@ -218,7 +216,7 @@ type User struct {
 	Role     string
 }
 
-func (c Customer)AllCustomers(r *http.Request) ([]Customer, error) {
+func (c Customer) AllCustomers(r *http.Request) ([]Customer, error) {
 
 	var archive int
 	var query string
@@ -267,7 +265,7 @@ func (c Customer)AllCustomers(r *http.Request) ([]Customer, error) {
 
 }
 
-func (c *Customer)PutCustomer(r *http.Request) error {
+func (c *Customer) PutCustomer(r *http.Request) error {
 	// get form values
 
 	c.Name = r.FormValue("name")
@@ -285,7 +283,7 @@ func (c *Customer)PutCustomer(r *http.Request) error {
 	return nil
 }
 
-func (c *Customer)OneCustomer(r *http.Request) (err error) {
+func (c *Customer) OneCustomer(r *http.Request) (err error) {
 
 	var archive int
 	c.Id, err = strconv.Atoi(r.FormValue("id"))
@@ -311,7 +309,7 @@ func (c *Customer)OneCustomer(r *http.Request) (err error) {
 	return nil
 }
 
-func (c *Customer)UpdateCustomer(r *http.Request) (err error) {
+func (c *Customer) UpdateCustomer(r *http.Request) (err error) {
 	// get form values
 
 	c.Name = r.FormValue("name")
@@ -362,7 +360,7 @@ func (c *Customer)UpdateCustomer(r *http.Request) (err error) {
 	return nil
 }
 
-func (c *Customer)GetCustomerSite(r *http.Request) (err error) {
+func (c *Customer) GetCustomerSite(r *http.Request) (err error) {
 	var query string
 	c.Id, err = strconv.Atoi(r.FormValue("customer_id"))
 
@@ -403,127 +401,98 @@ func (c *Customer)GetCustomerSite(r *http.Request) (err error) {
 	return nil
 }
 
-func PrePutSite(r *http.Request) (Site, error) {
+func (s *Site) PutSite(r *http.Request) (err error) {
 	// get form values
-	site := Site{}
-	strId := r.FormValue("customer_id")
-	newId, err := strconv.Atoi(strId)
+
+	s.Name = r.FormValue("name")
+	s.Url = r.FormValue("url")
+	s.CustomerId, err = strconv.Atoi(r.FormValue("customer_id"))
 
 	if err != nil {
-		return site, errors.New("406. Not Acceptable. Id not of correct type")
+		return errors.New("406. Not Acceptable. Id not of correct type") //406
 	}
-	site.Name = strId
-	site.CustomerId = newId
-	return site, nil
-}
-
-func PutSite(r *http.Request) (Site, error) {
-	// get form values
-	site := Site{}
-	site.Name = r.FormValue("name")
-	site.Url = r.FormValue("url")
-
-	strId := r.FormValue("customer_id")
-	newId, err := strconv.Atoi(strId)
-	if err != nil {
-		return site, errors.New("406. Not Acceptable. Id not of correct type") //406
-	}
-	site.CustomerId = newId
 
 	// validate form values
-	if site.Name == "" || site.Url == "" {
-		return site, errors.New("400. Bad request. All fields must be complete.")
+	if s.Name == "" || s.Url == "" {
+		return errors.New("400. Bad request. All fields must be complete.")
 	}
 
 	// insert values
-	_, err = config.DB.Exec("INSERT INTO site (name,url,customer_id) VALUES (?,?,?)", site.Name, site.Url, site.CustomerId)
+	_, err = config.DB.Exec("INSERT INTO site (name,url,customer_id) VALUES (?,?,?)", s.Name, s.Url, s.CustomerId)
 	if err != nil {
-		return site, errors.New("500. Internal Server Error." + err.Error())
+		return errors.New("500. Internal Server Error." + err.Error())
 	}
-	return site, nil
+	return nil
 }
 
-func OneSite(r *http.Request) (Site, error) {
-	site := Site{}
+func (s *Site) OneSite(r *http.Request) (err error) {
+
 	var archive int
-	strId := r.FormValue("site_id")
-	if strId == "" {
-		return site, errors.New("400. Bad Request.")
-	}
-	intId, err := strconv.Atoi(strId)
+
+	s.Id, err = strconv.Atoi(r.FormValue("site_id"))
 	if err != nil {
-		return site, errors.New("406. Not Acceptable. Id not of correct type") //406
+		return errors.New("406. Not Acceptable. Id not of correct type") //406
 	}
 
-	site.Id = intId
+	row := config.DB.QueryRow("SELECT id,name,url,customer_id,archive FROM site WHERE id = ?", s.Id)
 
-	row := config.DB.QueryRow("SELECT id,name,url,customer_id,archive FROM site WHERE id = ?", site.Id)
-
-	err = row.Scan(&site.Id, &site.Name, &site.Url, &site.CustomerId, &archive)
+	err = row.Scan(&s.Id, &s.Name, &s.Url, &s.CustomerId, &archive)
 	if err != nil {
-		return site, err
+		return err
 	}
 
 	if archive == 0 {
-		site.Archive = false
+		s.Archive = false
 	} else {
-		site.Archive = true
+		s.Archive = true
 	}
 
-	return site, nil
+	return nil
 }
 
-func UpdateSite(r *http.Request) (Site, error) {
+func (s *Site)UpdateSite(r *http.Request) (err error) {
 	// get form values
-	site := Site{}
-	site.Name = r.FormValue("name")
-	site.Url = r.FormValue("url")
-	strId := r.FormValue("site_id")
-	strCustomerId := r.FormValue("customer_id")
+	s.Name = r.FormValue("name")
+	s.Url = r.FormValue("url")
+	if s.Name == "" || s.Url == "" {
+		return errors.New("400. Bad request. All fields must be complete.")
+	}
+
+	s.Id, err = strconv.Atoi(r.FormValue("site_id"))
+	if err != nil {
+		return errors.New("406. Not Acceptable. Id not of correct type")
+	}
+
+	s.CustomerId, err = strconv.Atoi(r.FormValue("customer_id"))
+	if err != nil {
+		return errors.New("406. Not Acceptable. Id not of correct type")
+	}
+
 	checked := r.FormValue("archive") //will show "check" if box is checked
-
-
-	if site.Name == "" || site.Url == "" {
-		return site, errors.New("400. Bad request. All fields must be complete.")
-	}
-
-	intId, err := strconv.Atoi(strId)
-	if err != nil {
-		return site, errors.New("406. Not Acceptable. Id not of correct type")
-	}
-	site.Id = intId
-
-	intCustomerId, err := strconv.Atoi(strCustomerId)
-	if err != nil {
-		return site, errors.New("406. Not Acceptable. Id not of correct type")
-	}
-	site.CustomerId = intCustomerId
-
-
 	if checked == "check" {
-		site.Archive = true
+		s.Archive = true
 
-		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id = ?;", intId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 1 WHERE site_id = ?;", s.Id)
 		if err != nil {
-			return site, errors.New("406. Not Acceptable. Archiving page failed")
+			return errors.New("406. Not Acceptable. Archiving page failed")
 		}
 
 	} else {
-		site.Archive = false
+		s.Archive = false
 
-		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id = ?;",intId)
+		_, err = config.DB.Exec("UPDATE page SET archive = 0 WHERE site_id = ?;", s.Id)
 		if err != nil {
-			return site, errors.New("406. Not Acceptable. Archiving page failed")
+			return errors.New("406. Not Acceptable. Archiving page failed")
 		}
 	}
 
 	// insert values
-	_, err = config.DB.Exec("UPDATE site SET name=?,url=?,archive=? WHERE id=?;", site.Name, site.Url, site.Archive, site.Id)
+	_, err = config.DB.Exec("UPDATE site SET name=?,url=?,archive=? WHERE id=?;", s.Name, s.Url, s.Archive, s.Id)
 
 	if err != nil {
-		return site, err
+		return err
 	}
-	return site, nil
+	return nil
 }
 
 func PreUploadSite(r *http.Request) (Site, error) {
@@ -556,8 +525,6 @@ func UploadSite4(r *http.Request) ([]Page, error) {
 		panic(err)
 	}
 	defer file.Close()
-
-
 
 	rdr := csv.NewReader(file)
 	rdr.FieldsPerRecord = -1
@@ -667,7 +634,7 @@ func UploadForCompare(r *http.Request) (Compare, error) {
 
 	site := Site{}
 	//Create site, uploads pages and images into Site.-----------------
-	csvSite, err := UploadHtml(r, site)   //from csv
+	csvSite, err := UploadHtml(r, site) //from csv
 	//todo needs work, need altText for compare & imageUrl for jpg
 	csvSite, err = UploadImage(r, csvSite) //from csv
 	checkErr(err)
@@ -705,8 +672,6 @@ func Upload(r *http.Request) (Site, error) { //changed [] Page with Site
 
 	site, err = UploadImage(r, site)
 
-
-
 	err = PutImage(site)
 	// push image data to mysql
 
@@ -735,7 +700,6 @@ func UploadHtml(r *http.Request, site Site) (Site, error) { //added site Site  r
 	rdr := csv.NewReader(file)
 	rdr.FieldsPerRecord = -1
 	columns := make(map[string]int)
-
 
 	for row := 0; ; row++ {
 		record, err := rdr.Read()
@@ -790,21 +754,20 @@ func checkErr(err error) {
 		panic(err)
 	}
 }
-func GetImages(r *http.Request) ([]Image){
-fmt.Println("Starting GetImages")
+func GetImages(r *http.Request) ([]Image) {
+	fmt.Println("Starting GetImages")
 	images := []Image{}
 
 	site_id, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
-//todo add jpg
+	//todo add jpg
 
 	//row := config.DB.QueryRow("SELECT i.id,i.site_id,i.page_id,i.alt_text,i.notes,j.image FROM image i,jpg j where i.jpg_id=j.id and i.id = ?", intId)
 
 	//rows, err := config.DB.Query("SELECT id,site_id,page_id,alt_text,image_url,name,notes,page_url FROM image where site_id = ?", site_id)
 
 	rows, err := config.DB.Query("SELECT i.id,i.site_id,i.page_id,i.alt_text,i.notes,j.image FROM image i,jpg j where i.jpg_id=j.id and i.site_id = ?", site_id)
-
 
 	if err != nil {
 		log.Fatalf("Could not get image records: %v", err)
@@ -824,7 +787,7 @@ fmt.Println("Starting GetImages")
 		images = append(images, image)
 	}
 
-fmt.Println("Completed GetImage, 794")
+	fmt.Println("Completed GetImage, 794")
 	return images
 }
 
@@ -839,10 +802,9 @@ func GetPages(r *http.Request) (Site, error) {
 	checkErr(err)
 	var query string
 
-
-	if r.FormValue("archived") == "yes"{
+	if r.FormValue("archived") == "yes" {
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
-	}else{
+	} else {
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
 	}
 	rows, err := config.DB.Query(query, strId)
@@ -909,7 +871,6 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 			Name := fixPageName(record[columns["Source"]])
 			PageUrl := record[columns["Source"]]
 
-
 			// adding page id here, cant add without major change with pointers since passing site around
 			for _, outer := range site.Pages {
 				if outer.Url == PageUrl {
@@ -923,15 +884,14 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 				//use id to store in image table, image already stored in jpg table
 				jpgId = int(id)
 
-
-			}else {
+			} else {
 				// imageUrl not found
 
 				// create slice of byte of image
 				xByte := UrlToXofByte(ImageUrl)
 
 				//insert image into table, return id
-				res , err := config.DB.Exec("INSERT INTO jpg (image) VALUES (?)",	xByte)
+				res, err := config.DB.Exec("INSERT INTO jpg (image) VALUES (?)", xByte)
 				if err != nil {
 					log.Fatalf("Could not INSERT into jpg: %v", err)
 				}
@@ -945,26 +905,24 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 				jpgId = int(id)
 			}
 
-
 			//convert url ImageUrl to xbyte here, while loop
 			//var xByte = UrlToXofByte(ImageUrl)
-//todo change these to ToNullString
+			//todo change these to ToNullString
 			site.Images = append(site.Images, Image{
-				Site_id:  strId,
-				AltText: 	ToNullString(AltText),
+				Site_id: strId,
+				AltText: ToNullString(AltText),
 				//AltText:  AltText,
 				ImageUrl: ToNullString(ImageUrl),
 				Name:     ToNullString(Name),
 				PageUrl:  ToNullString(PageUrl),
 				Page_id:  pageid,
-				JpgId: 		jpgId,
+				JpgId:    jpgId,
 				//ByteFile: 	xByte,   //not storing byteFile here any more, just the FK id
-
 			})
 
 		}
 	}
-fmt.Println("Inserted all images into jpg table")
+	fmt.Println("Inserted all images into jpg table")
 	return site, nil
 }
 
@@ -973,16 +931,15 @@ func MatchPerPage(compare Compare) (Compare, error) {
 	//outer loop is the Diffs, inner loop is the DiffImages
 	for outer := 0; outer < len(compare.Diffs); outer++ {
 		for inner := 0; inner < len(compare.DiffImages); inner++ {
-			if compare.Diffs[outer].UrlStd == compare.DiffImages[inner].PageUrlStd{
-				compare.Diffs[outer].DiffImages = append(compare.Diffs[outer].DiffImages,compare.DiffImages[inner])
+			if compare.Diffs[outer].UrlStd == compare.DiffImages[inner].PageUrlStd {
+				compare.Diffs[outer].DiffImages = append(compare.Diffs[outer].DiffImages, compare.DiffImages[inner])
 
 			}
-
 
 		}
 
 	}
-	return compare,nil
+	return compare, nil
 }
 
 //todo Match images
@@ -992,7 +949,7 @@ func MatchImages(compare Compare) (Compare, error) {
 	//range over page - out loop
 	csvSite := compare.CsvSite //outer
 	stdSite := compare.StdSite //inner
-fmt.Println(csvSite)
+	fmt.Println(csvSite)
 	compare.DiffImages = []DiffImage{}
 
 	var mismatchImage int
@@ -1000,13 +957,15 @@ fmt.Println(csvSite)
 	for outer := 0; outer < len(csvSite.Images); outer++ {
 		var noMatch sql.NullString
 		diffImage := DiffImage{
-			PageUrlCsv:  csvSite.Images[outer].PageUrl,
+			PageUrlCsv: csvSite.Images[outer].PageUrl,
 			//ImageUrlCsv: csvSite.Images[outer].ImageUrl,
-			AltTextCsv:  csvSite.Images[outer].AltText,
+			AltTextCsv: csvSite.Images[outer].AltText,
 		}
 		for inner := 0; inner < len(stdSite.Images); inner++ {
 
-			if stdSite.Images[inner].PageUrl != csvSite.Images[outer].PageUrl{continue}
+			if stdSite.Images[inner].PageUrl != csvSite.Images[outer].PageUrl {
+				continue
+			}
 			diffImage.PageUrlStd = stdSite.Images[inner].PageUrl
 
 			//will probably have to take this out, not comparable
@@ -1014,35 +973,33 @@ fmt.Println(csvSite)
 			//diffImage.ImageUrlStd = stdSite.Images[inner].ImageUrl
 
 			noMatch = stdSite.Images[inner].AltText
-			if stdSite.Images[inner].AltText != csvSite.Images[outer].AltText {continue}//next inner loop
+			if stdSite.Images[inner].AltText != csvSite.Images[outer].AltText {
+				continue
+			} //next inner loop
 			diffImage.AltTextStd = stdSite.Images[inner].AltText
 			diffImage.Match = true
-
 
 			break
 
 		}
 
-			if diffImage.Match == false{
-				diffImage.AltTextStd = noMatch
-				fmt.Println("AltTextStd = ",diffImage.AltTextStd)
-				fmt.Println("AltTextCsv = ",diffImage.AltTextCsv)
-				mismatchImage++
-			}
+		if diffImage.Match == false {
+			diffImage.AltTextStd = noMatch
+			fmt.Println("AltTextStd = ", diffImage.AltTextStd)
+			fmt.Println("AltTextCsv = ", diffImage.AltTextCsv)
+			mismatchImage++
+		}
 
 		compare.DiffImages = append(compare.DiffImages, diffImage)
 
-		}
+	}
 	compare.MismatchImage = mismatchImage
 	return compare, nil
 
 	//New methodology to matching images
 	//Problem: many images per page,many with no alt text, so difficult to match
 
-
-
 }
-
 
 func MatchSites(compare Compare) (Compare, error) {
 
@@ -1055,12 +1012,8 @@ func MatchSites(compare Compare) (Compare, error) {
 	compare.CsvPageCount = len(csvSite.Pages)
 	compare.StdPageCount = len(stdSite.Pages)
 
-
-
-
 	//should match on ten items for HTML csv
 	for outer := 0; outer < len(csvSite.Pages); outer++ {
-
 
 		for inner := 0; inner < len(stdSite.Pages); inner++ {
 
@@ -1077,55 +1030,73 @@ func MatchSites(compare Compare) (Compare, error) {
 				diff.StatusStd = stdSite.Pages[inner].Status
 				if stdSite.Pages[inner].Status == csvSite.Pages[outer].Status {
 					diff.StatusMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.TitleCsv = csvSite.Pages[outer].Title
 				diff.TitleStd = stdSite.Pages[inner].Title
 				if stdSite.Pages[inner].Title == csvSite.Pages[outer].Title {
 					diff.TitleMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.DescriptionCsv = csvSite.Pages[outer].Description
 				diff.DescriptionStd = stdSite.Pages[inner].Description
 				if stdSite.Pages[inner].Description == csvSite.Pages[outer].Description {
 					diff.DescriptionMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.CanonicalCsv = csvSite.Pages[outer].Canonical
 				diff.CanonicalStd = stdSite.Pages[inner].Canonical
 				if stdSite.Pages[inner].Canonical == csvSite.Pages[outer].Canonical {
 					diff.CanonicalMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.MetaRobotCsv = csvSite.Pages[outer].MetaRobot
 				diff.MetaRobotStd = stdSite.Pages[inner].MetaRobot
 				if stdSite.Pages[inner].MetaRobot == csvSite.Pages[outer].MetaRobot {
 					diff.MetaRobotMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.OgTitleCsv = csvSite.Pages[outer].OgTitle
 				diff.OgTitleStd = stdSite.Pages[inner].OgTitle
 				if stdSite.Pages[inner].OgTitle == csvSite.Pages[outer].OgTitle {
 					diff.OgTitleMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.OgDescCsv = csvSite.Pages[outer].OgDesc
 				diff.OgDescStd = stdSite.Pages[inner].OgDesc
 				if stdSite.Pages[inner].OgDesc == csvSite.Pages[outer].OgDesc {
 					diff.OgDescMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.OgImageCsv = csvSite.Pages[outer].OgImage
 				diff.OgImageStd = stdSite.Pages[inner].OgImage
 				if stdSite.Pages[inner].OgImage == csvSite.Pages[outer].OgImage {
 					diff.OgImageMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.OgUrlCsv = csvSite.Pages[outer].OgUrl
 				diff.OgUrlStd = stdSite.Pages[inner].OgUrl
 				if stdSite.Pages[inner].OgUrl == csvSite.Pages[outer].OgUrl {
 					diff.OgUrlMatch = true
-				}else {compare.Mismatch++}
+				} else {
+					compare.Mismatch++
+				}
 
 				diff.UxNumber = stdSite.Pages[inner].UxNumber
 				diff.Name = stdSite.Pages[inner].Name
@@ -1137,41 +1108,43 @@ func MatchSites(compare Compare) (Compare, error) {
 		}
 
 	}
-//---------------------- Matching of pages with typo's in url's, unable to match otherwise------------
-
+	//---------------------- Matching of pages with typo's in url's, unable to match otherwise------------
 
 	csvMisPages := []Page{}
 	stdMisPages := []Page{}
 	//Creates slice of csv pages with mis matched urls
-	for _,value :=range csvSite.Pages{
-		if value.Match == false{fmt.Println("Found CSV Url Mismatch ",value.Url)
-		csvMisPages = append(csvMisPages,value)}
-}
-		compare.UrlMisMatch = len(csvMisPages)
-//fmt.Println("csvMisPages ",csvMisPages)
+	for _, value := range csvSite.Pages {
+		if value.Match == false {
+			fmt.Println("Found CSV Url Mismatch ", value.Url)
+			csvMisPages = append(csvMisPages, value)
+		}
+	}
+	compare.UrlMisMatch = len(csvMisPages)
+	//fmt.Println("csvMisPages ",csvMisPages)
 	//Creates slice of std pages with mis matched urls
-	for _,value :=range stdSite.Pages{
-		if value.Match == false{fmt.Println("Found STD Url Mismatch ",value.Url)
-			stdMisPages = append(stdMisPages,value)
-			}
+	for _, value := range stdSite.Pages {
+		if value.Match == false {
+			fmt.Println("Found STD Url Mismatch ", value.Url)
+			stdMisPages = append(stdMisPages, value)
+		}
 	}
 	//Compare pages in slices, determine greatest % correlation for match
 	//Duplicate titles and descriptions prevent secondary matching on them
 	misCompares := []MisCompare{}
-	for _,outer := range stdMisPages{
-		for _,inner := range csvMisPages{
+	for _, outer := range stdMisPages {
+		for _, inner := range csvMisPages {
 			misCompare := MisCompare{}
 			misCompare.CsvPage = inner
 			misCompare.StdPage = outer
 			misCompare.MetricMatch = levenshtein.Distance(outer.Url, inner.Url)
 
-			misCompares = append(misCompares,misCompare)
+			misCompares = append(misCompares, misCompare)
 
 			fmt.Printf("The distance between %v and %v is %v\n",
 				outer.Url, inner.Url, levenshtein.Distance(outer.Url, inner.Url))
 		}
 	}
-//sort slice to bring lowest metric to top, then skim of the number of mismatches
+	//sort slice to bring lowest metric to top, then skim of the number of mismatches
 	sort.Slice(misCompares, func(i, j int) bool { return misCompares[i].MetricMatch < misCompares[j].MetricMatch })
 
 	//fmt.Println("-----------------miscompares slice------------------" )
@@ -1181,15 +1154,11 @@ func MatchSites(compare Compare) (Compare, error) {
 	//	fmt.Println("+++++++++++++")
 	//}
 
-
-
 	//fmt.Println("-----------------miscompares slice------------------" )
 	//for _,value := range misCompares{
 	//	fmt.Println(value)
 	//	fmt.Println("+++++++++++++")
 	//}
-
-
 
 	//s1 := "kitten"
 	//s2 := "kitten/"
@@ -1199,8 +1168,7 @@ func MatchSites(compare Compare) (Compare, error) {
 
 	misCompares = misCompares[:len(csvMisPages)]
 
-	compare,_ = CompareMisMatch(compare,misCompares)
-
+	compare, _ = CompareMisMatch(compare, misCompares)
 
 	compare.MatchPageCount = len(compare.Diffs)
 
@@ -1212,9 +1180,9 @@ func MatchSites(compare Compare) (Compare, error) {
 	return compare, nil
 }
 
-func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error){
+func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error) {
 
-	for _,value := range misCompares{
+	for _, value := range misCompares {
 		diff := Diff{}
 
 		diff.UrlCsv = ToNullString(value.CsvPage.Url)
@@ -1225,65 +1193,81 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 		diff.StatusStd = value.StdPage.Status
 		if diff.StatusCsv == diff.StatusStd {
 			diff.StatusMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.TitleCsv = value.CsvPage.Title
 		diff.TitleStd = value.StdPage.Title
 		if diff.TitleCsv == diff.TitleStd {
 			diff.TitleMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.DescriptionCsv = value.CsvPage.Description
 		diff.DescriptionStd = value.StdPage.Description
 		if diff.DescriptionCsv == diff.DescriptionStd {
 			diff.DescriptionMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.CanonicalCsv = value.CsvPage.Canonical
 		diff.CanonicalStd = value.StdPage.Canonical
 		if diff.CanonicalCsv == diff.CanonicalStd {
 			diff.CanonicalMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.MetaRobotCsv = value.CsvPage.MetaRobot
 		diff.MetaRobotStd = value.StdPage.MetaRobot
 		if diff.MetaRobotCsv == diff.MetaRobotStd {
 			diff.MetaRobotMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.OgTitleCsv = value.CsvPage.OgTitle
 		diff.OgTitleStd = value.StdPage.OgTitle
 		if diff.OgTitleCsv == diff.OgTitleStd {
 			diff.OgTitleMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.OgDescCsv = value.CsvPage.OgDesc
 		diff.OgDescStd = value.StdPage.OgDesc
 		if diff.OgDescCsv == diff.OgDescStd {
 			diff.OgDescMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.OgImageCsv = value.CsvPage.OgImage
 		diff.OgImageStd = value.StdPage.OgImage
 		if diff.OgImageCsv == diff.OgImageStd {
 			diff.OgImageMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.OgUrlCsv = value.CsvPage.OgUrl
 		diff.OgUrlStd = value.StdPage.OgUrl
 		if diff.OgUrlCsv == diff.OgUrlStd {
 			diff.OgUrlMatch = true
-		}else {compare.Mismatch++}
+		} else {
+			compare.Mismatch++
+		}
 
 		diff.UxNumber = value.StdPage.UxNumber
 		diff.Name = value.StdPage.Name
 
 		compare.Diffs = append(compare.Diffs, diff)
 	}
-	return compare,nil
+	return compare, nil
 }
-
-
 
 //func PutJpgToSql(file os.File) error {
 //		//_, err = config.sqlDB.Exec("INSERT INTO image (site_id,page_id,alt_text,name,LOAD_FILE(thumbnail)) VALUES (?,?,?,?,?)",
@@ -1306,9 +1290,9 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 func PutImage(site Site) error {
 
 	for _, p := range site.Images {
-//todo some of these fields not needed like image_url,name,page_url
+		//todo some of these fields not needed like image_url,name,page_url
 		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url,jpg_id) VALUES (?,?,?,?,?,?,?,?)",
-			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl,p.JpgId)
+			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl, p.JpgId)
 
 		if err != nil {
 			//return pages, errors.New("500. Internal Server Error." + err.Error())
@@ -1343,7 +1327,7 @@ func GetSiteCustomerName(siteId int) (string, string) {
 	return cname, sname
 }
 
-func (c *Customer)GetPagesIndex(r *http.Request) (err error) {
+func (c *Customer) GetPagesIndex(r *http.Request) (err error) {
 
 	site := Site{}
 	var query string
@@ -1365,9 +1349,9 @@ func (c *Customer)GetPagesIndex(r *http.Request) (err error) {
 		log.Fatalf("Could not select from customer: %v", err)
 	}
 
-	if r.FormValue("archived") == "yes"{
+	if r.FormValue("archived") == "yes" {
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,	ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=1"
-	}else{
+	} else {
 		query = "SELECT id,site_id,name,uxnumber,url,statuscode,title,description,	canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive FROM page where site_id = ? AND archive=0 ORDER BY name"
 	}
 	rows, err := config.DB.Query(query, site.Id)
@@ -1435,7 +1419,6 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 
 	rows, err := config.DB.Query("SELECT i.id,i.site_id,i.page_id,i.alt_text,i.notes,j.image FROM image i,jpg j where i.jpg_id=j.id and page_id = ?", intId)
 
-
 	if err != nil {
 		log.Fatalf("Could not get image records: %v", err)
 	}
@@ -1457,23 +1440,18 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 		//image.EncodedImg = template.HTML(encodedImg)
 		images = append(images, image)
 
-
-}
+	}
 	pageDetail := PageDetail{
 		CustomerName: cname,
 		SiteName:     sname,
-		PageName: 		pname,
+		PageName:     pname,
 		Detail:       page,
 		Images:       images,
 	}
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
-
 	return pageDetail, nil
 }
-
-
 
 func UpdatePage(r *http.Request) (error) {
 
@@ -1495,34 +1473,31 @@ func UpdatePage(r *http.Request) (error) {
 	page.OgUrl = r.FormValue("OgUrl")
 	checked := r.FormValue("archive") //will show "check" if box is checked
 	var intArchived int
-	if checked == "check" {intArchived = 1}
+	if checked == "check" {
+		intArchived = 1
+	}
 
-
-	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=?,archive=? WHERE id=?;", page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl,intArchived, page.Page_id)
+	_, err := config.DB.Exec("UPDATE page SET name=?,uxnumber=?,url=?,statuscode=?,title=?,description=?,canonical=?,metarobot=?,ogtitle=?,ogdesc=?,ogimage=?,ogurl=?,archive=? WHERE id=?;", page.Name, page.UxNumber, page.Url, page.Status, page.Title, page.Description, page.Canonical, page.MetaRobot, page.OgTitle, page.OgDesc, page.OgImage, page.OgUrl, intArchived, page.Page_id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-
-
-func FindDiff(std string, csv string)(string){
+func FindDiff(std string, csv string) (string) {
 	dmp := diffmatchpatch.New()
 	diffs := dmp.DiffMain(std, csv, false)
 
-
 	return dmp.DiffPrettyHtml(diffs)
 }
-func FindPdfDiff(std string, csv string)(string){
+func FindPdfDiff(std string, csv string) (string) {
 	dmp := diffmatchpatch.New()
 	diffs := dmp.DiffMain(std, csv, true)
-
 
 	return dmp.DiffPdfText(diffs)
 }
 
-func GetPageDiff(w http.ResponseWriter, r *http.Request){
+func GetPageDiff(w http.ResponseWriter, r *http.Request) {
 	std := r.FormValue("std")
 	this_csv := r.FormValue("csv")
 	customer := r.FormValue("customer")
@@ -1530,9 +1505,9 @@ func GetPageDiff(w http.ResponseWriter, r *http.Request){
 	url := r.FormValue("url")
 	field := r.FormValue("field")
 
-	diff := FindDiff(std,this_csv)
+	diff := FindDiff(std, this_csv)
 
-	str :=`<!DOCTYPE html>
+	str := `<!DOCTYPE html>
 	<html lang="en">
 	<head>
 	<meta charset="UTF-8">
@@ -1566,29 +1541,29 @@ func GetPageDiff(w http.ResponseWriter, r *http.Request){
 <body>
 
 <h2 class="col1Title">Comparison Illustrator</h2>
-<div class="col1Section">Customer: `+ customer +`</div>
-<div class="col1Section">Site: `+ site +` </div>
-<div class="col1Section">Url: `+ url +` </div>
+<div class="col1Section">Customer: ` + customer + `</div>
+<div class="col1Section">Site: ` + site + ` </div>
+<div class="col1Section">Url: ` + url + ` </div>
 <br>
 
-<div class="col1Section">Standard - `+ field +` </div>
+<div class="col1Section">Standard - ` + field + ` </div>
 
-<div class="col1Text">`+ std +` </div>
-
-<br>
-<div class="col1Section">Comparison - `+ field +` </div>
-
-<div class="col1Text">`+ this_csv +`</div>
+<div class="col1Text">` + std + ` </div>
 
 <br>
-<span class="col1Section">Illustrated Difference - `+ field +` </span><span class="col1TitleGreen">Addition</span>
+<div class="col1Section">Comparison - ` + field + ` </div>
+
+<div class="col1Text">` + this_csv + `</div>
+
+<br>
+<span class="col1Section">Illustrated Difference - ` + field + ` </span><span class="col1TitleGreen">Addition</span>
 <span class="col1TitleRed">Deletion</span>
 
-<div class="col1Text">`+ diff +`</div>
+<div class="col1Text">` + diff + `</div>
 
 <div class = "buttonarea">
 
-<a class="button" href="/diff/print?std=`+ std +`&csv=`+ this_csv +`&customer=`+ customer +`&site=`+ site +`&url=`+ url +`&field=`+ field +`">Print</a>
+<a class="button" href="/diff/print?std=` + std + `&csv=` + this_csv + `&customer=` + customer + `&site=` + site + `&url=` + url + `&field=` + field + `">Print</a>
 
 <a href="#" class="button" onclick="history.back();">Cancel</a>
 
@@ -1597,12 +1572,12 @@ func GetPageDiff(w http.ResponseWriter, r *http.Request){
 	</body>
 	</html>
 `
-//to use for pdf print function.
+	//to use for pdf print function.
 	//<a class="createlink" href="/diff?std={{.OgUrlStd}}&csv={{.OgUrlCsv}}&customer={{$customer}}&site={{$site}}&url={{.UrlStd}}&field={{$fieldOgUrl}}">Show Differences</a>
 
 	//<a href="#" class="button" onclick="window.print(); ">Print</a>
-	fmt.Fprint(w,str)
-return
+	fmt.Fprint(w, str)
+	return
 }
 
 func GetSearchPagesIndex(r *http.Request) (Customer, error) {
@@ -1660,13 +1635,10 @@ func GetSearchPagesIndex(r *http.Request) (Customer, error) {
 	}
 	customer.Sites = append(customer.Sites, site)
 
-
-
-
 	return customer, nil
 }
 
-func ProcessNewUser(w http.ResponseWriter, r *http.Request)(User, error){
+func ProcessNewUser(w http.ResponseWriter, r *http.Request) (User, error) {
 
 	//if alreadyLoggedIn(req) {
 	//	http.Redirect(w, req, "/", http.StatusSeeOther)
@@ -1676,78 +1648,79 @@ func ProcessNewUser(w http.ResponseWriter, r *http.Request)(User, error){
 
 	// process form submission
 
-		// get form values
-		un := r.FormValue("username")
-		p := r.FormValue("password")
-		f := r.FormValue("firstname")
-		l := r.FormValue("lastname")
+	// get form values
+	un := r.FormValue("username")
+	p := r.FormValue("password")
+	f := r.FormValue("firstname")
+	l := r.FormValue("lastname")
 
-		// create session
-		//sID, _ := uuid.NewV4()
-		//c := &http.Cookie{
-		//	Name:  "session",
-		//	Value: sID.String(),
-		//}
-		//http.SetCookie(w, c)
-		//
-		//fmt.Println(c)
+	// create session
+	//sID, _ := uuid.NewV4()
+	//c := &http.Cookie{
+	//	Name:  "session",
+	//	Value: sID.String(),
+	//}
+	//http.SetCookie(w, c)
+	//
+	//fmt.Println(c)
 
-		//create entry into session table with sid > (sid) and username > (userid)  MAYBE NOT HERE, SIGN IN
+	//create entry into session table with sid > (sid) and username > (userid)  MAYBE NOT HERE, SIGN IN
 
-		//dbSessions[c.Value] = un
+	//dbSessions[c.Value] = un
 
-		// store user in db User
-		var encryptErr = errors.New("Encrypt Error")
-		bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
-		if err != nil {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return u, encryptErr
-		}
-		u = User	{	UserName:	un,
-						Password:	bs,
-						First:		f,
-						Last:		l,
-					}
+	// store user in db User
+	var encryptErr = errors.New("Encrypt Error")
+	bs, err := bcrypt.GenerateFromPassword([]byte(p), bcrypt.MinCost)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return u, encryptErr
+	}
+	u = User{UserName: un,
+		Password: bs,
+		First:    f,
+		Last:     l,
+	}
 	var insertErr = errors.New("User Insert Error")
-		if InsertUser(u) != err {
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return u, insertErr
-		}
-		// redirect
-		//http.Redirect(w, r, "/", http.StatusSeeOther)
-
+	if InsertUser(u) != err {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return u, insertErr
+	}
+	// redirect
+	//http.Redirect(w, r, "/", http.StatusSeeOther)
 
 	return u, nil
 }
 
-func IsUserNameOk(name string) string{
+func IsUserNameOk(name string) string {
 
 	var mycount string
 
 	//if strings.Index(name, "@intouchsol.com") == -1 {return "intouchsol"}
 
-	row := config.DB.QueryRow("select count(*) from user where userid = ?",name)
+	row := config.DB.QueryRow("select count(*) from user where userid = ?", name)
 	err := row.Scan(&mycount)
 
 	if err != nil {
 		log.Fatalf("Could not select from site: %v", err)
 	}
-	if mycount == "1"{return "false"}
+	if mycount == "1" {
+		return "false"
+	}
 
-return "true"
+	return "true"
 }
 
 func InsertUser(u User) (error) {
 
 	// insert values
-	_, err := config.DB.Exec("INSERT INTO user (userid,password,fname,lname,role) VALUES (?,?,?,?,?)", u.UserName,u.Password,u.First,u.Last,"guest")
+	_, err := config.DB.Exec("INSERT INTO user (userid,password,fname,lname,role) VALUES (?,?,?,?,?)", u.UserName, u.Password, u.First, u.Last, "guest")
 
 	if err != nil {
-		return  errors.New("500. Unable to create new user." + err.Error())
+		return errors.New("500. Unable to create new user." + err.Error())
 	}
 	return nil
 }
-func PageDiffPrint(w http.ResponseWriter, r *http.Request)error{
+func PageDiffPrint(w http.ResponseWriter, r *http.Request) error {
 	customer := r.FormValue("customer")
 	site := r.FormValue("site")
 	std := r.FormValue("std")
@@ -1756,7 +1729,7 @@ func PageDiffPrint(w http.ResponseWriter, r *http.Request)error{
 	url := r.FormValue("url")
 	field := r.FormValue("field")
 
-	stdcsv := []string{std,this_csv}
+	stdcsv := []string{std, this_csv}
 
 	fmt.Println(customer)
 	fmt.Println(site)
@@ -1765,17 +1738,17 @@ func PageDiffPrint(w http.ResponseWriter, r *http.Request)error{
 	fmt.Println(url)
 	fmt.Println(field)
 
-	hdr := []string{customer,site,url}
+	hdr := []string{customer, site, url}
 
 	//diff will have to be calculated
 	pdf := diffReport()
-	pdf = diffheader(pdf,hdr)
+	pdf = diffheader(pdf, hdr)
 
-	pdf = diffBody(pdf,stdcsv,field)
+	pdf = diffBody(pdf, stdcsv, field)
 
-	err :=pdf.Output(w)
+	err := pdf.Output(w)
 	if err != nil {
-		return  errors.New("500. Failed creating PDF report." + err.Error())
+		return errors.New("500. Failed creating PDF report." + err.Error())
 	}
 	return nil
 
@@ -1798,81 +1771,87 @@ func diffReport() *gofpdf.Fpdf {
 }
 func diffheader(pdf *gofpdf.Fpdf, hdr []string) *gofpdf.Fpdf {
 	pdf.SetFont("Times", "", 14)
-	pdf.Cell(35,8,"Customer:")
-	pdf.Cell(40,8,hdr[0])
+	pdf.Cell(35, 8, "Customer:")
+	pdf.Cell(40, 8, hdr[0])
 	pdf.Ln(5)
-	pdf.Cell(35,8,"Site:")
-	pdf.Cell(40,8,hdr[1])
+	pdf.Cell(35, 8, "Site:")
+	pdf.Cell(40, 8, hdr[1])
 	pdf.Ln(5)
-	pdf.Cell(35,8,"Url:")
-	pdf.Write(8,hdr[2])
+	pdf.Cell(35, 8, "Url:")
+	pdf.Write(8, hdr[2])
 	pdf.Ln(14)
 
-return  pdf
+	return pdf
 }
 
-func diffBody(pdf *gofpdf.Fpdf, hdr []string,field string)*gofpdf.Fpdf{
+func diffBody(pdf *gofpdf.Fpdf, hdr []string, field string) *gofpdf.Fpdf {
 	tr := pdf.UnicodeTranslatorFromDescriptor("") // "" defaults to "cp1252"
 	pdf.SetFont("Times", "B", 14)
-	pdf.Write(8,"Standard - " + field)
+	pdf.Write(8, "Standard - "+field)
 	pdf.Ln(8)
 	pdf.SetFont("Times", "", 14)
-	pdf .Write(8,tr(hdr[0]))
+	pdf.Write(8, tr(hdr[0]))
 	pdf.Ln(20)
 	pdf.SetFont("Times", "B", 14)
-	pdf.Write(8,"Comparison - " + field)
+	pdf.Write(8, "Comparison - "+field)
 	pdf.SetFont("Times", "", 14)
 	pdf.Ln(8)
-	pdf .Write(8,tr(hdr[1]))
+	pdf.Write(8, tr(hdr[1]))
 	pdf.Ln(20)
 	pdf.SetFont("Times", "B", 14)
-	pdf.Write(8,"Illustrated Difference - " + field + "       ")
+	pdf.Write(8, "Illustrated Difference - "+field+"       ")
 
 	// red background  pdf.SetFillColor(255,0,0)
 	// rgb for light green is 144,238,144
 	// rgb for light coral red is 240,128,128
 	// rgb for white is 255,255,255
 	pdf.SetFont("Times", "", 10)
-	pdf.SetFillColor(144,238,144)
-	pdf.CellFormat(30,8,"Additions in green.","",0,"C",true,0,"")
-	pdf.Write(8,"      ")
-	pdf.SetFillColor(240,128,128)
-	pdf.CellFormat(30,8,"Deletions in red.","",1,"C",true,0,"")
+	pdf.SetFillColor(144, 238, 144)
+	pdf.CellFormat(30, 8, "Additions in green.", "", 0, "C", true, 0, "")
+	pdf.Write(8, "      ")
+	pdf.SetFillColor(240, 128, 128)
+	pdf.CellFormat(30, 8, "Deletions in red.", "", 1, "C", true, 0, "")
 	//pdf.Write(8," and deletions in red")
 	pdf.Ln(8)
 	pdf.SetFont("Times", "", 14)
 	//pdf.CellFormat(0,8,"red","",1,"",true,0,"")
 	//pdf.Write(8,FindPdfDiff(hdr[0],hdr[1]))
 	pdf.Ln(8)
-	pdf.SetFillColor(255,255,255)
+	pdf.SetFillColor(255, 255, 255)
 
 	strStd := tr(hdr[0])
 	strCsv := tr(hdr[1])
-	str := FindPdfDiff(strStd,strCsv)
+	str := FindPdfDiff(strStd, strCsv)
 
 	deletionSign := "(-)"
 	additionSign := "(+)"
 	normalSign := "(0)"
 
-	var norm,backColor string
+	var norm, backColor string
 	var idx int
 
 	for {
 		idxAdd := strings.Index(str, additionSign)
-		fmt.Println("idxAdd-",idxAdd)
-		if idxAdd == -1{idxAdd = 1000}
+		fmt.Println("idxAdd-", idxAdd)
+		if idxAdd == -1 {
+			idxAdd = 1000
+		}
 		idxDel := strings.Index(str, deletionSign)
-		if idxDel == -1{idxDel = 1000}
-		fmt.Println("idxDel-",idxDel)
+		if idxDel == -1 {
+			idxDel = 1000
+		}
+		fmt.Println("idxDel-", idxDel)
 		idxNil := strings.Index(str, normalSign)
-		if idxNil == -1{idxNil = 1000}
-		fmt.Println("idxNil-",idxNil)
+		if idxNil == -1 {
+			idxNil = 1000
+		}
+		fmt.Println("idxNil-", idxNil)
 
 		//no sign left
 		if idxAdd+idxDel+idxNil == 3000 {
 			fmt.Println("nothing");
 			//pdf.CellFormat(30,8,str,"",0,"",true,0,"")
-			pdf.Write(8,tr(str))
+			pdf.Write(8, tr(str))
 			break
 		}
 		//finding the closest sign to get index and type
@@ -1891,28 +1870,27 @@ func diffBody(pdf *gofpdf.Fpdf, hdr []string,field string)*gofpdf.Fpdf{
 			//pdf.SetFillColor(255,255,255)
 		}
 
-		fmt.Println("after if-",idx)
+		fmt.Println("after if-", idx)
 
 		norm = tr(str[0:idx])
-		pdf.Write(8,norm)
+		pdf.Write(8, norm)
 		//pdf.CellFormat(40,8,norm,"",0,"",true,0,"")
 		fmt.Println(norm)
 		fmt.Println("Change background color-", backColor)
 
-		if backColor == "green"{
+		if backColor == "green" {
 			//pdf.SetFillColor(144,238,144)
 			pdf.SetFont("Times", "B", 16)
-			pdf.SetTextColor(144,238,144)
-		}else if backColor == "red"{
+			pdf.SetTextColor(144, 238, 144)
+		} else if backColor == "red" {
 			//pdf.SetFillColor(240,128,128)
 			pdf.SetFont("Times", "B", 16)
-			pdf.SetTextColor(240,128,128)
-		}else{
+			pdf.SetTextColor(240, 128, 128)
+		} else {
 			//pdf.SetFillColor(0,0,0)
 			pdf.SetFont("Times", "", 14)
-			pdf.SetTextColor(0,0,0)
+			pdf.SetTextColor(0, 0, 0)
 		}
-
 
 		idx = idx + 3
 		str = tr(str[idx:])
@@ -1922,5 +1900,3 @@ func diffBody(pdf *gofpdf.Fpdf, hdr []string,field string)*gofpdf.Fpdf{
 
 	return pdf
 }
-
-
