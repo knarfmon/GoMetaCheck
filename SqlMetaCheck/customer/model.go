@@ -188,8 +188,8 @@ type PageDetail struct {
 
 type Compare struct {
 	CustomerName string
-	CsvSite      Site
-	StdSite      Site
+	CsvSite      *Site
+	StdSite      *Site
 	Diffs        []Diff
 	//DiffImage		DiffImage
 	DiffImages     []DiffImage //moved this under diff
@@ -216,7 +216,7 @@ type User struct {
 	Role     string
 }
 
-func (c Customer) AllCustomers(r *http.Request) ([]Customer, error) {
+func (c Customer) CustomerIndex(r *http.Request) ([]Customer, error) {
 
 	var archive int
 	var query string
@@ -265,7 +265,7 @@ func (c Customer) AllCustomers(r *http.Request) ([]Customer, error) {
 
 }
 
-func (c *Customer) PutCustomer(r *http.Request) error {
+func (c *Customer) CustomerPut(r *http.Request) error {
 	// get form values
 
 	c.Name = r.FormValue("name")
@@ -283,7 +283,7 @@ func (c *Customer) PutCustomer(r *http.Request) error {
 	return nil
 }
 
-func (c *Customer) OneCustomer(r *http.Request) (err error) {
+func (c *Customer) CustomerGet(r *http.Request) (err error) {
 
 	var archive int
 	c.Id, err = strconv.Atoi(r.FormValue("id"))
@@ -309,7 +309,7 @@ func (c *Customer) OneCustomer(r *http.Request) (err error) {
 	return nil
 }
 
-func (c *Customer) UpdateCustomer(r *http.Request) (err error) {
+func (c *Customer) CustomerUpdate(r *http.Request) (err error) {
 	// get form values
 
 	c.Name = r.FormValue("name")
@@ -401,7 +401,7 @@ func (c *Customer) GetCustomerSite(r *http.Request) (err error) {
 	return nil
 }
 
-func (s *Site) PutSite(r *http.Request) (err error) {
+func (s *Site) SitePut(r *http.Request) (err error) {
 	// get form values
 
 	s.Name = r.FormValue("name")
@@ -425,7 +425,7 @@ func (s *Site) PutSite(r *http.Request) (err error) {
 	return nil
 }
 
-func (s *Site) OneSite(r *http.Request) (err error) {
+func (s *Site) SiteGet(r *http.Request) (err error) {
 
 	var archive int
 
@@ -450,7 +450,7 @@ func (s *Site) OneSite(r *http.Request) (err error) {
 	return nil
 }
 
-func (s *Site)UpdateSite(r *http.Request) (err error) {
+func (s *Site) SiteUpdate(r *http.Request) (err error) {
 	// get form values
 	s.Name = r.FormValue("name")
 	s.Url = r.FormValue("url")
@@ -495,18 +495,16 @@ func (s *Site)UpdateSite(r *http.Request) (err error) {
 	return nil
 }
 
-func PreUploadSite(r *http.Request) (Site, error) {
-	site := Site{}
-	site.Name = r.FormValue("name")
-	site.Url = r.FormValue("url")
-	strId := r.FormValue("site_id")
-	intId, err := strconv.Atoi(strId)
-	if err != nil {
-		return site, errors.New("406. Not Acceptable. Id not of correct type")
-	}
-	site.Id = intId
+func (s *Site)SitePreUpload(r *http.Request) (err error) {
 
-	return site, nil
+	s.Name = r.FormValue("name")
+	s.Url = r.FormValue("url")
+	s.Id, err = strconv.Atoi(r.FormValue("site_id"))
+	if err != nil {
+		return errors.New("406. Not Acceptable. Id not of correct type")
+	}
+
+	return nil
 }
 
 func UploadSite4(r *http.Request) ([]Page, error) {
@@ -602,9 +600,9 @@ func fixPageName(str string) (string) {
 	return str
 }
 
-func PutPage(site Site) (error) { //replaced pages []Page with site Site
+func (s *Site)PagePut() (err error) { //replaced pages []Page with site Site
 
-	for _, p := range site.Pages {
+	for _, p := range s.Pages {
 
 		res, err := config.DB.Exec("INSERT INTO page (site_id,name,uxnumber,url,statuscode,title,description,canonical,metarobot,ogtitle,ogdesc,ogimage,ogurl,archive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 			p.Site_id, p.Name, p.UxNumber, p.Url, p.Status, p.Title, p.Description, p.Canonical, p.MetaRobot, p.OgTitle, p.OgDesc, p.OgImage, p.OgUrl, p.Archive)
@@ -623,27 +621,27 @@ func PutPage(site Site) (error) { //replaced pages []Page with site Site
 }
 
 //todo examine Compare func > PDF, for change in image tables
-func UploadForCompare(r *http.Request) (Compare, error) {
+func (compare *Compare)UploadForCompare(r *http.Request) (err error) {
 	site_id, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
 
-	cname, sname := GetSiteCustomerName(site_id)
+	cname, sname := CustomerNameFromSiteGet(site_id)
 
-	compare := Compare{}
 	compare.CustomerName = cname
 
-	site := Site{}
+	csvSite := &Site{}
 	//Create site, uploads pages and images into Site.-----------------
-	csvSite, err := UploadHtml(r, site) //from csv
+	err = csvSite.UploadHtml(r) //from csv
 	//todo needs work, need altText for compare & imageUrl for jpg
-	csvSite, err = UploadImage(r, csvSite) //from csv
+	err = csvSite.UploadImage(r) //from csv
 	checkErr(err)
 	fmt.Println("func UploadImage -csv completed without error")
 	//-----------------------------------------------------------
 	csvSite.Name = sname
 
 	//gets page fields from page table
-	stdSite, err := GetPages(r)
+	stdSite := &Site{}
+	err = stdSite.PagesGet(r)
 
 	//gets image fields from image table
 	//todo needs work
@@ -653,36 +651,37 @@ func UploadForCompare(r *http.Request) (Compare, error) {
 	compare.CsvSite = csvSite
 	compare.StdSite = stdSite
 
-	return compare, nil
+	return nil
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-func Upload(r *http.Request) (Site, error) { //changed [] Page with Site
-	site := Site{}
+func (s *Site)Upload(r *http.Request) (err error) { //changed [] Page with Site
 
-	site, err := UploadHtml(r, site) //replaced pages with site
+
+
+	err = s.UploadHtml(r) //replaced pages with site
 	checkErr(err)
 
-	err = PutPage(site) //2/10 replaced pages with site   removed pages from return
+	err = s.PagePut() //2/10 replaced pages with site   removed pages from return
 	checkErr(err)
 
-	site, err = GetPages(r) //site has updated Page Id so as to match with Image Url Id
+	err = s.PagesGet(r) //site has updated Page Id so as to match with Image Url Id
 	checkErr(err)
 
-	site, err = UploadImage(r, site)
+	err = s.UploadImage(r)
 
-	err = PutImage(site)
+	err = s.ImagePut()
 	// push image data to mysql
 
-	return site, nil
+	return nil
 
 	//return pages, nil
 }
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-func UploadHtml(r *http.Request, site Site) (Site, error) { //added site Site  replaced[]Page with Site
+func (s *Site)UploadHtml(r *http.Request) (err error) { //added site Site  replaced[]Page with Site
 
 	//site.Name = r.FormValue("name")
 	strId := r.FormValue("site_id")
@@ -727,7 +726,7 @@ func UploadHtml(r *http.Request, site Site) (Site, error) { //added site Site  r
 			ogImage := record[columns["og:image 1"]]
 			ogUrl := record[columns["og:url 1"]]
 
-			site.Pages = append(site.Pages, Page{
+			s.Pages = append(s.Pages, Page{
 				Site_id:     intId,
 				Name:        name,
 				UxNumber:    0,
@@ -746,7 +745,7 @@ func UploadHtml(r *http.Request, site Site) (Site, error) { //added site Site  r
 
 		}
 	}
-	return site, nil //replaced pages with site
+	return nil //replaced pages with site
 }
 
 func checkErr(err error) {
@@ -791,12 +790,10 @@ func GetImages(r *http.Request) ([]Image) {
 	return images
 }
 
-func GetPages(r *http.Request) (Site, error) {
+func (s *Site) PagesGet(r *http.Request) (err error) {
 
-	name := r.FormValue("name")
-	site := Site{Name: name}
+	s.Name = r.FormValue("name")
 
-	site.Pages = []Page{}
 
 	strId, err := strconv.Atoi(r.FormValue("site_id"))
 	checkErr(err)
@@ -824,13 +821,13 @@ func GetPages(r *http.Request) (Site, error) {
 
 		checkErr(err)
 
-		site.Pages = append(site.Pages, page)
+		s.Pages = append(s.Pages, page)
 	}
-	return site, nil
+	return nil
 }
 
 //Gets image fields from uploaded image csv file, inserts new jpg into table
-func UploadImage(r *http.Request, site Site) (Site, error) {
+func (s *Site)UploadImage(r *http.Request) (err error) {
 
 	//Map used for check if already stored []byte of image by looking at imageUrl
 	mapImageUrl := make(map[string]int)
@@ -872,7 +869,7 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 			PageUrl := record[columns["Source"]]
 
 			// adding page id here, cant add without major change with pointers since passing site around
-			for _, outer := range site.Pages {
+			for _, outer := range s.Pages {
 				if outer.Url == PageUrl {
 					pageid = outer.Page_id
 				}
@@ -908,7 +905,7 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 			//convert url ImageUrl to xbyte here, while loop
 			//var xByte = UrlToXofByte(ImageUrl)
 			//todo change these to ToNullString
-			site.Images = append(site.Images, Image{
+			s.Images = append(s.Images, Image{
 				Site_id: strId,
 				AltText: ToNullString(AltText),
 				//AltText:  AltText,
@@ -923,10 +920,10 @@ func UploadImage(r *http.Request, site Site) (Site, error) {
 		}
 	}
 	fmt.Println("Inserted all images into jpg table")
-	return site, nil
+	return nil
 }
 
-func MatchPerPage(compare Compare) (Compare, error) {
+func (compare *Compare)MatchPerPage() (err error) {
 	//takes all compared images in diffimages and places them in their respective page
 	//outer loop is the Diffs, inner loop is the DiffImages
 	for outer := 0; outer < len(compare.Diffs); outer++ {
@@ -939,11 +936,11 @@ func MatchPerPage(compare Compare) (Compare, error) {
 		}
 
 	}
-	return compare, nil
+	return nil
 }
 
 //todo Match images
-func MatchImages(compare Compare) (Compare, error) {
+func (compare *Compare)MatchImages() (err error) {
 	//takes csv and std images and tries to match them, places them all in compare.DiffImages
 
 	//range over page - out loop
@@ -994,14 +991,14 @@ func MatchImages(compare Compare) (Compare, error) {
 
 	}
 	compare.MismatchImage = mismatchImage
-	return compare, nil
+	return nil
 
 	//New methodology to matching images
 	//Problem: many images per page,many with no alt text, so difficult to match
 
 }
 
-func MatchSites(compare Compare) (Compare, error) {
+func (compare *Compare)MatchSites() (err error) {
 
 	//range over page - out loop
 	csvSite := compare.CsvSite //outer
@@ -1168,7 +1165,8 @@ func MatchSites(compare Compare) (Compare, error) {
 
 	misCompares = misCompares[:len(csvMisPages)]
 
-	compare, _ = CompareMisMatch(compare, misCompares)
+
+	_ = compare.CompareMisMatch(misCompares)
 
 	compare.MatchPageCount = len(compare.Diffs)
 
@@ -1177,10 +1175,10 @@ func MatchSites(compare Compare) (Compare, error) {
 
 	sort.Slice(compare.Diffs, func(i, j int) bool { return compare.Diffs[i].Name < compare.Diffs[j].Name })
 
-	return compare, nil
+	return nil
 }
 
-func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error) {
+func (compare *Compare)CompareMisMatch(misCompares []MisCompare) (err error) {
 
 	for _, value := range misCompares {
 		diff := Diff{}
@@ -1266,7 +1264,7 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 
 		compare.Diffs = append(compare.Diffs, diff)
 	}
-	return compare, nil
+	return nil
 }
 
 //func PutJpgToSql(file os.File) error {
@@ -1287,9 +1285,9 @@ func CompareMisMatch(compare Compare, misCompares []MisCompare) (Compare, error)
 //
 //}
 
-func PutImage(site Site) error {
+func (s *Site)ImagePut() (err error) {
 
-	for _, p := range site.Images {
+	for _, p := range s.Images {
 		//todo some of these fields not needed like image_url,name,page_url
 		_, err := config.DB.Exec("INSERT INTO image (site_id,page_id,alt_text,image_url,name,notes,page_url,jpg_id) VALUES (?,?,?,?,?,?,?,?)",
 			p.Site_id, p.Page_id, p.AltText, p.ImageUrl, p.Name, p.Notes, p.PageUrl, p.JpgId)
@@ -1306,7 +1304,7 @@ func PutImage(site Site) error {
 
 	return nil
 }
-func GetSiteCustomerName(siteId int) (string, string) {
+func CustomerNameFromSiteGet(siteId int) (string, string) {
 	var cname, sname string
 	var customer_id int
 
@@ -1384,7 +1382,7 @@ func (c *Customer) GetPagesIndex(r *http.Request) (err error) {
 	return nil
 }
 
-func GetPageDetails(r *http.Request) (PageDetail, error) {
+func (pageDetail *PageDetail)GetPageDetails(r *http.Request) (err error) {
 
 	intId, err := strconv.Atoi(r.FormValue("page_id"))
 	checkErr(err)
@@ -1441,16 +1439,17 @@ func GetPageDetails(r *http.Request) (PageDetail, error) {
 		images = append(images, image)
 
 	}
-	pageDetail := PageDetail{
-		CustomerName: cname,
-		SiteName:     sname,
-		PageName:     pname,
-		Detail:       page,
-		Images:       images,
-	}
+	pageDetail.CustomerName = cname
+	pageDetail.SiteName = sname
+	pageDetail.PageName = pname
+	pageDetail.Detail = page
+	pageDetail.Images = images
+
+
+
 	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	return pageDetail, nil
+	return nil
 }
 
 func UpdatePage(r *http.Request) (error) {

@@ -18,7 +18,7 @@ func CustomerIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	css, err := Customer{}.AllCustomers(r)
+	css, err := Customer{}.CustomerIndex(r)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -85,7 +85,7 @@ func CustomerCreateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c := &Customer{}
-	err := c.PutCustomer(r)
+	err := c.CustomerPut(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
 		return
@@ -100,7 +100,7 @@ func CustomerUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c := &Customer{}
-	err := c.OneCustomer(r)
+	err := c.CustomerGet(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -119,7 +119,7 @@ func CustomerUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c := &Customer{}
-	err := c.UpdateCustomer(r)
+	err := c.CustomerUpdate(r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
@@ -175,7 +175,7 @@ func SiteCreateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := &Site{}
-	err := s.PutSite(r)
+	err := s.SitePut(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusNotAcceptable)
 		return
@@ -201,7 +201,7 @@ func SiteUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := &Site{}
-	err := s.OneSite(r)
+	err := s.SiteGet(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -220,7 +220,7 @@ func SiteUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s := &Site{}
-	err := s.UpdateSite(r)
+	err := s.SiteUpdate(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
@@ -245,13 +245,14 @@ func SiteUpload(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	site, err := PreUploadSite(r)
+	s := &Site{}
+	err := s.SitePreUpload(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusMethodNotAllowed)
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "siteUpload.gohtml", site)
+	config.TPL.ExecuteTemplate(w, "siteUpload.gohtml", s)
 }
 
 func SiteCompare(w http.ResponseWriter, r *http.Request) {
@@ -259,13 +260,14 @@ func SiteCompare(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	site, err := PreUploadSite(r)
+	s := &Site{}
+	err := s.SitePreUpload(r)
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusMethodNotAllowed)
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "siteCompare.gohtml", site)
+	config.TPL.ExecuteTemplate(w, "siteCompare.gohtml", s)
 }
 func SitePdf(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
@@ -281,16 +283,17 @@ func SiteCompareProcess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//todo check out
-	compare, err := UploadForCompare(r)
+	compare := &Compare{}
+	err := compare.UploadForCompare(r)
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
 
-	compare, err = MatchSites(compare)
-	compare, err = MatchImages(compare)
-	compare, err = MatchPerPage(compare)
+	err = compare.MatchSites()
+	err = compare.MatchImages()
+	err = compare.MatchPerPage()
 
 	if err != nil {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
@@ -306,7 +309,8 @@ func SiteUploadProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	_, err := Upload(r)
+	s := &Site{}
+	err := s.Upload(r)
 
 	c := &Customer{}
 	err = c.GetPagesIndex(r)
@@ -364,12 +368,13 @@ func PageDetails(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 		return
 	}
-	pageDetail, err := GetPageDetails(r)
+	pd := &PageDetail{}
+	err := pd.GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
-	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pd)
 }
 
 func PageDiff(w http.ResponseWriter, r *http.Request) {
@@ -394,7 +399,8 @@ func PageUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageDetail, err := GetPageDetails(r)
+	pd := &PageDetail{}
+	err := pd.GetPageDetails(r)
 	switch {
 	case err == sql.ErrNoRows:
 		http.NotFound(w, r)
@@ -404,7 +410,7 @@ func PageUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	config.TPL.ExecuteTemplate(w, "pageUpdate.gohtml", pageDetail)
+	config.TPL.ExecuteTemplate(w, "pageUpdate.gohtml", pd)
 }
 
 func ImageUpdateHandler(w http.ResponseWriter, r *http.Request) {
@@ -447,13 +453,13 @@ func PageUpdateProcess(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(406), http.StatusBadRequest)
 		return
 	}
-
-	pageDetail, err := GetPageDetails(r)
+	pd := &PageDetail{}
+	err = pd.GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
-	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pd)
 	//
 	//	css, err := GetCustomerSite(r)
 	//	switch {
@@ -480,12 +486,13 @@ func ImageUpdateProcessHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageDetail, err := GetPageDetails(r)
+	pd := &PageDetail{}
+	err = pd.GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
-	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pd)
 }
 
 func ImageProcessHandler(w http.ResponseWriter, r *http.Request) {
@@ -510,12 +517,13 @@ func ImageProcessHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pageDetail, err := GetPageDetails(r)
+	pd := &PageDetail{}
+	err = pd.GetPageDetails(r)
 	if err != nil {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
-	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pageDetail)
+	config.TPL.ExecuteTemplate(w, "pageDetails.gohtml", pd)
 
 }
 func CheckUserName(w http.ResponseWriter, r *http.Request) {
