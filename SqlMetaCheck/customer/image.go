@@ -398,7 +398,8 @@ fmt.Println("Image Url ... ", url)
 	defer response.Body.Close()
 	img, _, err := image.Decode(response.Body)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Err in format...",url)
+		log.Fatalf("Error in UrlToXofByte..image.decode",err)
 	}
 
 	// resize to width 1000 using Lanczos resampling
@@ -408,7 +409,7 @@ fmt.Println("Image Url ... ", url)
 	//creates byte file for mysql upload
 	buf := new(bytes.Buffer)
 	err = jpeg.Encode(buf, m, nil)
-	if err != nil {log.Fatal(err)}
+	if err != nil {log.Fatalf("err in UrlToXofByte..jpeg.encode",err)}
 
 	byteFile := buf.Bytes()
 

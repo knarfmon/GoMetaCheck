@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>School</title>
+</head>
+<body>
+{{template "header"}}<br><br><br><br><br><br>
+
+<h1>INSTRUCTOR - COURSES</h1>
+<ul>
+    {{/*this pipes data from the slice passed in and ranges over the slice, period means all of it.  */}}
+{{ range . }}
+    <li>{{ .InstructorName }} - {{ .CourseName }}</li>
+{{ end }}
+</ul>
+
+</body>
+</html>
